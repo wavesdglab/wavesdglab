@@ -6,7 +6,7 @@ headers();
 % Define parameters
 global k BCWest BCNorth BCEast BCSouth 
 k = 3;
-h = 0.1;
+h = 0.05;
 degree = 1;
 
 resTol = 1e-4;
@@ -17,7 +17,8 @@ BCSouth = 'DIR';
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
-mesh = meshRead('mesh.msh');
+mesh = readMesh('mesh.msh');
+mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManagerCG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,6 +93,7 @@ disp(['\text{CG-1} & & ' ...
 
 [solRef, matA, rhsA]     = computeSolNumCG2(mesh, dofm);
 solAna                   = computeSolAnaCG(mesh);
+writeFieldCG(mesh, solAna, "mySol.pos", "mySol");
 [errorL2, errorH1]       = computeErrorCG(mesh, dofm, solRef, solAna);
 
 [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));

@@ -1,4 +1,4 @@
-Mesh.MshFileVersion = 2.2;
+//Mesh.MshFileVersion = 2.2;
 
 Point(1) = { 0, 0, 0};
 Point(2) = { 1, 0, 0};

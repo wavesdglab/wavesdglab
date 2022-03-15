@@ -1,77 +1,5 @@
-function mesh = meshRead(namefile)
-
-% global mesh.numVer      % Number of nodes                                              -- OK
-% global mesh.numVerBnd   % Number of nodes on the boundary
-% global mesh.numVerInt   % Number of nodes inside the domain
-% global mesh.listVerBnd  % List of nodes on the boundary   [matrix mesh.numVerBnd x 1]
-% global mesh.listVerInt  % List of nodes inside the domain [matrix mesh.numVerInt x 1]
-% global mesh.coord       % Coordinates of vertices         [matrix mesh.numVer    x 2]  -- OK
-
-% global mesh.numEdg      % Number of edges
-% global mesh.numEdgBnd   % Number of edges on the boundary
-% global mesh.numEdgInt   % Number of edges inside the domain
-% global mesh.listEdg     % List of edges                   [matrix mesh.numEdg    x 2]
-% global mesh.listEdgBnd  % List of edges on the boundary   [matrix mesh.numEdgBnd    ]
-% global mesh.listEdgInt  % List of edges inside the domain [matrix mesh.numEdgInt    ]
-% global mesh.tagEdg      % Physical tag for edges          [matrix mesh.numEdg       ]
-% global mesh.tagEdgBnd   % Physical tag for edges on the boundary
-
-% global mesh.numTri      % Number of triangles                                          -- OK
-% global mesh.mapTriToVer % Connectivity Triangle-to-Vertex     [matrix mesh.numTri x 3] -- OK
-% global mesh.mapTriToEdg % Connectivity Triangle-to-Edge       [matrix mesh.numTri x 3]
-
-% global mesh.mapTriToTri % Connectivity Triangle-to-Triangle
-% global mesh.mapTriToFac % Connectivity Triangle-to-Face (LocalEdge)
-% global mesh.mapEdgToTri % Connectivity Edge-to-Triangle
-% global mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
-
-% -------------------------------------------------------------------------
-% Read the file
-% -------------------------------------------------------------------------
-
-file = fopen(namefile,'r');
-if (file <= 0)
-    error(['Mesh ' namefile ' not found!']);
-end
-
-% Read nodes
-
-while (~strcmp(fgetl(file),'$Nodes')) end
-mesh.numVer = str2num(fgetl(file));
-mesh.coord  = zeros(mesh.numVer,2);
-for i=1:mesh.numVer
-    line = str2num(fgetl(file));
-    mesh.coord(i,:) = line(2:3);
-end
-
-% Read elements
-
-while (~strcmp(fgetl(file),'$Elements')) end
-NumElements = str2num(fgetl(file));
-mesh.mapTriToVer = [];
-TagEdgBndFile    = [];
-ListEdgBndFile   = [];
-for i = 1:NumElements
-    line = str2num(fgetl(file));
-    % LIN
-    if (line(2) == 1)
-        TagEdgBndFile  = [TagEdgBndFile; line(4)];
-        ListEdgBndFile = [ListEdgBndFile; line(6:7)];
-    end
-    % TRI
-    if (line(2) == 2)
-        mesh.mapTriToVer = [mesh.mapTriToVer; line(end-2:end)];
-    end
-end
-NumEdgBndFile = size(ListEdgBndFile,1);
-mesh.numTri = size(mesh.mapTriToVer,1);
-
-% Close the file
-
-fclose(file);
-
-% fprintf('---------------------------------------------------------\n');
-% fprintf('Mesh    : mesh.numTri    = %i\n', mesh.numTri);
+function mesh = buildMeshConnectivity(mesh)
+disp(['--- CALL buildMeshConnectivity']);
 
 % -------------------------------------------------------------------------
 % List of boundary/interior edges + Connectivity
@@ -80,10 +8,10 @@ fclose(file);
 % Connectivity boundary-node to boundary-node (with boundary-TAG ... 0 is forbidden)
 
 mapBndToBnd = sparse(mesh.numVer,mesh.numVer);
-for edg = 1:NumEdgBndFile
-    ver = ListEdgBndFile(edg,:);
-    mapBndToBnd(ver(1),ver(2)) = TagEdgBndFile(edg);
-    mapBndToBnd(ver(2),ver(1)) = TagEdgBndFile(edg);
+for edg = 1:size(mesh.listEdgBndFile,1)
+    ver = mesh.listEdgBndFile(edg,:);
+    mapBndToBnd(ver(1),ver(2)) = mesh.tagEdgBndFile(edg);
+    mapBndToBnd(ver(2),ver(1)) = mesh.tagEdgBndFile(edg);
 end
 
 % Connectivity all-node to all-node (with edge-ID)
@@ -126,7 +54,7 @@ end
 mesh.numEdg = edg;
 
 mesh.tagEdg = zeros(mesh.numEdg,1);
-for edgBnd = 1:NumEdgBndFile
+for edgBnd = 1:size(mesh.listEdgBndFile,1)
     mesh.tagEdg(mesh.listEdgBnd(edgBnd)) = mesh.tagEdgBnd(edgBnd);
 end
 
