@@ -1,3 +1,7 @@
+*.msh
+*.pos
+*/*.msh
+*/*.pos
 .DS_Store
 */.DS_Store
 */*/.DS_Store
