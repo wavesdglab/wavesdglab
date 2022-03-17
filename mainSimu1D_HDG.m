@@ -1,9 +1,7 @@
 clear all;
 close all;
 
-addpath('benchmarks1D/');
-addpath('kernels/');
-addpath('tools/');
+headers1D;
 
 global k BCLeft BCRight
 

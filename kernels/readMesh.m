@@ -166,7 +166,7 @@ while (~strcmp(fgetl(file),'$Elements'))
 end
 data = str2num(fgetl(file));
 numEntityBlocks = data(1);
-numElementsLIN     = 0;
+numElementsLIN      = 0;
 numElementsTRI      = 0;
 mesh.mapTriToVer    = [];
 mesh.tagEdgBndFile  = [];
