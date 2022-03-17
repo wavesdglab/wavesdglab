@@ -1,4 +1,4 @@
-function solAna = computeSolAnaDG(mesh)
+function solAna = computeSolAna2D_DG(mesh)
 
 x = mesh.coord(:,1);
 y = mesh.coord(:,2);

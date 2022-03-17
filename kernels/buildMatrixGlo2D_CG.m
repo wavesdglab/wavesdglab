@@ -1,4 +1,4 @@
-function [matM, matK, matDX, matDY, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGloCG(mesh, dofm)
+function [matM, matK, matDX, matDY, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGlo2D_CG(mesh, dofm)
 
 % -------------------------------------------------------------------------
 % Compute volume matrices

@@ -1,8 +1,8 @@
-function [errorL2, errorH1] = computeErrorCG(mesh, dofm, solNum, solRef)
+function [errorL2, errorH1] = computeError2D_DG(mesh, dofm, solNum, solRef)
 
 errNum = solNum(1:dofm.numDofTRI)-solRef;
 
-[matM, matK] = buildMatrixGloCG(mesh, dofm);
+[matM, matK] = buildMatrixGlo2D_DG(mesh, dofm);
 
 normL2 = real(sqrt(solRef'*matM*solRef));
 normH1 = real(sqrt(solRef'*matK*solRef + solRef'*matM*solRef));

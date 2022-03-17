@@ -1,4 +1,4 @@
-function dofm = buildDofManagerCG(mesh, degree)
+function dofm = buildDofManager2D_CG(mesh, degree)
 
 % Polynomial degree
 dofm.degree = degree;

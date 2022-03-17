@@ -1,4 +1,4 @@
-function buildMatrixGloHDGsave()
+function buildMatrixGlo2D_HDGsave()
 
 global Coord
 global NumEdg

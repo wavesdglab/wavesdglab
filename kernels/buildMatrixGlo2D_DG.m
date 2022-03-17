@@ -1,4 +1,4 @@
-function [matM, matK, matDX, matDY] = buildMatrixGloDG(mesh, dofm)
+function [matM, matK, matDX, matDY] = buildMatrixGlo2D_DG(mesh, dofm)
 
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);   % Mass matrix
 matK = sparse(dofm.numDofTRI,dofm.numDofTRI);   % Stiffness matrix

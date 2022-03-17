@@ -1,4 +1,4 @@
-function [solA, matA, rhsA] = computeSolNumUDG2(mesh, dofm, tau)
+function [solA, matA, rhsA] = computeSolNum2D_UDG2(mesh, dofm, tau)
 
 fprintf('Solver  : Call computeSolNumUDG2\n');
 
@@ -22,7 +22,7 @@ y = y(:);
 % -------------------------------------------------------------------------
 fprintf('Solver  : Build volume terms\n');
 
-[matM, matK, ~, ~] = buildMatrixGloDG(mesh, dofm);
+[matM, matK, ~, ~] = buildMatrixGlo2D_DG(mesh, dofm);
 
 dofTRI = dofm.numDofTRI;
 dofLIN = dofm.numDofLIN;

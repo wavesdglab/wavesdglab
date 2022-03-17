@@ -1,5 +1,6 @@
-function headers()
+function headers2D()
 
+addpath('benchmarks2D/');
 addpath('kernels/');
 addpath('tools/');
 addpath('tools/triasymq/');

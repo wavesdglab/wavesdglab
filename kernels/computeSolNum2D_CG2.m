@@ -1,4 +1,4 @@
-function [solA, matA, rhsA] = computeSolNumCG2(mesh, dofm)
+function [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm)
 
 global k BCWest BCNorth BCEast BCSouth
 
@@ -14,7 +14,7 @@ y = mesh.coord(:,2);
 % Build system
 % -------------------------------------------------------------------------
 
-[matM, matK, ~, ~, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGloCG(mesh, dofm);
+[matM, matK, ~, ~, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGlo2D_CG(mesh, dofm);
 matA = matK - k^2*matM;
 rhsA = matM * solF;
 
