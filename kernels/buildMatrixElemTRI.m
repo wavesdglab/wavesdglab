@@ -2,6 +2,33 @@
 
 function [matM, matK, matDX, matDY] = buildMatrixElemTRI(V1, V2, V3, degree)
 
+
+[x, y, weights] = quadratureGaussTRI(2*degree);
+valQ = functionsShapeTRI(x, y, degree);
+[valDx, valDy] = functionsShapeDerTRI(x, y, degree);
+
+N = size(valQ,2);
+
+% Reference line [-1,1]
+matMref = zeros(N,N);
+matKref = zeros(N,N);
+matDXref = zeros(N,N);
+matDYref = zeros(N,N);
+for i=1:N
+    for j=1:N
+        matMref(i,j)  = weights' * (valQ(:,i) .* valQ(:,j));
+        matKref(i,j)  = weights' * (valDx(:,i) .* valDx(:,j) + valDy(:,i) .* valDy(:,j));
+        matDXref(i,j) = weights' * (valQ(:,i) .* valDx(:,j));
+        matDYref(i,j) = weights' * (valQ(:,i) .* valDy(:,j));
+    end
+end
+
+
+
+
+
+
+
 % Jacobian ([V1,V2,V3] <=> [(0,0),(0,-1),(0,1)])
 J = [(V2-V1)' (V3-V1)'];
 detJ = abs(det(J));

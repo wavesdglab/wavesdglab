@@ -1,10 +1,11 @@
 % Assumption: x in [-1,1]
 
-function val = functionsLegendreDer(x,N)
+function val = functionsLegendreDer(x,degree)
 
-legendre = functionsLegendre(x,N);
+legendre = functionsLegendre(x,degree);
 x = x(:);
 
+N = degree+1;
 val = zeros(size(x(:),1), N);
 val(:,1) = 0;  % order 0
 for n=1:(N-1)

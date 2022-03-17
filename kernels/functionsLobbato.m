@@ -1,17 +1,34 @@
 % Assumption: x in [-1,1]
 
-function val = functionsLobbato(x,N)
+function val = functionsLobbato(x,degree)
+                                                    
+% legendreInt = functionsLegendreInt(x,degree);
+% x = x(:);
+% 
+% N = degree+1;
+% val = zeros(size(x(:),1),N);
+% 
+% % nodal modes
+% val(:,1) = (1-x)/2;
+% val(:,2) = (1+x)/2;
+% 
+% % edge modes
+% for n=2:(N-1)
+%     val(:,n+1) = sqrt(n - 1/2) * legendreInt(:,n);
+% end
 
-% val = functionsBernstein(x,N);
-
-legendreInt = functionsLegendreInt(x,N);
+N = degree+1;
 x = x(:);
+val = zeros(size(x,1),N);
+functionsKernel = functionsJacobi(x,1,1,N-2);
 
-val = zeros(size(x(:),1),N);
-val(:,1) = (1-x)/2;  % order 0
-val(:,2) = (1+x)/2;  % order 1
-for n=2:(N-1)
-    val(:,n+1) = sqrt(n - 1/2) * legendreInt(:,n);  % order n
+% nodal modes
+val(:,1) = (1-x)/2;
+val(:,2) = (1+x)/2;
+
+% edge modes
+for n=1:N-2
+    val(:,n+2) = val(:,1) .* val(:,2) .* functionsKernel(:,n);
 end
 
 end

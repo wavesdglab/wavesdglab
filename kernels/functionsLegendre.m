@@ -1,9 +1,10 @@
 % Assumption: x in [-1,1]
 
-function val = functionsLegendre(x,N)
+function val = functionsLegendre(x,degree)
 
 x = x(:);
 
+N = degree+1;
 val = zeros(size(x(:),1),N);
 val(:,1) = 1;  % order 0
 val(:,2) = x;  % order 1

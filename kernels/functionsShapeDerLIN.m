@@ -1,8 +1,8 @@
 % Assumption: x in [-1,1]
 
-function val = functionsShapeDerLIN(x,N)
+function val = functionsShapeDerLIN(x,degree)
 
-val = functionsLobbatoDer(x,N);
-%val = functionsBernsteinDer(x,N);
+val = functionsLobbatoDer(x,degree);
+%val = functionsBernsteinDer(x,degree);
 
 end

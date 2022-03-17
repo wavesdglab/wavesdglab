@@ -26,7 +26,7 @@ val(:,n) = l1; n=n+1;
 Nedg = degree+2; % to modify
 xloc = l3-l2;
 coef = 4*l2.*l3 ./ (1. - xloc.^2);
-valEdg = functionsLobbato(xloc, Nedg);
+valEdg = functionsLobbato(xloc, degree);
 size(valEdg)
 for ne = 1:degree-1
     val(:,n) = coef .* valEdg(:,2+ne); n=n+1;
@@ -36,7 +36,7 @@ end
 Nedg = degree+2; % to modify
 xloc = l1-l3;
 coef = 4*l3.*l1 ./ (1. - xloc.^2);
-valEdg = functionsLobbato(xloc, Nedg);
+valEdg = functionsLobbato(xloc, degree);
 for ne = 1:degree-1
     val(:,n) = coef .* valEdg(:,2+ne); n=n+1;
 end
@@ -45,7 +45,7 @@ end
 Nedg = degree+2; % to modify
 xloc = l2-l1;
 coef = 4*l1.*l2 ./ (1. - xloc.^2);
-valEdg = functionsLobbato(xloc, Nedg);
+valEdg = functionsLobbato(xloc, degree);
 for ne = 1:degree-1
     val(:,n) = coef .* valEdg(:,2+ne); n=n+1;
 end

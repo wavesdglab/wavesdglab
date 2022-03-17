@@ -6,7 +6,7 @@ headers();
 % Define parameters
 global k BCWest BCNorth BCEast BCSouth 
 k = 3;
-h = 0.05;
+h = 0.1;
 degree = 1;
 
 resTol = 1e-4;

@@ -4,7 +4,7 @@ function val = functionsJacobi(x,alpha,beta,N)
 
 x = x(:);
 
-val = zeros(size(x(:),1),N);
+val = zeros(size(x,1),N);
 val(:,1) = 1;                                  % order 0
 val(:,2) = 0.5*(alpha-beta+(alpha+beta+2)*x);  % order 1
 for n=1:(N-2)
