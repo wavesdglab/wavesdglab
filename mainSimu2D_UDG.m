@@ -16,7 +16,7 @@ BCEast  = 'ABC';
 BCSouth = 'ABC';
 
 % Build mesh and dofManager
-system(['gmsh -2 mesh.geo -clmax ' num2str(h) ' -clmin ' num2str(h)]);
+system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
 mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManagerDG(mesh, degree);

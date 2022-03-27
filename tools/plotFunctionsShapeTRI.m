@@ -1,9 +1,9 @@
 close all;
 clear all;
 
-headers()
+headers2D()
 
-degree = 3;
+degree = 4;
 
 x = -1:0.01:1;
 y = -1:0.01:1;

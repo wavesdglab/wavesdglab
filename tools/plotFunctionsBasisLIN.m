@@ -3,7 +3,7 @@
 
 % This script plots the basis functions for 5 different bases
 
-headers()
+headers1D()
 
 x = -1:0.01:1;
 nodes = [-1 -0.5 0 0.5 1];
