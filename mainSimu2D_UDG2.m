@@ -165,10 +165,10 @@ disp(['---------------------------------------------------------']);
 figure(1);
 subplot(1,3,1);
 hold off
-postProVizuDG(mesh,real(solAna), 'Exact solution');
+postProVizu2D_DG(mesh,real(solAna), 'Exact solution');
 subplot(1,3,2);
 hold off
-postProVizuDG(mesh,real(solA), 'Numerical solution');
+postProVizu2D_DG(mesh,real(solA), 'Numerical solution');
 subplot(1,3,3);
 hold off
-postProVizuDG(mesh,real(solA-solAna), 'Error');
+postProVizu2D_DG(mesh,real(solA-solAna), 'Error');

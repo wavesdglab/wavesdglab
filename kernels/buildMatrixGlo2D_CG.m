@@ -42,7 +42,7 @@ dofS4 = zeros(dofm.numDofTRI,1);
 
 for edgBnd=1:mesh.numEdgBnd
     edg = mesh.listEdgBnd(edgBnd);
-    ver = mesh.listEdg(edg,:);
+    ver = mesh.mapEdgToVer(edg,:);
     
     % Elemental matrix
     V1 = mesh.coord(ver(1),:);

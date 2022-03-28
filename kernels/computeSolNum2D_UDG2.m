@@ -24,16 +24,16 @@ fprintf('Solver  : Build volume terms\n');
 
 [matM, matK, ~, ~] = buildMatrixGlo2D_DG(mesh, dofm);
 
-dofTRI = dofm.numDofTRI;
-dofLIN = dofm.numDofLIN;
+numDofTRI = dofm.numDofTRI;
+numDofLIN = dofm.numDofLIN;
 
 matA = [
-    matK - k^2*matM          sparse(dofTRI,2*dofLIN)         ;
-    sparse(2*dofLIN,dofTRI)  sparse(1:2*dofLIN,1:2*dofLIN,1) ];
+    matK - k^2*matM                sparse(numDofTRI,2*numDofLIN)         ;
+    sparse(2*numDofLIN,numDofTRI)  sparse(1:2*numDofLIN,1:2*numDofLIN,1) ];
 
 rhsA = [
     matM * solF       ;
-    zeros(2*dofLIN,1) ];
+    zeros(2*numDofLIN,1) ];
 
 % -------------------------------------------------------------------------
 % Build surface terms
@@ -63,18 +63,18 @@ for tri=1:mesh.numTri
         
         % Global ID for (interior) edge unknowns
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-        idIntS = dofTRI + dofm.locToGloLIN(edgGlo,:);
+        idIntS = numDofTRI + dofm.locToGloLIN(edgGlo,:);
         if(mesh.mapTriToEdg(tri,fac) > 0)
             idIntG = idIntS;
-            idExtG = idIntS + dofLIN;
+            idExtG = idIntS + numDofLIN;
         else
-            idIntG = idIntS([2 1]) + dofLIN;
+            idIntG = idIntS([2 1]) + numDofLIN;
             idExtG = idIntS([2 1]);
         end
         
         % Elemental matrices
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-        verEdg = mesh.listEdg(edgGlo,:);
+        verEdg = mesh.mapEdgToVer(edgGlo,:);
         V1 = mesh.coord(verEdg(1),:);
         V2 = mesh.coord(verEdg(2),:);
         [matMel, ~, ~] = buildMatrixElemLIN(V1,V2,dofm.degree);
@@ -144,7 +144,7 @@ end
 
 fprintf('Solver  : Solve ... \n');
 solA = matA\rhsA;
-solA = solA(1:dofTRI);
+solA = solA(1:numDofTRI);
 
 fprintf('---------------------------------------------------------\n');
 

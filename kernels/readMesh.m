@@ -1,27 +1,11 @@
-% global mesh.numVer      % Number of nodes                                                -- OK
-% global mesh.numVerBnd   % Number of nodes on the boundary
-% global mesh.numVerInt   % Number of nodes inside the domain
-% global mesh.listVerBnd  % List of nodes on the boundary     [matrix mesh.numVerBnd x 1]
-% global mesh.listVerInt  % List of nodes inside the domain   [matrix mesh.numVerInt x 1]
-% global mesh.coord       % Coordinates of vertices           [matrix mesh.numVer    x 2]  -- OK
+% mesh.numVer          % Number of nodes
+% mesh.coord           % Coordinates of vertices               [matrix mesh.numVer x 2]
 
-% global mesh.numEdg      % Number of edges
-% global mesh.numEdgBnd   % Number of edges on the boundary
-% global mesh.numEdgInt   % Number of edges inside the domain
-% global mesh.listEdg     % List of edges                     [matrix mesh.numEdg    x 2]
-% global mesh.listEdgBnd  % List of edges on the boundary     [matrix mesh.numEdgBnd    ]
-% global mesh.listEdgInt  % List of edges inside the domain   [matrix mesh.numEdgInt    ]
-% global mesh.tagEdg      % Physical tag for edges            [matrix mesh.numEdg       ]
-% global mesh.tagEdgBnd   % Physical tag for edges on the boundary
-
-% global mesh.numTri      % Number of triangles                                           -- OK
-% global mesh.mapTriToVer % Connectivity Triangle-to-Vertex   [matrix mesh.numTri    x 3] -- OK
-% global mesh.mapTriToEdg % Connectivity Triangle-to-Edge     [matrix mesh.numTri    x 3]
-
-% global mesh.mapTriToTri % Connectivity Triangle-to-Triangle
-% global mesh.mapTriToFac % Connectivity Triangle-to-Face (LocalEdge)
-% global mesh.mapEdgToTri % Connectivity Edge-to-Triangle
-% global mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
+% mesh.numTri          % Number of triangles
+% mesh.numEdgBnd       % Number of boundary edges
+% mesh.mapTriToVer     % Connectivity Triangle-to-Vertices     [matrix mesh.numTri x 3]
+% mesh.mapEdgBndToVer  % Connectivity BoundaryEdge-to-Vertices [matrix mesh.numEdgBnd x 2]
+% mesh.tagEdgBndFile
 
 % =========================================================================
 % Mesh reader - General function
@@ -75,13 +59,13 @@ while (~strcmp(fgetl(file),'$Elements')) end
 numElements = str2num(fgetl(file));
 mesh.mapTriToVer    = [];
 mesh.tagEdgBndFile  = [];
-mesh.listEdgBndFile = [];
+mesh.mapEdgBndToVer = [];
 for i = 1:numElements
     line = str2num(fgetl(file));
     % LIN
     if (line(2) == 1)
         mesh.tagEdgBndFile  = [mesh.tagEdgBndFile;  line(4)];
-        mesh.listEdgBndFile = [mesh.listEdgBndFile; line(6:7)];
+        mesh.mapEdgBndToVer = [mesh.mapEdgBndToVer; line(6:7)];
     end
     % TRI
     if (line(2) == 2)
@@ -89,6 +73,7 @@ for i = 1:numElements
     end
 end
 mesh.numTri = size(mesh.mapTriToVer,1);
+mesh.numEdgBnd = size(mesh.mapEdgBndToVer,1);
 
 end
 
@@ -170,7 +155,7 @@ numElementsLIN      = 0;
 numElementsTRI      = 0;
 mesh.mapTriToVer    = [];
 mesh.tagEdgBndFile  = [];
-mesh.listEdgBndFile = [];
+mesh.mapEdgBndToVer = [];
 for ent=1:numEntityBlocks
     data = str2num(fgetl(file));
     entityDim = data(1);
@@ -181,7 +166,7 @@ for ent=1:numEntityBlocks
         for i=1:numElementsInBlock
             data = str2num(fgetl(file));
             mesh.tagEdgBndFile  = [mesh.tagEdgBndFile; entityTag];
-            mesh.listEdgBndFile = [mesh.listEdgBndFile; data(2:3)];
+            mesh.mapEdgBndToVer = [mesh.mapEdgBndToVer; data(2:3)];
         end
         numElementsLIN = numElementsLIN + numElementsInBlock;
     end
@@ -195,5 +180,6 @@ for ent=1:numEntityBlocks
 end
 
 mesh.numTri = size(mesh.mapTriToVer,1);
+mesh.numEdgBnd = size(mesh.mapEdgBndToVer,1);
 
 end

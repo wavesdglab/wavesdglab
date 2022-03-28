@@ -6,7 +6,7 @@ dofm.degree = degree;
 % Number of DOF per vertex, edge and face
 dofm.numDofPerVer = 1;
 dofm.numDofPerEdg = dofm.degree-1;
-dofm.numDofPerFac = max(0, (dofm.degree-1)*(dofm.degree-2)/2);
+dofm.numDofPerFac = (dofm.degree-1)*(dofm.degree-2)/2;
 
 % Number of DOF per LIN and TRI element
 dofm.numDofPerLIN = 2*dofm.numDofPerVer + dofm.numDofPerEdg;
@@ -16,7 +16,7 @@ dofm.numDofPerTRI = 3*dofm.numDofPerVer + 3*dofm.numDofPerEdg + dofm.numDofPerFa
 dofm.numDofLIN = dofm.numDofPerLIN * mesh.numEdg;
 dofm.numDofTRI = dofm.numDofPerTRI * mesh.numTri;
 
-% Mapping element-local to mesh-global index of DOF
+% Mapping element-local to mesh-global index of LIN/TRI DOF
 dofm.locToGloLIN = zeros(mesh.numEdg, dofm.numDofPerLIN);
 dofm.locToGloTRI = zeros(mesh.numTri, dofm.numDofPerTRI);
 for edg=1:mesh.numEdg

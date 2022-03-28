@@ -1,3 +1,24 @@
+% global mesh.numVerBnd   % Number of nodes on the boundary
+% global mesh.numVerInt   % Number of nodes inside the domain
+% global mesh.listVerBnd  % List of nodes on the boundary     [matrix mesh.numVerBnd x 1]
+% global mesh.listVerInt  % List of nodes inside the domain   [matrix mesh.numVerInt x 1]
+
+% global mesh.numEdg      % Number of edges
+% global mesh.numEdgBnd   % Number of edges on the boundary
+% global mesh.numEdgInt   % Number of edges inside the domain
+% global mesh.mapEdgToVer % List of edges                     [matrix mesh.numEdg    x 2]
+% global mesh.listEdgBnd  % List of edges on the boundary     [matrix mesh.numEdgBnd    ]
+% global mesh.listEdgInt  % List of edges inside the domain   [matrix mesh.numEdgInt    ]
+% global mesh.tagEdg      % Physical tag for edges            [matrix mesh.numEdg       ]
+% global mesh.tagEdgBnd   % Physical tag for edges on the boundary
+
+% global mesh.mapTriToEdg % Connectivity Triangle-to-Edge     [matrix mesh.numTri    x 3]
+
+% global mesh.mapTriToTri % Connectivity Triangle-to-Triangle
+% global mesh.mapTriToFac % Connectivity Triangle-to-Face (LocalEdge)
+% global mesh.mapEdgToTri % Connectivity Edge-to-Triangle
+% global mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
+
 function mesh = buildMeshConnectivity(mesh)
 disp(['--- CALL buildMeshConnectivity']);
 
@@ -5,58 +26,60 @@ disp(['--- CALL buildMeshConnectivity']);
 % List of boundary/interior edges + Connectivity
 % -------------------------------------------------------------------------
 
-% Connectivity boundary-node to boundary-node (with boundary-TAG ... 0 is forbidden)
+% Connectivity matrix "boundary-node to boundary-node" (with boundary-TAG ... 0 is forbidden)
 
-mapBndToBnd = sparse(mesh.numVer,mesh.numVer);
-for edg = 1:size(mesh.listEdgBndFile,1)
-    ver = mesh.listEdgBndFile(edg,:);
-    mapBndToBnd(ver(1),ver(2)) = mesh.tagEdgBndFile(edg);
-    mapBndToBnd(ver(2),ver(1)) = mesh.tagEdgBndFile(edg);
+connexBndToBnd = sparse(mesh.numVer,mesh.numVer);
+for edgBnd = 1:mesh.numEdgBnd
+    ver = mesh.mapEdgBndToVer(edgBnd,:);
+    connexBndToBnd(ver(1),ver(2)) = mesh.tagEdgBndFile(edgBnd);
+    connexBndToBnd(ver(2),ver(1)) = mesh.tagEdgBndFile(edgBnd);
 end
 
 % Connectivity all-node to all-node (with edge-ID)
 % Lise of edge (general, boundary, interior)
 
-mesh.mapTriToEdg = zeros(mesh.numTri,3);
-mesh.numEdg     = 0;
-mesh.numEdgBnd  = 0;
-mesh.numEdgInt  = 0;
-mesh.listEdg    = [];
-mesh.listEdgBnd = [];
-mesh.listEdgInt = [];
-mesh.tagEdgBnd  = [];
+mesh.numEdg      = (3*mesh.numTri + mesh.numEdgBnd)/2;
+mesh.numEdgInt   = mesh.numEdg - mesh.numEdgBnd;
 
-edg = 0;
-mapVerToVer = sparse(mesh.numVer,mesh.numVer);
+mesh.mapTriToEdg = zeros(mesh.numTri,3);
+mesh.mapEdgToVer = zeros(mesh.numEdg,2);
+
+mesh.listEdgBnd  = zeros(mesh.numEdgBnd,1);
+mesh.listEdgInt  = zeros(mesh.numEdgInt,1);
+mesh.tagEdg      = zeros(mesh.numEdg,1);
+mesh.tagEdgBnd   = zeros(mesh.numEdgBnd,1);
+
+edg    = 0;
+edgBnd = 0;
+edgInt = 0;
+connexVerToVer = sparse(mesh.numVer,mesh.numVer);
 for tri = 1:mesh.numTri
     n1 = mesh.mapTriToVer(tri,:);
     n2 = [n1(2) n1(3) n1(1)]';
     for fac = 1:3
-        if (mapVerToVer(n1(fac),n2(fac)) ~= 0)
-            mesh.mapTriToEdg(tri,fac) = -mapVerToVer(n1(fac),n2(fac));
+        if (connexVerToVer(n1(fac),n2(fac)) ~= 0)
+            mesh.mapTriToEdg(tri,fac) = -connexVerToVer(n1(fac),n2(fac));
         else
-            mesh.listEdg = [mesh.listEdg; [n1(fac) n2(fac)]];
             edg = edg + 1;
-            mapVerToVer(n1(fac),n2(fac)) = edg;
-            mapVerToVer(n2(fac),n1(fac)) = edg;
+            connexVerToVer(n1(fac),n2(fac)) = edg;
+            connexVerToVer(n2(fac),n1(fac)) = edg;
             mesh.mapTriToEdg(tri,fac) = edg;
-            if(mapBndToBnd(n1(fac),n2(fac)) > 0)
-                mesh.numEdgBnd  = mesh.numEdgBnd+1;
-                mesh.listEdgBnd = [mesh.listEdgBnd; edg];
-                mesh.tagEdgBnd  = [mesh.tagEdgBnd; mapBndToBnd(n1(fac),n2(fac))];
+            mesh.mapEdgToVer(edg,:) = [n1(fac) n2(fac)];
+            if(connexBndToBnd(n1(fac),n2(fac)) > 0)
+                edgBnd = edgBnd+1;
+                mesh.listEdgBnd(edgBnd) = edg;
+                mesh.tagEdgBnd(edgBnd)  = connexBndToBnd(n1(fac),n2(fac));
+                mesh.tagEdg(edg)        = connexBndToBnd(n1(fac),n2(fac));
             else
-                mesh.numEdgInt  = mesh.numEdgInt+1;
-                mesh.listEdgInt = [mesh.listEdgInt; edg];
+                edgInt = edgInt+1;
+                mesh.listEdgInt(edgInt) = edg;
             end
         end
     end
 end
-mesh.numEdg = edg;
-
-mesh.tagEdg = zeros(mesh.numEdg,1);
-for edgBnd = 1:size(mesh.listEdgBndFile,1)
-    mesh.tagEdg(mesh.listEdgBnd(edgBnd)) = mesh.tagEdgBnd(edgBnd);
-end
+assert(edg    == mesh.numEdg   );
+assert(edgBnd == mesh.numEdgBnd);
+assert(edgInt == mesh.numEdgInt);
 
 % Connectivity edge to triangle/face
 % Connectivity triangle to triangle/face
@@ -96,7 +119,7 @@ end
 
 maskVerBnd = zeros(mesh.numVer,1);
 for edg=1:mesh.numEdgBnd
-    ver = mesh.listEdg(mesh.listEdgBnd(edg),:);
+    ver = mesh.mapEdgToVer(mesh.listEdgBnd(edg),:);
     maskVerBnd(ver(1)) = 1;
     maskVerBnd(ver(2)) = 1;
 end

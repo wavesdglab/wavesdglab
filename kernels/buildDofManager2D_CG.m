@@ -6,7 +6,7 @@ dofm.degree = degree;
 % Number of DOF per vertex, edge and face
 dofm.numDofPerVer = 1;
 dofm.numDofPerEdg = dofm.degree-1;
-dofm.numDofPerFac = max(0, (dofm.degree-1)*(dofm.degree-2)/2);
+dofm.numDofPerFac = (dofm.degree-1)*(dofm.degree-2)/2;
 
 % Total number of DOF associated to vertices, edges and faces on the mesh
 dofm.numDofVer = mesh.numVer * dofm.numDofPerVer;

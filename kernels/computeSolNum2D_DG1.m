@@ -26,15 +26,17 @@ fprintf('Solver  : Build volume terms\n');
 
 [matM, ~, matDX, matDY] = buildMatrixGlo2D_DG(mesh, dofm);
 
-dofTRI = dofm.numDofTRI;
+numDofTRI = dofm.numDofTRI;
 
-matA = [ -1i*k*matM  -matDX                 -matDY                ;
-         -matDX      -1i*k*matM             sparse(dofTRI,dofTRI) ;
-         -matDY      sparse(dofTRI,dofTRI)  -1i*k*matM            ];
+matA = [
+    -1i*k*matM  -matDX                       -matDY                      ;
+    -matDX      -1i*k*matM                   sparse(numDofTRI,numDofTRI) ;
+    -matDY      sparse(numDofTRI,numDofTRI)  -1i*k*matM                  ];
 
-rhsA = [ -1/(1i*k)*matM*solF ;
-         zeros(dofTRI,1) ;
-         zeros(dofTRI,1) ];
+rhsA = [
+    -1/(1i*k)*matM*solF ;
+    zeros(numDofTRI,1) ;
+    zeros(numDofTRI,1) ];
 
 % -------------------------------------------------------------------------
 % Build surface terms
@@ -58,7 +60,7 @@ for tri=1:mesh.numTri
         
         % Elemental matrices
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-        verEdg = mesh.listEdg(edgGlo,:);
+        verEdg = mesh.mapEdgToVer(edgGlo,:);
         V1 = mesh.coord(verEdg(1),:);
         V2 = mesh.coord(verEdg(2),:);
         [matMel, ~, ~] = buildMatrixElemLIN(V1,V2,dofm.degree);
@@ -66,8 +68,8 @@ for tri=1:mesh.numTri
         % Global ID for interior unknowns
         dofInt = dofLocTri(fac,:);
         idIntP = dofm.locToGloTRI(tri,dofInt);
-        idIntU = idIntP + dofm.numDofTRI;
-        idIntV = idIntU + dofm.numDofTRI;
+        idIntU = idIntP + numDofTRI;
+        idIntV = idIntU + numDofTRI;
         
         % Exterior normal
         nx = normal(fac,1);
@@ -81,8 +83,8 @@ for tri=1:mesh.numTri
             % Get global ID for exterior unknowns
             dofExt = dofLocTriNeigh(facNeigh,:);
             idExtP = dofm.locToGloTRI(triNeigh,dofExt);
-            idExtU = idExtP + dofm.numDofTRI;
-            idExtV = idExtU + dofm.numDofTRI;
+            idExtU = idExtP + numDofTRI;
+            idExtV = idExtU + numDofTRI;
             
             matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau         * matMel;
             matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5*nx          * matMel;
@@ -177,7 +179,7 @@ end
 
 fprintf('Solver  : Solve ... \n');
 solA = matA\rhsA;
-solA = solA(1:dofm.numDofTRI);
+solA = solA(1:numDofTRI);
 
 fprintf('---------------------------------------------------------\n');
 

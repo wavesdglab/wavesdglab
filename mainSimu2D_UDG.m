@@ -19,26 +19,26 @@ BCSouth = 'ABC';
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
 mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
-dofm = buildDofManagerDG(mesh, degree);
+dofm = buildDofManager2D_DG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solRef, matA, rhsA]     = computeSolNumUDG1(mesh, dofm, tau);
-solAna                   = computeSolAnaDG(mesh);
-[errorL2, errorH1]       = computeErrorDG(mesh, dofm, solRef, solAna);
+[solRef, matA, rhsA]     = computeSolNum2D_UDG1(mesh, dofm, tau);
+solAna                   = computeSolAna2D_DG(mesh);
+[errorL2, errorH1]       = computeError2D_DG(mesh, dofm, solRef, solAna);
 
 % fprintf('Solver  : gmres A\n');
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% errorL2IterA             = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2IterA             = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : bicgstab A\n');
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));
-% errorL2BiCGStabA         = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2BiCGStabA         = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : conjgradn A\n');
 % [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-% errorL2CGNA              = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2CGNA              = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : relaxation A\n');
 % [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
-% errorL2JacobiA           = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2JacobiA           = computeError2D_DG(mesh, dofm, solA, solRef);
 % 
 % matA11 = matA(1:3*dofm.numDofTRI, 1:3*dofm.numDofTRI);
 % matA12 = matA(1:3*dofm.numDofTRI, 3*dofm.numDofTRI+1:end);
@@ -52,19 +52,19 @@ solAna                   = computeSolAnaDG(mesh);
 % fprintf('Solver  : gmres S\n');
 % [solS,~,~,iterS]         = gmres(matS,rhsS,size(matS,1),resTol,size(matS,1));
 % solA = matA11\(rhsA1 - matA12*solS);
-% errorL2IterS             = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2IterS             = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : bicgstab S\n');
 % [solS,~,~,iterBiCGStabS] = bicgstab(matS,rhsS,resTol,size(matS,1));
 % solA = matA11\(rhsA1 - matA12*solS);
-% errorL2BiCGStabS         = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2BiCGStabS         = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : conjgradn S\n');
 % [solS,~,~,iterCGNS]      = conjgradn(matS,rhsS,resTol,size(matS,1));
 % solA = matA11\(rhsA1 - matA12*solS);
-% errorL2CGNS              = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2CGNS              = computeError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : relaxation S\n');
 % [solS,~,~,iterJacobiS]   = jacobi(matS,rhsS,resTol,size(matS,1),0.5);
 % solA = matA11\(rhsA1 - matA12*solS);
-% errorL2JacobiS           = computeErrorDG(mesh, dofm, solA, solRef);
+% errorL2JacobiS           = computeError2D_DG(mesh, dofm, solA, solRef);
 % 
 % fprintf('Solver  : eigenval A\n');
 % [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
