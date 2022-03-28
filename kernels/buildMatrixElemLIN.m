@@ -4,9 +4,9 @@ function [matM, matK, matD] = buildMatrixElemLIN(V1, V2, degree)
 
 N = degree+1;
 Q = ceil((2*(N-1)+1)/2);
-[nodes, weights] = quadratureGaussLIN(Q);
-valQ = functionsShapeLIN(nodes,N);
-derQ = functionsShapeDerLIN(nodes,N);
+[uQ, weights] = quadratureGaussLIN(Q);
+valQ = functionsShapeLIN(uQ,N);
+derQ = functionsShapeDerLIN(uQ,N);
 
 % Reference line [-1,1]
 matMref = zeros(N,N);

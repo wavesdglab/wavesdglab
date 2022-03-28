@@ -2,10 +2,10 @@
 
 function [matM, matK, matDX, matDY] = buildMatrixElemTRI(V1, V2, V3, degree)
 
-
-[x, y, weights] = quadratureGaussTRI(2*degree);
-valQ = functionsShapeTRI(x, y, degree);
-[valDx, valDy] = functionsShapeDerTRI(x, y, degree);
+degreeQ = 2*degree;
+[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
+valQ = functionsShapeTRI(uQ, vQ, degree);
+[valDx, valDy] = functionsShapeDerTRI(uQ, vQ, degree);
 
 N = size(valQ,2);
 
@@ -22,12 +22,6 @@ for i=1:N
         matDYref(i,j) = weights' * (valQ(:,i) .* valDy(:,j));
     end
 end
-
-
-
-
-
-
 
 % Jacobian ([V1,V2,V3] <=> [(0,0),(0,-1),(0,1)])
 J = [(V2-V1)' (V3-V1)'];

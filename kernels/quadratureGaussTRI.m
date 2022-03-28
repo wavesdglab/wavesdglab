@@ -1,9 +1,9 @@
-function [x, y, weights] = quadratureGaussTRI(degree)
+function [uQ, vQ, weights] = quadratureGaussTRI(degree)
 
-[rnodes, weights] = triasymq(degree, [-1 -1], [1 -1], [-1 1]);
+[nodes, weights] = triasymq(degree, [-1 -1], [1 -1], [-1 1]);
 
-x = rnodes(1,:)';
-y = rnodes(2,:)';
+uQ = nodes(1,:)';
+vQ = nodes(2,:)';
 weights = weights';
 
 end
