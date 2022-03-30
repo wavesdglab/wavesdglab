@@ -25,20 +25,20 @@ dofm = buildDofManager2D_DG(mesh, degree);
 
 [solRef, matA, rhsA]     = computeSolNum2D_DG1(mesh, dofm, tau);
 solAna                   = computeSolAna2D_DG(mesh);
-[errorL2, errorH1]       = computeError2D_DG(mesh, dofm, solRef, solAna);
+[errorL2, errorH1]       = computeNormError2D_DG(mesh, dofm, solRef, solAna);
 
 % fprintf('Solver  : gmres A\n');
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% errorL2IterA             = computeError2D_DG(mesh, dofm, solA, solRef);
+% errorL2IterA             = computeNormError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : bicgstab A\n');
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));
-% errorL2BiCGStabA         = computeError2D_DG(mesh, dofm, solA, solRef);
+% errorL2BiCGStabA         = computeNormError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : conjgradn A\n');
 % [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-% errorL2CGNA              = computeError2D_DG(mesh, dofm, solA, solRef);
+% errorL2CGNA              = computeNormError2D_DG(mesh, dofm, solA, solRef);
 % fprintf('Solver  : relaxation A\n');
 % [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
-% errorL2JacobiA           = computeError2D_DG(mesh, dofm, solA, solRef);
+% errorL2JacobiA           = computeNormError2D_DG(mesh, dofm, solA, solRef);
 
 % [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
 % eigenvalA = diag(eigenvalA);

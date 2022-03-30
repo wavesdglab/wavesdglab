@@ -1,4 +1,4 @@
-function [errorL2, errorH1, normL2, normH1] = computeError2D_CG(mesh, dofm, vecSol, vecRef)
+function [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
 
 degreeQ = 2*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);

@@ -26,8 +26,8 @@ global k;
 % solDy = n*pi * sin(m*pi*x) .* cos(n*pi*y);
 
 % Neumann problem
-m = 2;
-n = 3;
+m = 1;
+n = 2;
 sol   = cos(m*pi*x) .* cos(n*pi*y);
 solF  = ((m*m+n*n)*pi^2 - k^2) * sol;
 solDx = -m*pi * sin(m*pi*x) .* cos(n*pi*y);

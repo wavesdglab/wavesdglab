@@ -25,16 +25,16 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 % [solRef, matA, rhsA]     = computeSolNum2D_CG1(mesh, dofm);
 % solAna                   = computeSolAna2D_CG(mesh);
-% [errorL2, errorH1]       = computeError2D_CG(mesh, dofm, solRef, solAna);
+% [errorL2, errorH1]       = computeNormError2D_CG(mesh, dofm, solRef, solAna);
 % 
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% errorL2IterA             = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-% errorL2BiCGStabA         = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-% errorL2CGNA              = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
-% errorL2JacobiA           = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % 
 % [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
 % eigenvalA = diag(eigenvalA);
@@ -96,13 +96,13 @@ writeFieldCG(mesh, solAna, "mySol.pos", "mySol");
 %[normL2sol, normL2der, normH1sol] = computeNormSol2D(mesh, 10)
 
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% errorL2IterA             = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-% errorL2BiCGStabA         = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-% errorL2CGNA              = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
-% errorL2JacobiA           = computeError2D_CG(mesh, dofm, solA, solRef);
+% errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % 
 % [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
 % eigenvalA = diag(eigenvalA);
@@ -111,13 +111,13 @@ writeFieldCG(mesh, solAna, "mySol.pos", "mySol");
 
 fprintf('Method CG-2\n');
 disp(['---------------------------------------------------------']);
-[errorL2, errorH1, normL2, normH1] = computeError2D_CG(mesh, dofm, solRef, solAna);
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
 disp(['    L2-Error           ' num2str(errorL2)]);
 disp(['    H1-Error           ' num2str(errorH1)]);
 disp(['    L2-Norm            ' num2str(normL2)]);
 disp(['    H1-Norm            ' num2str(normH1)]);
 disp(['---------------------------------------------------------']);
-[errorL2, errorH1, normL2, normH1] = computeError2D_CG(mesh, dofm, solRef);
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef);
 disp(['    L2-Error           ' num2str(errorL2)]);
 disp(['    H1-Error           ' num2str(errorH1)]);
 disp(['    L2-Norm            ' num2str(normL2)]);
