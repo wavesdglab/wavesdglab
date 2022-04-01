@@ -131,7 +131,7 @@ for tri=1:mesh.numTri
                     matA(idIntS,idIntU) = matA(idIntS,idIntU) + nx  * matMel;
                     matA(idIntS,idIntV) = matA(idIntS,idIntV) + ny  * matMel;
                     matA(idIntS,idIntS) = matA(idIntS,idIntS) - 2   * matMel;
-                    rhsA(idIntS) = rhsA(idIntS) + matMel * (nx*solU(idIntP) - ny*solV(idIntP) - sol(idIntP));
+                    rhsA(idIntS) = rhsA(idIntS) + matMel * (nx*solU(idIntP) + ny*solV(idIntP) - sol(idIntP));
                 otherwise
                     warning('Error - Bad BC.');
             end

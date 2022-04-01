@@ -18,10 +18,10 @@ while(iter <= maxit)
     r = r - alpha*Ap;
     rsnew = r'*r;
     resvec(iter) = sqrt(rsnew/rsini);
-    disp(['                ' num2str(resvec(iter))]);
+    %disp(['                ' num2str(resvec(iter))]);
     if(resvec(iter) < tol)
         relres = resvec(iter);
-        flag = 1
+        flag = 1;
         return;
     end
     p = r + (rsnew/rsold)*p;
@@ -29,6 +29,6 @@ while(iter <= maxit)
     iter = iter+1;
 end
 relres = resvec(maxit-1);
-flag = 2
+flag = 2;
 
 end

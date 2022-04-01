@@ -4,6 +4,8 @@ function [u,dx,dy] = waveguide(x,y)
 	global k;
 	global L;
 	global theta;
+    L = 4;
+    theta = pi/3;
 
 	u  = zeros(size(x));
 	dx = zeros(size(x));

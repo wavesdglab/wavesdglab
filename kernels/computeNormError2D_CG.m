@@ -17,7 +17,7 @@ for tri=1:mesh.numTri
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
-    Jdxdu = [(V3-V2)' (V1-V2)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
+    Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     

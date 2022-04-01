@@ -160,7 +160,7 @@ for tri=1:mesh.numTri
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5*(1-1/tau) * ny * ny * matMel;
                     matA(idIntV,idExtG) = matA(idIntV,idExtG) + 0.5*(1-1/tau)      * ny * matMel;
                     
-                    rhsA(idExtG) = rhsA(idExtG) + sol(idIntP) - (nx*solU(idIntP) + ny*solV(idIntP));
+                    rhsA(idExtG) = rhsA(idExtG) + tau*sol(idIntP) - (nx*solU(idIntP) + ny*solV(idIntP));
                 otherwise
                     warning('Error - Bad BC.')
             end

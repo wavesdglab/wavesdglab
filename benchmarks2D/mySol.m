@@ -25,13 +25,28 @@ global k;
 % solDx = m*pi * cos(m*pi*x) .* sin(n*pi*y);
 % solDy = n*pi * sin(m*pi*x) .* cos(n*pi*y);
 
-% Neumann problem
-m = 1;
-n = 2;
-sol   = cos(m*pi*x) .* cos(n*pi*y);
-solF  = ((m*m+n*n)*pi^2 - k^2) * sol;
-solDx = -m*pi * sin(m*pi*x) .* cos(n*pi*y);
-solDy = -n*pi * cos(m*pi*x) .* sin(n*pi*y);
+% Neumann problem [GENERAL]
+% m = 2;
+% n = 3;
+% sol   = cos(m*pi*x) .* cos(n*pi*y);
+% solF  = ((m*m+n*n)*pi^2 - k^2) * sol;
+% solDx = -m*pi * sin(m*pi*x) .* cos(n*pi*y);
+% solDy = -n*pi * cos(m*pi*x) .* sin(n*pi*y);
+
+% Cavity problem
+% [sol, solDx, solDy] = cavity(x,y);
+% solF = 0*x+1;
+
+% Half open waveguide problem
+%[sol, solDx, solDy] = waveguide(x,y);
+%solF = 0*x;
+
+% Plane wave
+theta = pi/4;
+sol   = exp(1i*k*(cos(theta)*x+sin(theta)*y));
+solF  = 0*x;
+solDx = 1i*k*cos(theta) * sol;
+solDy = 1i*k*sin(theta) * sol;
 
 % Duct problem
 % m = 6;
