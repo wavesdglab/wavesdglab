@@ -1,4 +1,4 @@
-function writeFieldCG(dofm, mesh, field, nameFile, nameField)
+function writeField(dofm, mesh, field, nameFile, nameField)
 
 % Open file
 

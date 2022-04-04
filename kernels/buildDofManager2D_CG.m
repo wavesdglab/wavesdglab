@@ -8,6 +8,10 @@ dofm.numDofPerVer = 1;
 dofm.numDofPerEdg = dofm.degree-1;
 dofm.numDofPerFac = (dofm.degree-1)*(dofm.degree-2)/2;
 
+% Number of DOF per LIN and TRI element
+dofm.numDofPerLIN = 2*dofm.numDofPerVer + dofm.numDofPerEdg;
+dofm.numDofPerTRI = 3*dofm.numDofPerVer + 3*dofm.numDofPerEdg + dofm.numDofPerFac;
+
 % Total number of DOF associated to vertices, edges and faces on the mesh
 dofm.numDofVer = mesh.numVer * dofm.numDofPerVer;
 dofm.numDofEdg = mesh.numEdg * dofm.numDofPerEdg;

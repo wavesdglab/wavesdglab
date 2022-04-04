@@ -1,17 +1,20 @@
 function [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
 
-degreeQ = 2*dofm.degree;
+% Quadrature
+degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
-shapeFunc = functionsShapeTRI(uQ, vQ, dofm.degree);
-[shapeFuncDu, shapeFuncDv] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
+
+% Shape functions (f, dfdu, dfdv)
+shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
+[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
 
 normL2sol2 = 0;
 normL2der2 = 0;
 errorL2sol2 = 0;
 errorL2der2 = 0;
-
 for tri=1:mesh.numTri
     
+    % Mapping
     ver = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
@@ -21,26 +24,30 @@ for tri=1:mesh.numTri
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     
-    % Building the approximate solution (and derivatives)
-    solQ   = shapeFunc * vecSol(dofm.locToGloTRI(tri,:));
-    solDxQ = (shapeFuncDu * Jdudx(1,1) + shapeFuncDv * Jdudx(2,1)) * vecSol(dofm.locToGloTRI(tri,:));
-    solDyQ = (shapeFuncDu * Jdudx(1,2) + shapeFuncDv * Jdudx(2,2)) * vecSol(dofm.locToGloTRI(tri,:));
+    % Shape functions (dfdx, dfdy)
+    shapeDxQ = shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1);
+    shapeDyQ = shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2);
     
-    % Building the reference solution (and derivatives) for a reference vector
+    % Approximate solution (and derivatives)
+    solQ   = shapeQ   * vecSol(dofm.locToGloTRI(tri,:));
+    solDxQ = shapeDxQ * vecSol(dofm.locToGloTRI(tri,:));
+    solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
+    
+    % Reference solution (and derivatives)
     if (exist('vecRef','var'))
-        refQ   = shapeFunc * vecRef(dofm.locToGloTRI(tri,:));
-        refDxQ = (shapeFuncDu * Jdudx(1,1) + shapeFuncDv * Jdudx(2,1)) * vecRef(dofm.locToGloTRI(tri,:));
-        refDyQ = (shapeFuncDu * Jdudx(1,2) + shapeFuncDv * Jdudx(2,2)) * vecRef(dofm.locToGloTRI(tri,:));
+        refQ   = shapeQ   * vecRef(dofm.locToGloTRI(tri,:));
+        refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
+        refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));
     else
         [refQ, refDxQ, refDyQ] = mySol(xQ, yQ);
     end
     
-    % Building the error
+    % Error fields
     errQ   = solQ(:)   - refQ(:);
     errDxQ = solDxQ(:) - refDxQ(:);
     errDyQ = solDyQ(:) - refDyQ(:);
     
-    % Compute the errors
+    % Error values
     normL2sol2 = normL2sol2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
     normL2der2 = normL2der2 + weights(:)' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
     errorL2sol2 = errorL2sol2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;

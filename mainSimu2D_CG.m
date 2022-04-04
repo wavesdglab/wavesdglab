@@ -5,8 +5,8 @@ headers2D;
 
 % Define parameters
 global k BCWest BCNorth BCEast BCSouth 
-k = 3; %2*pi;
-h = 0.1; %1/16/2;
+k = 10; %2*pi;
+h = 0.05; %1/16/2;
 degree = 1;
 
 resTol = 1e-4;
@@ -23,29 +23,29 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solRef, matA, rhsA]     = computeSolNum2D_CG1(mesh, dofm);
-solAna                   = computeSolAna2D_CG(mesh);
-[errorL2, errorH1]       = computeNormError2D_CG(mesh, dofm, solRef, solAna);
+% [solRef, matA, rhsA]     = computeSolNum2D_CG1(mesh, dofm);
+% solAna                   = computeSolAna2D_CG(mesh);
+% [errorL2, errorH1]       = computeNormError2D_CG(mesh, dofm, solRef, solAna);
+% 
+% [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
+% errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
+% errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
+% errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
+% errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
 
-[solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
-errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
-
-[eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
-eigenvalA = diag(eigenvalA);
+% [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
+% eigenvalA = diag(eigenvalA);
 % [eigenvecAA,eigenvalAA] = eigs(matA'*matA,size(matA,1));
 % eigenvalAA = diag(eigenvalAA);
 % 
-disp(['Method CG-1']);
-disp(['---------------------------------------------------------']);
-disp(['    L2-Error           ' num2str(errorL2)]);
-disp(['    H1-Error           ' num2str(errorH1)]);
-disp(['---------------------------------------------------------']);
+% disp(['Method CG-1']);
+% disp(['---------------------------------------------------------']);
+% disp(['    L2-Error           ' num2str(errorL2)]);
+% disp(['    H1-Error           ' num2str(errorH1)]);
+% disp(['---------------------------------------------------------']);
 % disp(['A : Size               ' num2str(size(matA,1))]);
 % disp(['    Rank(eigenvectors) ' num2str(rank(eigenvecA))]);
 % disp(['    Cond(eigenvectors) ' num2str(cond(eigenvecA))]);
@@ -63,22 +63,22 @@ disp(['---------------------------------------------------------']);
 % disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
 % disp(['---------------------------------------------------------']);
 
-disp(['\text{CG-1} & & ' ...
-    num2str(errorL2,'%.1e') ' & ' ...
-    num2str(errorH1,'%.1e') ' & ' ...
-    num2str(size(matA,1)) ' & ' ...
-    num2str(rank(eigenvecA)) ' & ' ...
-    num2str(cond(eigenvecA),'%.1e') ' & ' ...
-    num2str(condest(matA),'%.1e') ' & ' ...
-    num2str(iterA(2)) ' & ' ...
-    num2str(errorL2IterA,'%.1e') ' & ' ...
-    num2str(iterBiCGStabA) ' & ' ...
-    num2str(errorL2BiCGStabA,'%.1e') ' & ' ...
-    num2str(iterCGNA) ' & ' ...
-    num2str(errorL2CGNA,'%.1e') ' & ' ...
-    num2str(iterJacobiA) ' & ' ...
-    num2str(errorL2JacobiA,'%.1e') ' \\'
-    ]);
+% disp(['\text{CG-1} & & ' ...
+%     num2str(errorL2,'%.1e') ' & ' ...
+%     num2str(errorH1,'%.1e') ' & ' ...
+%     num2str(size(matA,1)) ' & ' ...
+%     num2str(rank(eigenvecA)) ' & ' ...
+%     num2str(cond(eigenvecA),'%.1e') ' & ' ...
+%     num2str(condest(matA),'%.1e') ' & ' ...
+%     num2str(iterA(2)) ' & ' ...
+%     num2str(errorL2IterA,'%.1e') ' & ' ...
+%     num2str(iterBiCGStabA) ' & ' ...
+%     num2str(errorL2BiCGStabA,'%.1e') ' & ' ...
+%     num2str(iterCGNA) ' & ' ...
+%     num2str(errorL2CGNA,'%.1e') ' & ' ...
+%     num2str(iterJacobiA) ' & ' ...
+%     num2str(errorL2JacobiA,'%.1e') ' \\'
+%     ]);
 
 % figure(1);
 % subplot(1,3,1);
@@ -93,38 +93,38 @@ disp(['\text{CG-1} & & ' ...
 [solRef, matA, rhsA]     = computeSolNum2D_CG2(mesh, dofm);
 solAna                   = computeSolAna2D_CG(mesh);
 [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
-%writeFieldCG(dofm, mesh, solAna, "mySol.pos", "mySol");
-
-[solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
-[solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
-errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
-
-[eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
-eigenvalA = diag(eigenvalA);
+writeField(dofm, mesh, solAna, "mySol.pos", "mySol");
+% 
+% [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
+% errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
+% errorL2BiCGStabA         = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
+% errorL2CGNA              = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% [solA,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
+% errorL2JacobiA           = computeNormError2D_CG(mesh, dofm, solA, solRef);
+% 
+% [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
+% eigenvalA = diag(eigenvalA);
 % [eigenvecAA,eigenvalAA] = eigs(matA'*matA,size(matA,1));
 % eigenvalAA = diag(eigenvalAA);
 
-% fprintf('Method CG-2\n');
-% disp(['---------------------------------------------------------']);
-% [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
-% fprintf('Error versus interpolated solution:\n');
-% disp(['    L2-Error           ' num2str(errorL2)]);
-% disp(['    H1-Error           ' num2str(errorH1)]);
-% disp(['    L2-Norm            ' num2str(normL2)]);
-% disp(['    H1-Norm            ' num2str(normH1)]);
-% disp(['---------------------------------------------------------']);
-% [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef);
-% fprintf('Error versus analytic solution:\n');
-% disp(['    L2-Error           ' num2str(errorL2)]);
-% disp(['    H1-Error           ' num2str(errorH1)]);
-% disp(['    L2-Norm            ' num2str(normL2)]);
-% disp(['    H1-Norm            ' num2str(normH1)]);
-% disp(['---------------------------------------------------------']);
+fprintf('Method CG-2\n');
+disp(['---------------------------------------------------------']);
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
+fprintf('Error versus interpolated solution:\n');
+disp(['    L2-Error           ' num2str(errorL2)]);
+disp(['    H1-Error           ' num2str(errorH1)]);
+disp(['    L2-Norm            ' num2str(normL2)]);
+disp(['    H1-Norm            ' num2str(normH1)]);
+disp(['---------------------------------------------------------']);
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef);
+fprintf('Error versus analytic solution:\n');
+disp(['    L2-Error           ' num2str(errorL2)]);
+disp(['    H1-Error           ' num2str(errorH1)]);
+disp(['    L2-Norm            ' num2str(normL2)]);
+disp(['    H1-Norm            ' num2str(normH1)]);
+disp(['---------------------------------------------------------']);
 % disp(['A : Size               ' num2str(size(matA,1))]);
 % disp(['    Rank(eigenvectors) ' num2str(rank(eigenvecA))]);
 % disp(['    Cond(eigenvectors) ' num2str(cond(eigenvecA))]);
@@ -142,22 +142,22 @@ eigenvalA = diag(eigenvalA);
 % disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
 % disp(['---------------------------------------------------------']);
 
-disp(['\text{CG-2} & & ' ...
-    num2str(errorL2,'%.1e') ' & ' ...
-    num2str(errorH1,'%.1e') ' & ' ...
-    num2str(size(matA,1)) ' & ' ...
-    num2str(rank(eigenvecA)) ' & ' ...
-    num2str(cond(eigenvecA),'%.1e') ' & ' ...
-    num2str(condest(matA),'%.1e') ' & ' ...
-    num2str(iterA(2)) ' & ' ...
-    num2str(errorL2IterA,'%.1e') ' & ' ...
-    num2str(iterBiCGStabA) ' & ' ...
-    num2str(errorL2BiCGStabA,'%.1e') ' & ' ...
-    num2str(iterCGNA) ' & ' ...
-    num2str(errorL2CGNA,'%.1e') ' & ' ...
-    num2str(iterJacobiA) ' & ' ...
-    num2str(errorL2JacobiA,'%.1e') ' \\'
-    ]);
+% disp(['\text{CG-2} & & ' ...
+%     num2str(errorL2,'%.1e') ' & ' ...
+%     num2str(errorH1,'%.1e') ' & ' ...
+%     num2str(size(matA,1)) ' & ' ...
+%     num2str(rank(eigenvecA)) ' & ' ...
+%     num2str(cond(eigenvecA),'%.1e') ' & ' ...
+%     num2str(condest(matA),'%.1e') ' & ' ...
+%     num2str(iterA(2)) ' & ' ...
+%     num2str(errorL2IterA,'%.1e') ' & ' ...
+%     num2str(iterBiCGStabA) ' & ' ...
+%     num2str(errorL2BiCGStabA,'%.1e') ' & ' ...
+%     num2str(iterCGNA) ' & ' ...
+%     num2str(errorL2CGNA,'%.1e') ' & ' ...
+%     num2str(iterJacobiA) ' & ' ...
+%     num2str(errorL2JacobiA,'%.1e') ' \\'
+%     ]);
 
 figure(1);
 subplot(1,3,1);
