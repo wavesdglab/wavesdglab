@@ -6,7 +6,7 @@ headers2D;
 % Define parameters
 global k BCWest BCNorth BCEast BCSouth 
 k = 10; %2*pi;
-h = 0.05; %1/16/2;
+h = 0.1; %1/16/2;
 degree = 1;
 
 resTol = 1e-4;
@@ -94,7 +94,8 @@ dofm = buildDofManager2D_CG(mesh, degree);
 solAna                   = computeSolAna2D_CG(mesh);
 [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
 writeField(dofm, mesh, solAna, "mySol.pos", "mySol");
-% 
+%system('gmsh mySol.pos');
+
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
 % errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));

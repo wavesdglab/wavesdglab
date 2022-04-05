@@ -6,8 +6,8 @@ headers2D;
 % Define parameters
 global k BCWest BCNorth BCEast BCSouth 
 k = 5;
-h = 0.05;
-degree = 1;
+h = 0.5;
+degree = 4;
 tau = 1;
 resTol = 1e-4;
 BCWest  = 'ABC';
@@ -24,7 +24,7 @@ dofm = buildDofManager2D_DG(mesh, degree);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [solP, matP, rhsP] = computeSolProj2D_DG(mesh, dofm);
-[solA, matA, rhsA]  = computeSolNum2D_HDG1(mesh, dofm, tau);
+% [solA, matA, rhsA]  = computeSolNum2D_HDG1(mesh, dofm, tau);
 
 disp('Method HDG-1');
 disp('---------------------------------------------------------');
@@ -36,18 +36,19 @@ disp(['    L2-Norm    ' num2str(normL2)]);
 disp(['    H1-Norm    ' num2str(normH1)]);
 disp('---------------------------------------------------------');
 
-writeField(dofm, mesh, solA, "mySol.pos", "mySol");
+writeField(dofm, mesh, solP, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
 
-figure(1);
-subplot(1,3,1);
-hold off
-postProVizu2D_DG(mesh,real(solP), 'Projected solution');
-subplot(1,3,2);
-hold off
-postProVizu2D_DG(mesh,real(solA), 'Numerical solution');
-subplot(1,3,3);
-hold off
-postProVizu2D_DG(mesh,real(solP-solA), 'Error');
+% figure(1);
+% subplot(1,3,1);
+% hold off
+% postProVizu2D_DG(mesh,real(solP), 'Projected solution');
+% subplot(1,3,2);
+% hold off
+% postProVizu2D_DG(mesh,real(solA), 'Numerical solution');
+% subplot(1,3,3);
+% hold off
+% postProVizu2D_DG(mesh,real(solP-solA), 'Error');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

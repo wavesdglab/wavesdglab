@@ -1,6 +1,6 @@
 function [matM, matK, matDX, matDY] = buildMatrixGlo2D_DG(mesh, dofm)
 
-% Quadrature 2D
+% Quadrature
 degreeQ = 2*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 
