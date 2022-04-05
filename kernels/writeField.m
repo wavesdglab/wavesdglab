@@ -123,7 +123,7 @@ fprintf(file,'"INTERPOLATION_SCHEME"\n');
 fprintf(file,'1\n');
 fprintf(file,'0\n');
 fprintf(file,'4\n');
-fprintf(file,'1\n'); % REAL PART
+fprintf(file,'1\n'); % IMAG PART
 fprintf(file,'1\n');
 fprintf(file,'%i\n',mesh.numTri);
 fprintf(file,'0\n');
