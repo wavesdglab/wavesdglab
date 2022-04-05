@@ -40,78 +40,54 @@ for i=1:mesh.numTri
 end
 fprintf(file,'$EndElements\n');
 
-% Print interpolation scheme
+% Compute/Print interpolation scheme
 
 fprintf(file,'$InterpolationScheme\n');
-fprintf(file,'"INTERPOLATION_SCHEME"\n');
-fprintf(file,'1\n');
-fprintf(file,'3\n');        % 3 is for TRI
-fprintf(file,'2\n');        % 2 is coded as-is in gmsh
-fprintf(file,'3 3\n');      % size of coefficient matrix
-fprintf(file,'1 -1 -1\n');
-fprintf(file,'0 1 0\n');
-fprintf(file,'0 0 1\n');
-fprintf(file,'3 2\n');      % size of monomial matrix
-fprintf(file,'0 0\n');
-fprintf(file,'1 0\n');
-fprintf(file,'0 1\n');
+fprintf(file,'"INTERPOLATION_SCHEME"\n'); % name(string)
+fprintf(file,'1\n');                      % numElementTopologies(ASCII int)
+fprintf(file,'3\n');                      % elementTopology - 3 is for TRI
+fprintf(file,'2\n');                      % numInterpolationMatrices(ASCII int) - 2 is coded as-is in gmsh
 
-% 
-
-[uQ, vQ, weights] = quadratureGaussTRI(2*dofm.degree);
-valShape = functionsShapeTRI(uQ,vQ,dofm.degree);
-uR = (uQ+1)/2;
-vR = (vQ+1)/2;
-
-% --- Print the coefficient matrix
-numDofPerTRI = (dofm.degree+1)*(dofm.degree+2)/2;
-fprintf(file,[int2str(numDofPerTRI) ' ' int2str(numDofPerTRI) '\n']);
-%disp([int2str(numDofPerTRI) ' 2\n']);
-
-vdm = zeros(numDofPerTRI,numDofPerTRI);
-n1=0;
-for i1=0:dofm.degree
-    for j1=0:(dofm.degree-i1)
-        n1=n1+1;
-        n2=0;
-        for i2=0:dofm.degree
-            for j2=0:(dofm.degree-i2)
-                n2=n2+1;
-                vdm(n1,n2) = weights(:)' * ((uQ.^i1.*vQ.^j1) .* conj(uQ.^i2.*vQ.^j2));
-            end
-        end
+% --- Compute matrices
+[uQ, vQ, weights] = quadratureGaussTRI(4*dofm.degree);  % Quadrature
+shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);        % Shape functions
+modalQ = zeros(size(uQ,1), dofm.numDofPerTRI);          % Modal functions
+matExp = zeros(dofm.numDofPerTRI,2);
+n = 1;
+for n1 = 0:dofm.degree
+    for n2 = 0:dofm.degree-n1
+        matExp(n,1) = n1;
+        matExp(n,2) = n2;
+        modalQ(:,n) = (0.5*uQ+0.5).^n1 .* (0.5*vQ+0.5).^n2;
+        n=n+1;
     end
 end
 
-rhs = zeros(numDofPerTRI,1);
-n1=0;
-for i1=0:dofm.degree
-    for j1=0:(dofm.degree-i1)
-        n1=n1+1;
-        for n2=1:numDofPerTRI
-            rhs(n1,n2) = weights(:)' * ((uQ.^i1.*vQ.^j1) .* conj(valShape(:,n2)));
-        end
+for i=1:dofm.numDofPerTRI
+    for j=1:dofm.numDofPerTRI
+        matP(i,j) = weights' * (modalQ(:,i) .* modalQ(:,j));
+        rhsP(i,j) = weights' * (modalQ(:,i) .* shapeQ(:,j));
     end
 end
+matCoef = matP\rhsP;
+matCoef = matCoef';
 
-val = vdm\rhs;
-
-for i=1:numDofPerTRI
-    for j=1:numDofPerTRI
-        fprintf(file,[num2str(val(i,j)) ' ']);
+% --- Print matrix of coefficients
+fprintf(file,'%g %g\n', dofm.numDofPerTRI, dofm.numDofPerTRI);
+for i=1:dofm.numDofPerTRI
+    for j=1:dofm.numDofPerTRI
+        fprintf(file,'%g ', matCoef(i,j));
     end
     fprintf(file,'\n');
 end
 
-
-% --- Print the monomial matrix
-fprintf(file,[int2str(numDofPerTRI) ' 2\n']);
-%disp([int2str(numDofPerTRI) ' 2\n']);
-for i=0:dofm.degree
-    for j=0:(dofm.degree-i)
-        fprintf(file,[int2str(i) ' ' int2str(j) '\n']);
-        %disp([int2str(i) ' ' int2str(j) '\n']);
+% --- Print matrix of exponants
+fprintf(file,'%g %g\n', dofm.numDofPerTRI, 2);
+for i=1:dofm.numDofPerTRI
+    for j=1:2
+        fprintf(file,'%g ', matExp(i,j));
     end
+    fprintf(file,'\n');
 end
 
 fprintf(file,'$EndInterpolationScheme\n');
@@ -129,11 +105,12 @@ fprintf(file,'0\n'); % REAL PART
 fprintf(file,'1\n');
 fprintf(file,'%i\n',mesh.numTri);
 fprintf(file,'0\n');
-for i=1:mesh.numTri
-    fprintf(file,'%i 3 %f %f %f\n', i, ...
-        real(field(mesh.mapTriToVer(i,1))), ...
-        real(field(mesh.mapTriToVer(i,2))), ...
-        real(field(mesh.mapTriToVer(i,3))));
+for tri=1:mesh.numTri
+    fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
+    for n=1:dofm.numDofPerTRI
+        fprintf(file,'%f ', real(field(dofm.locToGloTRI(tri,n))));
+    end
+    fprintf(file,'\n');
 end
 fprintf(file,'$EndElementNodeData\n');
 
@@ -150,11 +127,12 @@ fprintf(file,'1\n'); % REAL PART
 fprintf(file,'1\n');
 fprintf(file,'%i\n',mesh.numTri);
 fprintf(file,'0\n');
-for i=1:mesh.numTri
-    fprintf(file,'%i 3 %f %f %f\n', i, ...
-        imag(field(mesh.mapTriToVer(i,1))), ...
-        imag(field(mesh.mapTriToVer(i,2))), ...
-        imag(field(mesh.mapTriToVer(i,3))));
+for tri=1:mesh.numTri
+    fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
+    for n=1:dofm.numDofPerTRI
+        fprintf(file,'%f ', imag(field(dofm.locToGloTRI(tri,n))));
+    end
+    fprintf(file,'\n');
 end
 fprintf(file,'$EndElementNodeData\n');
 
