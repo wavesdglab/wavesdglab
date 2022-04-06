@@ -14,8 +14,8 @@ global k;
 
 % sol   = sin(pi*x/2) .* sin(pi*y/2);
 % solF  = (0.5*pi^2 - k^2) * sol;  % [- Delta - omega^2] u
-% solDx = 0*x;
-% solDy = 0*x;
+% solDx = pi/2 * cos(pi*x/2) .* sin(pi*y/2);
+% solDy = pi/2 * sin(pi*x/2) .* cos(pi*y/2);
 
 % Dirichlet problem
 % m = 3;

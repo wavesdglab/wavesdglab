@@ -7,13 +7,13 @@ headers2D;
 global k BCWest BCNorth BCEast BCSouth 
 k = 10; %2*pi;
 h = 0.1; %1/16/2;
-degree = 1;
+degree = 2;
 
 resTol = 1e-4;
-BCWest  = 'ABC';
+BCWest  = 'DIR';
 BCNorth = 'ABC';
-BCEast  = 'ABC';
-BCSouth = 'ABC';
+BCEast  = 'DIR';
+BCSouth = 'NEU';
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -90,11 +90,10 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solRef, matA, rhsA]     = computeSolNum2D_CG2(mesh, dofm);
-solAna                   = computeSolAna2D_CG(mesh);
-[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
-writeField(dofm, mesh, solAna, "mySol.pos", "mySol");
-%system('gmsh mySol.pos');
+[solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm);
+[solP, matP, rhsP] = computeSolProj2D_CG(mesh, dofm);
+writeField(dofm, mesh, solA, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
 
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
 % errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
@@ -112,15 +111,15 @@ writeField(dofm, mesh, solAna, "mySol.pos", "mySol");
 
 fprintf('Method CG-2\n');
 disp(['---------------------------------------------------------']);
-[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef, solAna);
-fprintf('Error versus interpolated solution:\n');
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solA);
+fprintf('Error versus analytic solution:\n');
 disp(['    L2-Error           ' num2str(errorL2)]);
 disp(['    H1-Error           ' num2str(errorH1)]);
 disp(['    L2-Norm            ' num2str(normL2)]);
 disp(['    H1-Norm            ' num2str(normH1)]);
 disp(['---------------------------------------------------------']);
-[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solRef);
-fprintf('Error versus analytic solution:\n');
+[errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, solP);
+fprintf('Error (projection) versus analytic solution:\n');
 disp(['    L2-Error           ' num2str(errorL2)]);
 disp(['    H1-Error           ' num2str(errorH1)]);
 disp(['    L2-Norm            ' num2str(normL2)]);
@@ -160,15 +159,15 @@ disp(['---------------------------------------------------------']);
 %     num2str(errorL2JacobiA,'%.1e') ' \\'
 %     ]);
 
-figure(1);
-subplot(1,3,1);
-hold off;
-postProVizu2D_CG(mesh, real(solAna), 'Analytic solution');
-subplot(1,3,2);
-hold off;
-postProVizu2D_CG(mesh, real(solRef), 'Numerical solution');
-subplot(1,3,3);
-hold off;
-postProVizu2D_CG(mesh, real(solRef-solAna), 'Error');
+% figure(1);
+% subplot(1,3,1);
+% hold off;
+% postProVizu2D_CG(mesh, real(solP), 'Projected solution');
+% subplot(1,3,2);
+% hold off;
+% postProVizu2D_CG(mesh, real(solA), 'Numerical solution');
+% subplot(1,3,3);
+% hold off;
+% postProVizu2D_CG(mesh, real(solA-solP), 'Error');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

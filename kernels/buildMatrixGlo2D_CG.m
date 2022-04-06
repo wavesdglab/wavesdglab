@@ -1,16 +1,13 @@
 function [matM, matK, matDX, matDY, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGlo2D_CG(mesh, dofm)
 
-% -------------------------------------------------------------------------
-% Compute volume matrices
-% -------------------------------------------------------------------------
-
 % Quadrature
 degreeQ = 2*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
+weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
 
 % Shape functions (f, dfdu, dfdv)
-funQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-[funDuQ, funDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
+shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
+[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
 
 % Global matrices
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);   % Mass matrix
@@ -30,22 +27,14 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Shape functions (dfdx, dfdy)
-    funDxQ = funDuQ * Jdudx(1,1) + funDvQ * Jdudx(2,1);
-    funDyQ = funDuQ * Jdudx(1,2) + funDvQ * Jdudx(2,2);
+    shapeDxQ = shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1);
+    shapeDyQ = shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2);
     
     % Elemental matrices
-    matMel = zeros(dofm.numDofPerTRI,dofm.numDofPerTRI);
-    matKel = zeros(dofm.numDofPerTRI,dofm.numDofPerTRI);
-    matDXel = zeros(dofm.numDofPerTRI,dofm.numDofPerTRI);
-    matDYel = zeros(dofm.numDofPerTRI,dofm.numDofPerTRI);
-    for i=1:dofm.numDofPerTRI
-        for j=1:dofm.numDofPerTRI
-            matMel(i,j)  = weights' * (funQ(:,i) .* funQ(:,j)) * detJdxdu;
-            matKel(i,j)  = weights' * (funDxQ(:,i) .* funDxQ(:,j) + funDyQ(:,i) .* funDyQ(:,j)) * detJdxdu;
-            matDXel(i,j) = weights' * (funDxQ(:,i) .* funQ(:,j)) * detJdxdu;
-            matDYel(i,j) = weights' * (funDyQ(:,i) .* funQ(:,j)) * detJdxdu;
-        end
-    end
+    matMel  = shapeQ' * weights * shapeQ * detJdxdu;
+    matKel  = (shapeDxQ' * weights * shapeDxQ + shapeDyQ' * weights * shapeDyQ ) * detJdxdu;
+    matDXel = shapeDxQ' * weights * shapeQ * detJdxdu;
+    matDYel = shapeDyQ' * weights * shapeQ * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
