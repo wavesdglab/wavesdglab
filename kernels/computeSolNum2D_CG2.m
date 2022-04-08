@@ -33,15 +33,29 @@ for tri=1:mesh.numTri
     % RHS function
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
-    % Shape functions (dfdx, dfdy)
-    shapeDxQ = shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1);
-    shapeDyQ = shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2);
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+    
+    % Shape functions (f, dfdx, dfdy) with orientation
+    shapeOrQ = shapeQ * orientation;
+    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
     % Elemental matrices
-    matMel = shapeQ' * weights * shapeQ * detJdxdu;
+    matMel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
     matKel = (shapeDxQ' * weights * shapeDxQ + shapeDyQ' * weights * shapeDyQ ) * detJdxdu;
     matAel = matKel - k^2*matMel;
-    rhsAel = shapeQ' * weights * rhsQ * detJdxdu;
+    rhsAel = shapeOrQ' * weights * rhsQ * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
@@ -89,10 +103,20 @@ for edgBnd=1:mesh.numEdgBnd
     dirQ = solQ;
     neuQ = normal(1)*solDxQ + normal(2)*solDyQ;
     
+    % Orientation
+    orientation = ones(dofm.numDofPerLIN,1);
+    if(ver(1) > ver(2))
+        orientation(3:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
+    
+    % Shape function
+    shapeOrQ = shapeQ * orientation;
+    
     % Elemental matrix
-    matMel = shapeQ' * weights * shapeQ * Jdxdu;
-    rhsDel = shapeQ' * weights * dirQ * Jdxdu;
-    rhsNel = shapeQ' * weights * neuQ * Jdxdu;
+    matMel = shapeOrQ' * weights * shapeOrQ * Jdxdu;
+    rhsDel = shapeOrQ' * weights * dirQ * Jdxdu;
+    rhsNel = shapeOrQ' * weights * neuQ * Jdxdu;
     
     % Boundary condition
     switch tagToBC(mesh.tagEdgBnd(edgBnd))
@@ -109,9 +133,7 @@ for edgBnd=1:mesh.numEdgBnd
 end
 
 if(~isempty(dofDIR))
-    x = mesh.coord(:,1);
-    y = mesh.coord(:,2);
-    [solP, matP, rhsP] = computeSolProj2D_CG(mesh, dofm);
+    solP = computeSolProj2D_CG(mesh, dofm);
     dofDIR = unique(dofDIR);
     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
     rhsA(dofDIR) = solP(dofDIR);
@@ -127,7 +149,6 @@ end
 solA = matA\rhsA;
 
 end
-
 
 function BC = tagToBC(tag)
 global BCWest BCNorth BCEast BCSouth;

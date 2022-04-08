@@ -24,18 +24,32 @@ for tri=1:mesh.numTri
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     
-    % Shape functions (dfdx, dfdy)
-    shapeDxQ = shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1);
-    shapeDyQ = shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2);
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+    
+    % Shape functions (f, dfdx, dfdy) with orientation
+    shapeOrQ = shapeQ * orientation;
+    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
     % Approximate solution (and derivatives)
-    solQ   = shapeQ   * vecSol(dofm.locToGloTRI(tri,:));
+    solQ   = shapeOrQ * vecSol(dofm.locToGloTRI(tri,:));
     solDxQ = shapeDxQ * vecSol(dofm.locToGloTRI(tri,:));
     solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
     
     % Reference solution (and derivatives)
     if (exist('vecRef','var'))
-        refQ   = shapeQ   * vecRef(dofm.locToGloTRI(tri,:));
+        refQ   = shapeOrQ * vecRef(dofm.locToGloTRI(tri,:));
         refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
         refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));
     else

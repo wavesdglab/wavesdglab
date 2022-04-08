@@ -8,7 +8,7 @@ degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
 
-% Shape functions (f, dfdu, dfdv)
+% Shape functions
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
 for tri=1:mesh.numTri
@@ -25,9 +25,25 @@ for tri=1:mesh.numTri
     % RHS function
     solQ = mySol(xQ, yQ);
     
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+    
+    % Shape functions with orientation
+    shapeOrQ = shapeQ * orientation;
+    
     % Elemental matrices
-    matPel = shapeQ' * weights * shapeQ * detJdxdu;
-    rhsPel = shapeQ' * weights * solQ * detJdxdu;
+    matPel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
+    rhsPel = shapeOrQ' * weights * solQ * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);

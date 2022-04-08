@@ -24,6 +24,7 @@ dofm.numDofTRI = dofm.numDofVer + dofm.numDofEdg + dofm.numDofFac;
 dofm.locToGloVer = zeros(mesh.numTri, 3*dofm.numDofPerVer);
 dofm.locToGloEdg = zeros(mesh.numTri, 3*dofm.numDofPerEdg);
 dofm.locToGloFac = zeros(mesh.numTri, 1*dofm.numDofPerFac);
+dofm.locEdg = zeros(3,dofm.numDofPerEdg);
 for tri=1:mesh.numTri
     ver = mesh.mapTriToVer(tri,:);
     dofm.locToGloVer(tri,1) = ver(1);
@@ -34,6 +35,9 @@ for tri=1:mesh.numTri
         dofm.locToGloEdg(tri,0*dofm.numDofPerEdg+n) = dofm.numDofVer + dofm.numDofPerEdg*(edg(1)-1) + n;
         dofm.locToGloEdg(tri,1*dofm.numDofPerEdg+n) = dofm.numDofVer + dofm.numDofPerEdg*(edg(2)-1) + n;
         dofm.locToGloEdg(tri,2*dofm.numDofPerEdg+n) = dofm.numDofVer + dofm.numDofPerEdg*(edg(3)-1) + n;
+        dofm.locEdg(1,n) = 3 + 0*dofm.numDofPerEdg + n;
+        dofm.locEdg(2,n) = 3 + 1*dofm.numDofPerEdg + n;
+        dofm.locEdg(3,n) = 3 + 2*dofm.numDofPerEdg + n;
     end
     for n=1:dofm.numDofPerFac
         dofm.locToGloFac(tri,n) = dofm.numDofVer + dofm.numDofEdg + dofm.numDofPerFac*(tri-1) + n;
