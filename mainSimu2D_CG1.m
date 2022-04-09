@@ -7,7 +7,7 @@ headers2D;
 global k BCWest BCNorth BCEast BCSouth 
 k = 30; %2*pi;
 h = 0.1; %1/16/2;
-degree = 4;
+degree = 1;
 
 resTol = 1e-4;
 BCWest  = 'NEU';
@@ -23,9 +23,9 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% [solRef, matA, rhsA]     = computeSolNum2D_CG1(mesh, dofm);
-% solAna                   = computeSolAna2D_CG(mesh);
-% [errorL2, errorH1]       = computeNormError2D_CG(mesh, dofm, solRef, solAna);
+[solRef, matA, rhsA]     = computeSolNum2D_CG1(mesh, dofm);
+solAna                   = computeSolAna2D_CG(mesh);
+[errorL2, errorH1]       = computeNormError2D_CG(mesh, dofm, solRef, solAna);
 % 
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
 % errorL2IterA             = computeNormError2D_CG(mesh, dofm, solA, solRef);
@@ -40,18 +40,16 @@ dofm = buildDofManager2D_CG(mesh, degree);
 % eigenvalA = diag(eigenvalA);
 % [eigenvecAA,eigenvalAA] = eigs(matA'*matA,size(matA,1));
 % eigenvalAA = diag(eigenvalAA);
-% 
-% disp(['Method CG-1']);
-% disp(['---------------------------------------------------------']);
-% disp(['    L2-Error           ' num2str(errorL2)]);
-% disp(['    H1-Error           ' num2str(errorH1)]);
-% disp(['---------------------------------------------------------']);
-% disp(['A : Size               ' num2str(size(matA,1))]);
+
+disp(['Method CG-1']);
+disp(['---------------------------------------------------------']);
+disp(['    L2-Error           ' num2str(errorL2)]);
+disp(['    H1-Error           ' num2str(errorH1)]);
+disp(['---------------------------------------------------------']);
+disp(['A : Size               ' num2str(size(matA,1))]);
 % disp(['    Rank(eigenvectors) ' num2str(rank(eigenvecA))]);
 % disp(['    Cond(eigenvectors) ' num2str(cond(eigenvecA))]);
 % disp(['    Cond(A)            ' num2str(condest(matA))]);
-% disp(['    Cond(AA)           ' num2str(condest(matA'*matA))]);
-% disp(['    Min eigenval AA    ' num2str(min(eigenvalAA))]);
 % disp(['    - - - - - - - - - - - - - - - - - - - - -']);
 % disp(['    IterGmres          ' num2str(iterA(2))]);
 % disp(['    Final L2-Error     ' num2str(errorL2IterA)]);
@@ -61,7 +59,7 @@ dofm = buildDofManager2D_CG(mesh, degree);
 % disp(['    Final L2-Error     ' num2str(errorL2CGNA)]);
 % disp(['    IterRelax          ' num2str(iterJacobiA)]);
 % disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
-% disp(['---------------------------------------------------------']);
+disp(['---------------------------------------------------------']);
 
 % disp(['\text{CG-1} & & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...

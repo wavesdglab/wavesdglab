@@ -16,6 +16,12 @@ dofm.numDofPerTRI = 3*dofm.numDofPerVer + 3*dofm.numDofPerEdg + dofm.numDofPerFa
 dofm.numDofLIN = dofm.numDofPerLIN * mesh.numEdg;
 dofm.numDofTRI = dofm.numDofPerTRI * mesh.numTri;
 
+% Mapping edge-local to element-local index of edge DOF
+dofm.locEdg = zeros(3,dofm.numDofPerEdg);
+dofm.locEdg(1,:) = 3 + 0*dofm.numDofPerEdg + (1:dofm.numDofPerEdg);
+dofm.locEdg(2,:) = 3 + 1*dofm.numDofPerEdg + (1:dofm.numDofPerEdg);
+dofm.locEdg(3,:) = 3 + 2*dofm.numDofPerEdg + (1:dofm.numDofPerEdg);
+
 % Mapping element-local to mesh-global index of LIN/TRI DOF
 dofm.locToGloLIN = zeros(mesh.numEdg, dofm.numDofPerLIN);
 dofm.locToGloTRI = zeros(mesh.numTri, dofm.numDofPerTRI);

@@ -26,15 +26,29 @@ for tri=1:mesh.numTri
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     
-    % Shape functions (dfdx, dfdy)
-    shapeDxQ = shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1);
-    shapeDyQ = shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2);
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+    
+    % Shape functions (f, dfdx, dfdy) with orientation
+    shapeOrQ = shapeQ * orientation;
+    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
     % Elemental matrices
-    matMel  = shapeQ' * weights * shapeQ * detJdxdu;
+    matMel  = shapeOrQ' * weights * shapeOrQ * detJdxdu;
     matKel  = (shapeDxQ' * weights * shapeDxQ + shapeDyQ' * weights * shapeDyQ ) * detJdxdu;
-    matDXel = shapeDxQ' * weights * shapeQ * detJdxdu;
-    matDYel = shapeDyQ' * weights * shapeQ * detJdxdu;
+    matDXel = shapeDxQ' * weights * shapeOrQ * detJdxdu;
+    matDYel = shapeDyQ' * weights * shapeOrQ * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);

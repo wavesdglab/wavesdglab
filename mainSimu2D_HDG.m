@@ -36,8 +36,8 @@ disp(['    L2-Norm    ' num2str(normL2)]);
 disp(['    H1-Norm    ' num2str(normH1)]);
 disp('---------------------------------------------------------');
 
-writeField(dofm, mesh, solP, "mySol.pos", "mySol");
-system('gmsh mySol.pos');
+writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
+%system('gmsh mySol.pos');
 
 % figure(1);
 % subplot(1,3,1);

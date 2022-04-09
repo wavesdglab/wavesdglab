@@ -65,6 +65,11 @@ for tri = 1:mesh.numTri
             connexVerToVer(n2(fac),n1(fac)) = edg;
             mesh.mapTriToEdg(tri,fac) = edg;
             mesh.mapEdgToVer(edg,:) = [n1(fac) n2(fac)];
+%             if(n1(fac) < n2(fac))
+%                 mesh.mapEdgToVer(edg,:) = [n1(fac) n2(fac)];
+%             else
+%                 mesh.mapEdgToVer(edg,:) = [n2(fac) n1(fac)];
+%             end
             if(connexBndToBnd(n1(fac),n2(fac)) > 0)
                 edgBnd = edgBnd+1;
                 mesh.listEdgBnd(edgBnd) = edg;

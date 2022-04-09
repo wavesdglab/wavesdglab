@@ -23,10 +23,10 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solA, matA, rhsA]         = computeSolNum2D_CG2(mesh, dofm);
-[errorL2, errorH1]         = computeNormError2D_CG(mesh, dofm, solA);
+[solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm);
+[errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
 
-[solP, matP, rhsP]         = computeSolProj2D_CG(mesh, dofm);
+[solP, matP, rhsP]         = computeSolProjL2_2D_CG(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_CG(mesh, dofm, solP);
 
 [eigenvecA,eigenvalA]      = eigs(matA,size(matA,1));
@@ -48,30 +48,30 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- CALL gmres']);
-[solAiter,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-errorL2IterA                 = computeNormError2D_CG(mesh, dofm, solAiter, solA);
-disp(['--- CALL bicgstab']);
-[solAiter,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-errorL2BiCGStabA             = computeNormError2D_CG(mesh, dofm, solAiter, solA);
-disp(['--- CALL conjgradn']);
-[solAiter,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
-errorL2CGNA                  = computeNormError2D_CG(mesh, dofm, solAiter, solA);
-disp(['--- CALL jacobi']);
-[solAiter,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
-errorL2JacobiA               = computeNormError2D_CG(mesh, dofm, solAiter, solA);
-disp(['--- CALL eigenvalues']);
-
-disp(['---------------------------------------------------------']);
-disp(['    IterGmres          ' num2str(iterA(2))]);
-disp(['    Final L2-Error     ' num2str(errorL2IterA)]);
-disp(['    IterBiCGS          ' num2str(iterBiCGStabA)]);
-disp(['    Final L2-Error     ' num2str(errorL2BiCGStabA)]);
-disp(['    IterCGN            ' num2str(iterCGNA)]);
-disp(['    Final L2-Error     ' num2str(errorL2CGNA)]);
-disp(['    IterRelax          ' num2str(iterJacobiA)]);
-disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
-disp(['---------------------------------------------------------']);
+% disp(['--- CALL gmres']);
+% [solAiter,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
+% errorL2IterA                 = computeNormError2D_CG(mesh, dofm, solAiter, solA);
+% disp(['--- CALL bicgstab']);
+% [solAiter,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
+% errorL2BiCGStabA             = computeNormError2D_CG(mesh, dofm, solAiter, solA);
+% disp(['--- CALL conjgradn']);
+% [solAiter,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
+% errorL2CGNA                  = computeNormError2D_CG(mesh, dofm, solAiter, solA);
+% disp(['--- CALL jacobi']);
+% [solAiter,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
+% errorL2JacobiA               = computeNormError2D_CG(mesh, dofm, solAiter, solA);
+% disp(['--- CALL eigenvalues']);
+% 
+% disp(['---------------------------------------------------------']);
+% disp(['    IterGmres          ' num2str(iterA(2))]);
+% disp(['    Final L2-Error     ' num2str(errorL2IterA)]);
+% disp(['    IterBiCGS          ' num2str(iterBiCGStabA)]);
+% disp(['    Final L2-Error     ' num2str(errorL2BiCGStabA)]);
+% disp(['    IterCGN            ' num2str(iterCGNA)]);
+% disp(['    Final L2-Error     ' num2str(errorL2CGNA)]);
+% disp(['    IterRelax          ' num2str(iterJacobiA)]);
+% disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
+% disp(['---------------------------------------------------------']);
 
 % disp(['\text{CG-2} & & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
@@ -90,8 +90,10 @@ disp(['---------------------------------------------------------']);
 %     num2str(errorL2JacobiA,'%.1e') ' \\'
 %     ]);
 
-% writeFieldCG(dofm, mesh, solA, "mySol.pos", "mySol");
-% system('gmsh mySol.pos');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+writeFieldCG(dofm, mesh, solA, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
 
 % figure(1);
 % subplot(1,3,1);

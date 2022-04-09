@@ -1,9 +1,7 @@
 function [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm)
+fprintf('Solver  : Call computeSolNum2D_CG2\n');
 
 global k
-
-matA = sparse(dofm.numDofTRI, dofm.numDofTRI);
-rhsA = zeros(dofm.numDofTRI, 1);
 
 % -------------------------------------------------------------------------
 % Volume terms
@@ -17,6 +15,10 @@ weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
 % Shape functions (f, dfdu, dfdv)
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 [shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
+
+% Global matrices
+matA = sparse(dofm.numDofTRI, dofm.numDofTRI);
+rhsA = zeros(dofm.numDofTRI, 1);
 
 for tri=1:mesh.numTri
     
@@ -133,7 +135,7 @@ for edgBnd=1:mesh.numEdgBnd
 end
 
 if(~isempty(dofDIR))
-    solP = computeSolProj2D_CG(mesh, dofm);
+    solP = computeSolProjL2_2D_CG(mesh, dofm);
     dofDIR = unique(dofDIR);
     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
     rhsA(dofDIR) = solP(dofDIR);

@@ -1,4 +1,4 @@
-function [solP, matP, rhsP] = computeSolProj2D_CG(mesh, dofm)
+function [solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm)
 
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
 rhsP = zeros(dofm.numDofTRI, 1);
@@ -47,8 +47,8 @@ for tri=1:mesh.numTri
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
-    matP(dof,dof) = matP(dof,dof) + matPel;
-    rhsP(dof) = rhsP(dof) + rhsPel;
+    matP(dof,dof) = matPel;
+    rhsP(dof) = rhsPel;
     
 end
 
