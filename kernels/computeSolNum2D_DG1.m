@@ -3,6 +3,8 @@ fprintf('Solver  : Call computeSolNum2D_DG1\n');
 
 global k
 
+numDofTRI = dofm.numDofTRI;
+
 % -------------------------------------------------------------------------
 % Volume terms
 % -------------------------------------------------------------------------
@@ -70,8 +72,6 @@ for tri=1:mesh.numTri
     
 end
 
-numDofTRI = dofm.numDofTRI;
-
 matA = [
     -1i*k*matM  -matDX                       -matDY                      ;
     -matDX      -1i*k*matM                   sparse(numDofTRI,numDofTRI) ;
@@ -119,6 +119,12 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
         
+        % Global ID for interior unknowns
+        dofInt = dofLocTri(fac,:);
+        idIntP = 0*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        idIntU = 1*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        idIntV = 2*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -143,12 +149,6 @@ for tri=1:mesh.numTri
         rhsPel = shapeOrQ' * weights * solQ * Jdxdu;
         rhsUel = shapeOrQ' * weights * solDxQ * Jdxdu / (1i*k);
         rhsVel = shapeOrQ' * weights * solDyQ * Jdxdu / (1i*k);
-        
-        % Global ID for interior unknowns
-        dofInt = dofLocTri(fac,:);
-        idIntP = dofm.locToGloTRI(tri,dofInt);
-        idIntU = idIntP + numDofTRI;
-        idIntV = idIntU + numDofTRI;
         
         % Exterior normal
         nx = normal(fac,1);
