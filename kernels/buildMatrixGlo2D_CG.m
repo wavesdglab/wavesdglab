@@ -1,4 +1,8 @@
-function [matM, matK, matDX, matDY, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGlo2D_CG(mesh, dofm)
+function [matM, matK, matDX, matDY, rhsP, matS1, matS2, matS3, matS4, dofS1, dofS2, dofS3, dofS4] = buildMatrixGlo2D_CG(mesh, dofm)
+
+% -------------------------------------------------------------------------
+% Volume terms
+% -------------------------------------------------------------------------
 
 % Quadrature
 degreeQ = 2*dofm.degree;
@@ -14,6 +18,7 @@ matM = sparse(dofm.numDofTRI,dofm.numDofTRI);   % Mass matrix
 matK = sparse(dofm.numDofTRI,dofm.numDofTRI);   % Stiffness matrix
 matDX = sparse(dofm.numDofTRI,dofm.numDofTRI);  % Differentiation matrix (x)
 matDY = sparse(dofm.numDofTRI,dofm.numDofTRI);  % Differentiation matrix (y)
+rhsP = zeros(dofm.numDofTRI, 1);
 
 for tri=1:mesh.numTri
     
@@ -22,6 +27,7 @@ for tri=1:mesh.numTri
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
+    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
@@ -44,11 +50,15 @@ for tri=1:mesh.numTri
     shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
     shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
+    % RHS function
+    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
+    
     % Elemental matrices
     matMel  = shapeOrQ' * weights * shapeOrQ * detJdxdu;
     matKel  = (shapeDxQ' * weights * shapeDxQ + shapeDyQ' * weights * shapeDyQ ) * detJdxdu;
     matDXel = shapeDxQ' * weights * shapeOrQ * detJdxdu;
     matDYel = shapeDyQ' * weights * shapeOrQ * detJdxdu;
+    rhsPel = shapeOrQ' * weights * rhsQ * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
@@ -56,6 +66,7 @@ for tri=1:mesh.numTri
     matK(dof,dof) = matK(dof,dof) + matKel;
     matDX(dof,dof) = matDX(dof,dof) + matDXel;
     matDY(dof,dof) = matDY(dof,dof) + matDYel;
+    rhsP(dof) = rhsP(dof) + rhsPel;
     
 end
 

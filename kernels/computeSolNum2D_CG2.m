@@ -7,64 +7,9 @@ global k
 % Volume terms
 % -------------------------------------------------------------------------
 
-% Quadrature
-degreeQ = 4*dofm.degree;
-[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
+[matM, matK, ~, ~, rhsA] = buildMatrixGlo2D_CG(mesh, dofm);
 
-% Shape functions (f, dfdu, dfdv)
-shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
-
-% Global matrices
-matA = sparse(dofm.numDofTRI, dofm.numDofTRI);
-rhsA = zeros(dofm.numDofTRI, 1);
-
-for tri=1:mesh.numTri
-    
-    % Mapping
-    ver = mesh.mapTriToVer(tri,:);
-    V1 = mesh.coord(ver(1),:);
-    V2 = mesh.coord(ver(2),:);
-    V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
-    Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
-    Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
-    detJdxdu = abs(det(Jdxdu));
-    
-    % RHS function
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
-    
-    % Orientation
-    orientation = ones(dofm.numDofPerTRI,1);
-    if(ver(1) > ver(2))
-        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(2) > ver(3))
-        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(3) > ver(1))
-        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
-    % Shape functions (f, dfdx, dfdy) with orientation
-    shapeOrQ = shapeQ * orientation;
-    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
-    
-    % Elemental matrices
-    matMel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
-    matKel = (shapeDxQ' * weights * shapeDxQ + shapeDyQ' * weights * shapeDyQ ) * detJdxdu;
-    matAel = matKel - k^2*matMel;
-    rhsAel = shapeOrQ' * weights * rhsQ * detJdxdu;
-    
-    % Matrix assembling
-    dof = dofm.locToGloTRI(tri,:);
-    matA(dof,dof) = matA(dof,dof) + matAel;
-    rhsA(dof) = rhsA(dof) + rhsAel;
-    
-end
+matA = matK - k^2*matM;
 
 % -------------------------------------------------------------------------
 % Surface terms

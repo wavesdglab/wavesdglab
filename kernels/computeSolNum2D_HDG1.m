@@ -1,6 +1,5 @@
 function [solA, matA, rhsA] = computeSolNum2D_HDG1(mesh, dofm, tau)
-
-fprintf('Solver  : Call computeSolNumHDG1\n');
+disp(['--- CALL computeSolNum2D_HDG1']);
 
 global k
 
@@ -11,68 +10,7 @@ numDofLIN = dofm.numDofLIN;
 % Volume terms
 % -------------------------------------------------------------------------
 
-% Quadrature
-degreeQ = 4*dofm.degree;
-[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-
-% Shape functions (f, dfdu, dfdv)
-shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
-
-% Global matrices
-matM = sparse(dofm.numDofTRI, dofm.numDofTRI);
-matDX = sparse(dofm.numDofTRI, dofm.numDofTRI);
-matDY = sparse(dofm.numDofTRI, dofm.numDofTRI);
-rhsP = zeros(dofm.numDofTRI, 1);
-
-for tri=1:mesh.numTri
-    
-    % Mapping
-    ver = mesh.mapTriToVer(tri,:);
-    V1 = mesh.coord(ver(1),:);
-    V2 = mesh.coord(ver(2),:);
-    V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
-    Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
-    Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
-    detJdxdu = abs(det(Jdxdu));
-    
-    % RHS function
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
-    
-    % Orientation
-    orientation = ones(dofm.numDofPerTRI,1);
-    if(ver(1) > ver(2))
-        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(2) > ver(3))
-        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(3) > ver(1))
-        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
-    % Shape functions (f, dfdx, dfdy) with orientation
-    shapeOrQ = shapeQ * orientation;
-    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
-    
-    % Elemental matrices
-    matMel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
-    matDXel = shapeDxQ' * weights * shapeOrQ * detJdxdu;
-    matDYel = shapeDyQ' * weights * shapeOrQ * detJdxdu;
-    rhsPel = shapeOrQ' * weights * rhsQ * detJdxdu;
-    
-    % Matrix assembling
-    dof = dofm.locToGloTRI(tri,:);
-    matM(dof,dof) = matMel;
-    matDX(dof,dof) = matDXel;
-    matDY(dof,dof) = matDYel;
-    rhsP(dof) = rhsPel;
-    
-end
+[matM, ~, matDX, matDY, rhsP] = buildMatrixGlo2D_DG(mesh, dofm);
 
 matA = [
     -1i*k*matM                   -matDX                       -matDY                       sparse(numDofTRI,numDofLIN) ;
@@ -82,9 +20,9 @@ matA = [
 
 rhsA = [
     -1/(1i*k)*rhsP ;
-    zeros(numDofTRI,1)  ;
-    zeros(numDofTRI,1)  ;
-    zeros(numDofLIN,1)  ];
+    zeros(numDofTRI,1) ;
+    zeros(numDofTRI,1) ;
+    zeros(numDofLIN,1) ];
 
 % -------------------------------------------------------------------------
 % Surface terms
@@ -97,16 +35,6 @@ weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
 
 % Shape functions
 shapeQ = functionsShapeLIN(uQ, dofm.degree);
-
-dofLocTri = zeros(3,dofm.numDofPerLIN);
-dofLocTri(1,:) = [1 2 dofm.locEdg(1,:)];
-dofLocTri(2,:) = [2 3 dofm.locEdg(2,:)];
-dofLocTri(3,:) = [3 1 dofm.locEdg(3,:)];
-
-dofLocTriNeigh = zeros(3,dofm.numDofPerLIN);
-dofLocTriNeigh(1,:) = [2 1 dofm.locEdg(1,:)];
-dofLocTriNeigh(2,:) = [3 2 dofm.locEdg(2,:)];
-dofLocTriNeigh(3,:) = [1 3 dofm.locEdg(3,:)];
 
 for tri=1:mesh.numTri
     
@@ -122,21 +50,6 @@ for tri=1:mesh.numTri
     
     % Loop over faces
     for fac = 1:3
-        
-        % Global ID for interior unknowns
-        dofInt = dofLocTri(fac,:);
-        idIntP = 0*numDofTRI + dofm.locToGloTRI(tri,dofInt);
-        idIntU = 1*numDofTRI + dofm.locToGloTRI(tri,dofInt);
-        idIntV = 2*numDofTRI + dofm.locToGloTRI(tri,dofInt);
-        
-        % Global ID for edge unknowns
-        edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-        idIntS = 3*numDofTRI + dofm.locToGloLIN(edgGlo,:);
-        if(mesh.mapTriToEdg(tri,fac) < 0)
-            tmp = idIntS;
-            idIntS(1) = tmp(2);
-            idIntS(2) = tmp(1);
-        end
         
         % Mapping
         V1 = mesh.coord(n1(fac),:);
@@ -157,7 +70,7 @@ for tri=1:mesh.numTri
         % Shape function
         shapeOrQ = shapeQ * orientation;
         
-        % Elemental matrix
+        % Elemental matrices
         matMel = shapeOrQ' * weights * shapeOrQ * Jdxdu;
         rhsPel = shapeOrQ' * weights * solQ * Jdxdu;
         rhsUel = shapeOrQ' * weights * solDxQ * Jdxdu / (1i*k);
@@ -166,6 +79,21 @@ for tri=1:mesh.numTri
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
+        
+        % Global ID for interior unknowns
+        dofInt = dofm.locFac(fac,:);
+        idIntP = 0*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        idIntU = 1*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        idIntV = 2*numDofTRI + dofm.locToGloTRI(tri,dofInt);
+        
+        % Global ID for edge unknowns
+        edgGlo = abs(mesh.mapTriToEdg(tri,fac));
+        idIntS = 3*numDofTRI + dofm.locToGloLIN(edgGlo,:);
+        if(mesh.mapTriToEdg(tri,fac) < 0)
+            tmp = idIntS;
+            idIntS(1) = tmp(2);
+            idIntS(2) = tmp(1);
+        end
         
         % Surface terms for the volume fields
         matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau * matMel;
