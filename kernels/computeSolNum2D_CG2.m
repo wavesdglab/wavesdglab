@@ -1,5 +1,4 @@
 function [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm)
-fprintf('Solver  : Call computeSolNum2D_CG2\n');
 
 global k
 
@@ -16,7 +15,7 @@ matA = matK - k^2*matM;
 % -------------------------------------------------------------------------
 
 % Quadrature
-degreeQ = 4*dofm.degree;
+degreeQ = 2*dofm.degree;
 [uQ, weights] = quadratureGaussLIN(degreeQ);
 weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
 

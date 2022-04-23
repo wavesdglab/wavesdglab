@@ -4,16 +4,13 @@ clear all;
 headers2D;
 
 % Define parameters
-global k BCWest BCNorth BCEast BCSouth
-k = 30;       % 2*pi;
+global k
+k = 50;       % 2*pi;
 h = 0.1;      % 1/16/2;
 degree = 4;
 
 resTol = 1e-4;
-BCWest  = 'DIR';
-BCNorth = 'DIR';
-BCEast  = 'DIR';
-BCSouth = 'DIR';
+benchmark2D('open');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -21,30 +18,65 @@ mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_CG(mesh, degree);
 
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-[solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm);
-[errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
-
-[solP, matP, rhsP]         = computeSolProjL2_2D_CG(mesh, dofm);
-[errorProjL2, errorProjH1] = computeNormError2D_CG(mesh, dofm, solP);
-
-[eigenvecA,eigenvalA]      = eigs(matA,size(matA,1));
-eigenvalA                  = diag(eigenvalA);
 
 disp(['---------------------------------------------------------']);
 disp(['Method CG-2']);
 disp(['---------------------------------------------------------']);
-disp(['    L2-Error (numSol)  ' num2str(errorL2)]);
-disp(['    H1-Error (numSol)  ' num2str(errorH1)]);
-disp(['    L2-Error (projSol) ' num2str(errorProjL2)]);
-disp(['    H1-Error (projSol) ' num2str(errorProjH1)]);
+disp(['    k                   ' num2str(k)]);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
-disp(['A : Size               ' num2str(size(matA,1))]);
-disp(['    Rank(eigenvectors) ' num2str(rank(eigenvecA))]);
-disp(['    Cond(eigenvectors) ' num2str(cond(eigenvecA))]);
-disp(['    Cond(A)            ' num2str(condest(matA))]);
+
+[solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm);
+[errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
+
+[solP, matP, rhsP] = computeSolProjL2_2D_CG(mesh, dofm);
+[errorProjL2, errorProjH1] = computeNormError2D_CG(mesh, dofm, solP);
+
+disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
+%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
+%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
 disp(['---------------------------------------------------------']);
+
+% [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
+% eigenvalA = diag(eigenvalA);
+% 
+% disp(['A : Size                ' num2str(size(matA,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
+% disp(['    Cond(A)             ' num2str(condest(matA))]);
+% disp(['---------------------------------------------------------']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
+% dofG = 1:numDofTRIred;
+% dofI = (numDofTRIred+1):dofm.numDofTRI;
+% matGG = matA(dofG,dofG);
+% matGI = matA(dofG,dofI);
+% matIG = matA(dofI,dofG);
+% matII = matA(dofI,dofI);
+% rhsG = rhsA(dofG);
+% rhsI = rhsA(dofI);
+% matS = matGG - matGI*(matII\matIG);
+% rhsS = rhsG - matGI*(matII\rhsI);
+% solG = matS\rhsS;
+% solI = matII\(rhsI-matIG*solG);
+% solRedu = [ solG ; solI ];
+% 
+% [eigenvecS,eigenvalS]      = eigs(matS,size(matS,1));
+% eigenvalS                  = diag(eigenvalS);
+% 
+% disp(['S : Size                ' num2str(size(matS,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecS))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecS))]);
+% disp(['    Cond(S)             ' num2str(condest(matS))]);
+% disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -63,14 +95,14 @@ disp(['---------------------------------------------------------']);
 % disp(['--- CALL eigenvalues']);
 % 
 % disp(['---------------------------------------------------------']);
-% disp(['    IterGmres          ' num2str(iterA(2))]);
-% disp(['    Final L2-Error     ' num2str(errorL2IterA)]);
-% disp(['    IterBiCGS          ' num2str(iterBiCGStabA)]);
-% disp(['    Final L2-Error     ' num2str(errorL2BiCGStabA)]);
-% disp(['    IterCGN            ' num2str(iterCGNA)]);
-% disp(['    Final L2-Error     ' num2str(errorL2CGNA)]);
-% disp(['    IterRelax          ' num2str(iterJacobiA)]);
-% disp(['    Final L2-Error     ' num2str(errorL2JacobiA)]);
+% disp(['    IterGmres           ' num2str(iterA(2))]);
+% disp(['    Final L2-Error      ' num2str(errorL2IterA)]);
+% disp(['    IterBiCGS           ' num2str(iterBiCGStabA)]);
+% disp(['    Final L2-Error      ' num2str(errorL2BiCGStabA)]);
+% disp(['    IterCGN             ' num2str(iterCGNA)]);
+% disp(['    Final L2-Error      ' num2str(errorL2CGNA)]);
+% disp(['    IterRelax           ' num2str(iterJacobiA)]);
+% disp(['    Final L2-Error      ' num2str(errorL2JacobiA)]);
 % disp(['---------------------------------------------------------']);
 
 % disp(['\text{CG-2} & & ' ...
@@ -92,8 +124,8 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-writeFieldCG(dofm, mesh, solA, "mySol.pos", "mySol");
-system('gmsh mySol.pos');
+% writeFieldCG(dofm, mesh, solA, "mySol.pos", "mySol");
+% system('gmsh mySol.pos');
 
 % figure(1);
 % subplot(1,3,1);

@@ -4,16 +4,13 @@ clear all;
 headers2D;
 
 % Define parameters
-global k BCWest BCNorth BCEast BCSouth 
-k = 10;
-h = 0.2;
-degree = 3;
+global k
+k = 50;
+h = 0.1;
+degree = 4;
 tau = 1;
 resTol = 1e-4;
-BCWest  = 'ABC';
-BCNorth = 'DIR';
-BCEast  = 'NEU';
-BCSouth = 'ABC';
+benchmark2D('open');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -21,7 +18,18 @@ mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['---------------------------------------------------------']);
+disp(['Method HDG-1']);
+disp(['---------------------------------------------------------']);
+disp(['    k                   ' num2str(k)]);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
+disp(['---------------------------------------------------------']);
 
 [solA, matA, rhsA] = computeSolNum2D_HDG1(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
@@ -29,17 +37,66 @@ dofm = buildDofManager2D_DG(mesh, degree);
 [solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
-disp('---------------------------------------------------------');
-disp('Method HDG-1');
-disp('---------------------------------------------------------');
-disp(['    L2-Error (numSol)  ' num2str(errorL2)]);
-disp(['    H1-Error (numSol)  ' num2str(errorH1)]);
-disp(['    L2-Error (projSol) ' num2str(errorProjL2)]);
-disp(['    H1-Error (projSol) ' num2str(errorProjH1)]);
-disp('---------------------------------------------------------');
+[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
+[errorPostL2, errorPostH1] = computeNormError2D_DG(mesh, dofmPost, solApost);
 
-%writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
-%system('gmsh mySol.pos');
+[solPpost, matPpost, rhsPpost] = computeSolProjL2_2D_DG(mesh, dofmPost);
+[errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+
+disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
+%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
+%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
+disp(['    L2-Error (numPost)  ' num2str(errorPostL2)]);
+%disp(['    H1-Error (numPost)  ' num2str(errorPostH1)]);
+disp(['    L2-Error (projPost) ' num2str(errorProjPostL2)]);
+%disp(['    H1-Error (projPost) ' num2str(errorProjPostH1)]);
+disp('---------------------------------------------------------');
+disp([num2str(errorL2) ' ' num2str(errorProjL2) ' ' num2str(errorPostL2) ' ' num2str(errorProjPostL2) ]);
+
+
+
+
+
+
+
+
+% ValH = [0.2 0.1 0.05];
+% ValSans = [0.04475 0.0020197 0.00023045];   % 8.76
+% ValAvec = [0.039575 0.0010212 0.00011511];  % 8.87
+% ValCea  = [0.019227 0.0015966 0.00020613];  % 7.74
+% loglog(1./ValH, ValSans);
+% hold on
+% loglog(1./ValH, ValAvec);
+% loglog(1./ValH, ValCea);
+% legend('without postpro','WITH postpro','CEA degree P')
+
+
+% valH = [0.5 0.25 0.125 0.0625 0.03125];
+% A = [
+%     0.69117 0.3256 0.68275 0.15757;
+%     0.097293 0.046679 0.084009 0.011502;
+%     0.00406 0.0032242 0.0013622 0.00037536;
+%     0.00025464 0.00020996 3.3576e-05 1.1977e-05;
+%     1.6187e-05 1.3437e-05 1.0293e-06 3.83e-07
+%     ];
+% 
+% hold off
+% loglog(1./valH, A(:,1)', 'b');
+% hold on
+% loglog(1./valH, A(:,3)', 'r');
+% loglog(1./valH, A(:,2)', ':b');
+% loglog(1./valH, A(:,4)', ':r');
+% box on;
+% grid on;
+% xlabel('1/h')
+% ylabel('error')
+% legend('Without post-pro', 'With post-pro', 'Best approx. p=3', 'Best approx. p=4')
+% 
+
+
+% writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
+% system('gmsh mySol.pos');
 
 % figure(1);
 % subplot(1,3,1);

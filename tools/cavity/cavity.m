@@ -1,5 +1,4 @@
-function [u,dx,dy] = cavity(x,y)
-    global k;
+function [u,dx,dy] = cavity(x,y,k)
     N=51;
     
     u   = zeros(size(x));

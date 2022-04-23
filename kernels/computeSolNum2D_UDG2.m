@@ -1,5 +1,4 @@
 function [solA, matA, rhsA] = computeSolNum2D_UDG2(mesh, dofm, tau)
-disp(['--- CALL computeSolNum2D_UDG2']);
 
 global k
 

@@ -1,6 +1,25 @@
 function [sol, solDx, solDy, solF] = mySol(x,y)
 
-global k;
+global k TAGbench;
+
+switch TAGbench
+    case 'cavity'
+        [sol, solDx, solDy] = cavity(x,y,k);
+        solF = 0*x+1;
+    case 'waveguide'
+        L     = 1.;
+        theta = 18.*(pi/180.);
+        [sol, solDx, solDy] = waveguide(x,y,k,L,theta);
+        solF = 0*x;
+    case 'open'
+        theta = pi/4;
+        sol   = exp(1i*k*(cos(theta)*x+sin(theta)*y));
+        solF  = 0*x;
+        solDx = 1i*k*cos(theta) * sol;
+        solDy = 1i*k*sin(theta) * sol;
+    otherwise
+        warning('Error - No valid benchmark has been set.')
+end
 
 % sol   = exp(1i*k*x);
 % solF  = 0*x;
@@ -33,20 +52,20 @@ global k;
 % solDx = -m*pi * sin(m*pi*x) .* cos(n*pi*y);
 % solDy = -n*pi * cos(m*pi*x) .* sin(n*pi*y);
 
-% Cavity problem
+% Cavity
 % [sol, solDx, solDy] = cavity(x,y);
 % solF = 0*x+1;
 
 % Half open waveguide problem
-%[sol, solDx, solDy] = waveguide(x,y);
-%solF = 0*x;
+% [sol, solDx, solDy] = waveguide(x,y);
+% solF = 0*x;
 
 % Plane wave
-theta = pi/4;
-sol   = exp(1i*k*(cos(theta)*x+sin(theta)*y));
-solF  = 0*x;
-solDx = 1i*k*cos(theta) * sol;
-solDy = 1i*k*sin(theta) * sol;
+% theta = pi/4;
+% sol   = exp(1i*k*(cos(theta)*x+sin(theta)*y));
+% solF  = 0*x;
+% solDx = 1i*k*cos(theta) * sol;
+% solDy = 1i*k*sin(theta) * sol;
 
 % Duct problem
 % m = 6;

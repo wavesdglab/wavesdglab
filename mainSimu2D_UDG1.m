@@ -4,16 +4,13 @@ clear all;
 headers2D;
 
 % Define parameters
-global k BCWest BCNorth BCEast BCSouth
-k = 10;
+global k
+k = 20;
 h = 0.2;
-degree = 3;
-tau = 1i;
+degree = 1;
+tau = 1;
 resTol = 1e-4;
-BCWest  = 'DIR';
-BCNorth = 'DIR';
-BCEast  = 'DIR';
-BCSouth = 'DIR';
+benchmark2D('open');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -21,49 +18,61 @@ mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solA, matA, rhsA] = computeSolNum2D_UDG1(mesh, dofm, tau);
+disp(['---------------------------------------------------------']);
+disp(['Method UDG-1']);
+disp(['---------------------------------------------------------']);
+disp(['    k                   ' num2str(k)]);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
+disp(['---------------------------------------------------------']);
+
+[solA, sysA] = computeSolNum2D_UDG1(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
-disp('---------------------------------------------------------');
-disp('Method UDG-1');
-disp('---------------------------------------------------------');
-disp(['    L2-Error (numSol)  ' num2str(errorL2)]);
-disp(['    H1-Error (numSol)  ' num2str(errorH1)]);
-disp(['    L2-Error (projSol) ' num2str(errorProjL2)]);
-disp(['    H1-Error (projSol) ' num2str(errorProjH1)]);
+[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
+[errorPostL2, errorPostH1] = computeNormError2D_DG(mesh, dofmPost, solApost);
+
+[solPpost, matPpost, rhsPpost] = computeSolProjL2_2D_DG(mesh, dofmPost);
+[errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+
+disp(['---------------------------------------------------------']);
+disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
+%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
+%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
+disp(['    L2-Error (numPost)  ' num2str(errorPostL2)]);
+%disp(['    H1-Error (numPost)  ' num2str(errorPostH1)]);
+disp(['    L2-Error (projPost) ' num2str(errorProjPostL2)]);
+%disp(['    H1-Error (projPost) ' num2str(errorProjPostH1)]);
 disp('---------------------------------------------------------');
 
-%writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
-%system('gmsh mySol.pos');
+% writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
+% system('gmsh mySol.pos');
 
+fprintf('Solver  : gmres A\n');
+[solGiter,~,~,iterS] = gmres(sysA.matS,sysA.rhsS,size(sysA.matS,1),resTol,size(sysA.matS,1));
+solIiter = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solGiter);
+solAiter = [ solIiter ; solGiter ];
+errorL2IterA = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 
-% fprintf('Solver  : gmres A\n');
-% [solAiter,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% errorL2IterA             = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 % fprintf('Solver  : bicgstab A\n');
-% [solAiter,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));
+% [solSiter,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));
 % errorL2BiCGStabA         = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 % fprintf('Solver  : conjgradn A\n');
-% [solAiter,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
+% [solSiter,~,~,iterCGNA]      = conjgradn(matA,rhsA,resTol,size(matA,1));
 % errorL2CGNA              = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 % fprintf('Solver  : relaxation A\n');
-% [solAiter,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
+% [solSiter,~,~,iterJacobiA]   = jacobi(matA,rhsA,resTol,size(matA,1),0.5);
 % errorL2JacobiA           = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 
-% matA11 = matA(1:3*dofm.numDofTRI, 1:3*dofm.numDofTRI);
-% matA12 = matA(1:3*dofm.numDofTRI, 3*dofm.numDofTRI+1:end);
-% matA21 = matA(3*dofm.numDofTRI+1:end, 1:3*dofm.numDofTRI);
-% matA22 = matA(3*dofm.numDofTRI+1:end, 3*dofm.numDofTRI+1:end);
-% rhsA1 = rhsA(1:3*dofm.numDofTRI);
-% rhsA2 = rhsA(3*dofm.numDofTRI+1:end);
-% matS = matA22 - matA21*(matA11\matA12);
-% rhsS = rhsA2 - matA21*(matA11\rhsA1);
-% 
 % fprintf('Solver  : gmres S\n');
 % [solS,~,~,iterS]         = gmres(matS,rhsS,size(matS,1),resTol,size(matS,1));
 % solAiter = matA11\(rhsA1 - matA12*solS);
@@ -88,16 +97,16 @@ disp('---------------------------------------------------------');
 % solAiter = matA11\(rhsA1 - matA12*solS);
 % errorL2RichS           = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 
-% fprintf('Solver  : eigenval A\n');
-% [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
-% eigenvalA = diag(eigenvalA);
-% [eigenvecAA,eigenvalAA] = eigs(matA'*matA,size(matA,1));
+fprintf('Solver  : eigenval A\n');
+[eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
+eigenvalA = diag(eigenvalA);
+% [eigenvecAA,eigenvalAA] = eigs(sysA.matA'*sysA.matA,size(sysA.matA,1));
 % eigenvalAA = diag(eigenvalAA);
-% 
-% fprintf('Solver  : eigenval S\n');
-% [eigenvecS,eigenvalS] = eigs(matS,size(matS,1));
-% eigenvalS = diag(eigenvalS);
-% [eigenvecSS,eigenvalSS] = eigs(matS'*matS,size(matS,1));
+
+fprintf('Solver  : eigenval S\n');
+[eigenvecS,eigenvalS] = eigs(sysA.matS,size(sysA.matS,1));
+eigenvalS = diag(eigenvalS);
+% [eigenvecSS,eigenvalSS] = eigs(sysA.matS'*sysA.matS,size(sysA.matS,1));
 % eigenvalSS = diag(eigenvalSS);
 
 % disp(['A : Size               ' num2str(size(matA,1))]);
@@ -169,17 +178,26 @@ disp('---------------------------------------------------------');
 %     num2str(errorL2JacobiS,'%.1e') ' \\'
 %     ]);
 
-% figure;
-% hold off
-% scatter(real(eigenvalS),imag(eigenvalS),'b','DisplayName','Eigenvalues');
-% hold on
-% %plot(fovals(matS,100),'-b','DisplayName','Numerical range');
-% grid on; box on;
-% title(['Eigenvalues : ' BCWest ' + ' BCNorth ' + ' BCEast ' + ' BCSouth]);
-% legend();
-% %axis([-0.1 1.1 -1.5 1.2]);
-% %axis([-0.05 0.5 -1.5 1.2]);
-% 
+figure(9);
+hold off
+scatter(real(eigenvalA),imag(eigenvalA),'b','DisplayName','Eigenvalues');
+hold on
+%plot(fovals(sysA.matA,100),'-b','DisplayName','Numerical range');
+grid on; box on;
+title(['Eigenvalues A']);
+legend();
+axis([-0.05 0.25 -0.25 0.1]);
+
+figure(10);
+hold off
+scatter(real(eigenvalS),imag(eigenvalS),'b','DisplayName','Eigenvalues');
+hold on
+%plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
+grid on; box on;
+title(['Eigenvalues S']);
+legend();
+axis([-0.05 0.25 -0.25 0.1]);
+
 % figure(1);
 % subplot(1,3,1);
 % hold off

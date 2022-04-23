@@ -12,8 +12,6 @@
 % =========================================================================
 
 function mesh = readMesh(namefile)
-disp(['--- CALL readMesh']);
-
 file = fopen(namefile,'r');
 if (file <= 0)
     error(['Mesh ' namefile ' not found!']);
@@ -41,7 +39,6 @@ end
 % =========================================================================
 
 function mesh = readMeshGmsh2v2(file)
-disp(['--- CALL readMeshGmsh2v2']);
 
 % Read nodes
 
@@ -82,7 +79,6 @@ end
 % =========================================================================
 
 function mesh = readMeshGmsh4v1(file)
-disp(['--- CALL readMeshGmsh4v1']);
 
 % Read entities
 

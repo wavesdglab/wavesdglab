@@ -1,5 +1,4 @@
 function [solA, matA, rhsA] = computeSolNum2D_HDG1(mesh, dofm, tau)
-disp(['--- CALL computeSolNum2D_HDG1']);
 
 global k
 
@@ -144,7 +143,6 @@ end
 % -------------------------------------------------------------------------
 
 solA = matA\rhsA;
-solA = solA(1:numDofTRI);
 
 end
 
@@ -160,6 +158,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set on the East.')
+        warning('Error - No valid BC has been set.')
 end
 end
