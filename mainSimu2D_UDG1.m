@@ -5,12 +5,12 @@ headers2D;
 
 % Define parameters
 global k
-k = 50;
+k = 20;
 h = 0.1;
-degree = 4;
+degree = 3;
 tau = 1;
 resTol = 1e-4;
-benchmark2D('open');
+benchmark2D('waveguide');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);

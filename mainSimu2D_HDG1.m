@@ -5,12 +5,12 @@ headers2D;
 
 % Define parameters
 global k
-k = 50;
+k = 20;
 h = 0.1;
-degree = 4;
-tau = 1;
+degree = 3;
+tau = 1i;
 resTol = 1e-4;
-benchmark2D('open');
+benchmark2D('cavity');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -31,7 +31,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, matA, rhsA] = computeSolNum2D_HDG1(mesh, dofm, tau);
+[solA, sysA] = computeSolNum2D_HDG1(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
