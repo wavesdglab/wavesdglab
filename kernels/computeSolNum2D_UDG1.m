@@ -199,8 +199,10 @@ for tri=1:mesh.numTri
                     matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*(1-1/tau) * nx * ny * matMel;
                     matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*(1-1/tau) * ny * ny * matMel;
                     matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*(1-1/tau)      * ny * matMel;
-                    %
-                    rhsGel(idLocG) = rhsGel(idLocG) + (tau*rhsPel - (nx*rhsUel + ny*rhsVel));
+                    
+                    rhsGel(idLocG) = rhsGel(idLocG) + (rhsPel - (nx*rhsUel + ny*rhsVel));
+                    
+                    %rhsGel(idLocG) = rhsGel(idLocG) + (tau*rhsPel - (nx*rhsUel + ny*rhsVel));
                 otherwise
                     warning('Error - Bad BC.')
             end

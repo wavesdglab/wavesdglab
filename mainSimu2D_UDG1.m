@@ -1,13 +1,13 @@
-%close all;
+close all;
 clear all;
 
 headers2D;
 
 % Define parameters
 global k
-k = 20;
-h = 0.2;
-degree = 1;
+k = 50;
+h = 0.1;
+degree = 4;
 tau = 1;
 resTol = 1e-4;
 benchmark2D('open');
@@ -57,11 +57,11 @@ disp('---------------------------------------------------------');
 % writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
 % system('gmsh mySol.pos');
 
-fprintf('Solver  : gmres A\n');
-[solGiter,~,~,iterS] = gmres(sysA.matS,sysA.rhsS,size(sysA.matS,1),resTol,size(sysA.matS,1));
-solIiter = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solGiter);
-solAiter = [ solIiter ; solGiter ];
-errorL2IterA = computeNormError2D_DG(mesh, dofm, solAiter, solA);
+% fprintf('Solver  : gmres A\n');
+% [solGiter,~,~,iterS] = gmres(sysA.matS,sysA.rhsS,size(sysA.matS,1),resTol,size(sysA.matS,1));
+% solIiter = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solGiter);
+% solAiter = [ solIiter ; solGiter ];
+% errorL2IterA = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 
 % fprintf('Solver  : bicgstab A\n');
 % [solSiter,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));
@@ -97,17 +97,33 @@ errorL2IterA = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 % solAiter = matA11\(rhsA1 - matA12*solS);
 % errorL2RichS           = computeNormError2D_DG(mesh, dofm, solAiter, solA);
 
-fprintf('Solver  : eigenval A\n');
-[eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
-eigenvalA = diag(eigenvalA);
-% [eigenvecAA,eigenvalAA] = eigs(sysA.matA'*sysA.matA,size(sysA.matA,1));
-% eigenvalAA = diag(eigenvalAA);
-
-fprintf('Solver  : eigenval S\n');
-[eigenvecS,eigenvalS] = eigs(sysA.matS,size(sysA.matS,1));
-eigenvalS = diag(eigenvalS);
-% [eigenvecSS,eigenvalSS] = eigs(sysA.matS'*sysA.matS,size(sysA.matS,1));
-% eigenvalSS = diag(eigenvalSS);
+% fprintf('Solver  : eigenval A\n');
+% [eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
+% eigenvalA = diag(eigenvalA);
+% 
+% fprintf('Solver  : eigenval S\n');
+% [eigenvecS,eigenvalS] = eigs(sysA.matS,size(sysA.matS,1));
+% eigenvalS = diag(eigenvalS);
+% 
+% figure(1);
+% hold off
+% scatter(real(eigenvalA),imag(eigenvalA),'b','DisplayName','Eigenvalues');
+% hold on
+% %plot(fovals(sysA.matA,100),'-b','DisplayName','Numerical range');
+% grid on; box on;
+% title(['Eigenvalues A']);
+% legend();
+% axis([-0.05 0.25 -0.25 0.1]);
+% 
+% figure(2);
+% hold off
+% scatter(real(eigenvalS),imag(eigenvalS),'b','DisplayName','Eigenvalues');
+% hold on
+% %plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
+% grid on; box on;
+% title(['Eigenvalues S']);
+% legend();
+% axis([-0.05 0.25 -0.25 0.1]);
 
 % disp(['A : Size               ' num2str(size(matA,1))]);
 % disp(['    Rank(eigenvectors) ' num2str(rank(eigenvecA))]);
@@ -177,26 +193,6 @@ eigenvalS = diag(eigenvalS);
 %     num2str(iterJacobiS) ' & ' ...
 %     num2str(errorL2JacobiS,'%.1e') ' \\'
 %     ]);
-
-figure(9);
-hold off
-scatter(real(eigenvalA),imag(eigenvalA),'b','DisplayName','Eigenvalues');
-hold on
-%plot(fovals(sysA.matA,100),'-b','DisplayName','Numerical range');
-grid on; box on;
-title(['Eigenvalues A']);
-legend();
-axis([-0.05 0.25 -0.25 0.1]);
-
-figure(10);
-hold off
-scatter(real(eigenvalS),imag(eigenvalS),'b','DisplayName','Eigenvalues');
-hold on
-%plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
-grid on; box on;
-title(['Eigenvalues S']);
-legend();
-axis([-0.05 0.25 -0.25 0.1]);
 
 % figure(1);
 % subplot(1,3,1);

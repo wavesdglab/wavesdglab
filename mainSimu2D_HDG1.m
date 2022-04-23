@@ -1,4 +1,4 @@
-%close all;
+close all;
 clear all;
 
 headers2D;
@@ -43,6 +43,7 @@ disp(['---------------------------------------------------------']);
 [solPpost, matPpost, rhsPpost] = computeSolProjL2_2D_DG(mesh, dofmPost);
 [errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
 
+disp(['---------------------------------------------------------']);
 disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
 %disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
@@ -52,14 +53,6 @@ disp(['    L2-Error (numPost)  ' num2str(errorPostL2)]);
 disp(['    L2-Error (projPost) ' num2str(errorProjPostL2)]);
 %disp(['    H1-Error (projPost) ' num2str(errorProjPostH1)]);
 disp('---------------------------------------------------------');
-disp([num2str(errorL2) ' ' num2str(errorProjL2) ' ' num2str(errorPostL2) ' ' num2str(errorProjPostL2) ]);
-
-
-
-
-
-
-
 
 % ValH = [0.2 0.1 0.05];
 % ValSans = [0.04475 0.0020197 0.00023045];   % 8.76
