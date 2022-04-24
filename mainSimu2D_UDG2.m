@@ -4,16 +4,13 @@ clear all;
 headers2D;
 
 % Define parameters
-global k BCWest BCNorth BCEast BCSouth
-k = 3;
-h = 0.1;
-degree = 1;
+global k
+k = 50;       % 2*pi;
+h = 0.1;      % 1/16/2;
+degree = 4;
 tau = 1;
 resTol = 1e-4;
-BCWest  = 'DIR';
-BCNorth = 'DIR';
-BCEast  = 'DIR';
-BCSouth = 'DIR';
+benchmark2D('waveguide');
 
 % Build mesh and dofManager
 system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
@@ -21,24 +18,34 @@ mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[solA, matA, rhsA] = computeSolNum2D_UDG2(mesh, dofm, tau);
+disp(['---------------------------------------------------------']);
+disp(['Method UDG-2']);
+disp(['---------------------------------------------------------']);
+disp(['    k                   ' num2str(k)]);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
+disp(['---------------------------------------------------------']);
+
+[solA, sysA] = computeSolNum2D_UDG2(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
-disp('---------------------------------------------------------');
-disp('Method UDG-2');
-disp('---------------------------------------------------------');
-disp(['    L2-Error (numSol)  ' num2str(errorL2)]);
-disp(['    H1-Error (numSol)  ' num2str(errorH1)]);
-disp(['    L2-Error (projSol) ' num2str(errorProjL2)]);
-disp(['    H1-Error (projSol) ' num2str(errorProjH1)]);
+disp(['---------------------------------------------------------']);
+disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
+%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
+%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
 disp('---------------------------------------------------------');
 
-
+writeFieldDG(dofm, mesh, solA, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
 
 % fprintf('Solver  : bicgstab A\n');
 % [solA,~,~,iterBiCGStabA] = bicgstab(matA,rhsA,resTol,size(matA,1));

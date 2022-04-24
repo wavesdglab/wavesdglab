@@ -2,25 +2,77 @@ function [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm)
 
 global k
 
-% -------------------------------------------------------------------------
-% Volume terms
-% -------------------------------------------------------------------------
-
-[matM, matK, ~, ~, rhsA] = buildMatrixGlo2D_CG(mesh, dofm);
-
-matA = matK - k^2*matM;
+matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
+rhsA = zeros(dofm.numDofTRI, 1);
 
 % -------------------------------------------------------------------------
-% Surface terms
+% Quadrature
 % -------------------------------------------------------------------------
 
 % Quadrature
 degreeQ = 2*dofm.degree;
-[uQ, weights] = quadratureGaussLIN(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
+[uLinQ, weightsLinQ] = quadratureGaussLIN(degreeQ);
+[uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
+weightsLinQ = sparse(1:size(weightsLinQ,1), 1:size(weightsLinQ,1), weightsLinQ);
+weightsTriQ = sparse(1:size(weightsTriQ,1), 1:size(weightsTriQ,1), weightsTriQ);
 
 % Shape functions
-shapeQ = functionsShapeLIN(uQ, dofm.degree);
+shapeLinQ = functionsShapeLIN(uLinQ, dofm.degree);
+shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
+
+% -------------------------------------------------------------------------
+% Volume terms
+% -------------------------------------------------------------------------
+
+for tri=1:mesh.numTri
+    
+    % Mapping
+    ver = mesh.mapTriToVer(tri,:);
+    V1 = mesh.coord(ver(1),:);
+    V2 = mesh.coord(ver(2),:);
+    V3 = mesh.coord(ver(3),:);
+    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3);
+    Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
+    Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
+    detJdxdu = abs(det(Jdxdu));
+    
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+    
+    % Shape functions (f, dfdx, dfdy) with orientation
+    shapeOrQ = shapeTriQ * orientation;
+    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
+    
+    % RHS function
+    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
+    
+    % Elemental matrices
+    matMel = shapeOrQ' * weightsTriQ * shapeOrQ * detJdxdu;
+    matKel = (shapeDxQ' * weightsTriQ * shapeDxQ + shapeDyQ' * weightsTriQ * shapeDyQ ) * detJdxdu;
+    rhsPel = shapeOrQ' * weightsTriQ * rhsQ * detJdxdu;
+    
+    % Matrix assembling
+    dof = dofm.locToGloTRI(tri,:);
+    matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
+    rhsA(dof) = rhsA(dof) + rhsPel;
+    
+end
+
+% -------------------------------------------------------------------------
+% Surface terms
+% -------------------------------------------------------------------------
 
 dofDIR = [];
 for edgBnd=1:mesh.numEdgBnd
@@ -41,7 +93,7 @@ for edgBnd=1:mesh.numEdgBnd
     ver = mesh.mapEdgToVer(edg,:);
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
-    [xQ, yQ] = locToGloLIN(uQ, V1, V2);
+    [xQ, yQ] = locToGloLIN(uLinQ, V1, V2);
     Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
     
     % Solution function
@@ -56,13 +108,13 @@ for edgBnd=1:mesh.numEdgBnd
     end
     orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
     
-    % Shape function
-    shapeOrQ = shapeQ * orientation;
+    % Shape function with orientation
+    shapeOrQ = shapeLinQ * orientation;
     
-    % Elemental matrix
-    matMel = shapeOrQ' * weights * shapeOrQ * Jdxdu;
-    rhsDel = shapeOrQ' * weights * dirQ * Jdxdu;
-    rhsNel = shapeOrQ' * weights * neuQ * Jdxdu;
+    % Elemental matrices/vectors
+    matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
+    rhsDel = shapeOrQ' * weightsLinQ * dirQ * Jdxdu;
+    rhsNel = shapeOrQ' * weightsLinQ * neuQ * Jdxdu;
     
     % Boundary condition
     switch tagToBC(mesh.tagEdgBnd(edgBnd))

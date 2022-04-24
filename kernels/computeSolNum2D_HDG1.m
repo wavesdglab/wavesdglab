@@ -214,8 +214,8 @@ for tri=1:mesh.numTri
     % -------------------------------------------------------------------------
     
     matIIinv(dofGloI,dofGloI) = inv(matIIel);
-    matII(dofGloI,dofGloI)    = matIIel;
-    rhsI(dofGloI)             = rhsIel;
+    matII(dofGloI,dofGloI) = matIIel;
+    rhsI(dofGloI) = rhsIel;
     
 end
 

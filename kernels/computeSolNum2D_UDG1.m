@@ -224,8 +224,8 @@ for tri=1:mesh.numTri
     matIG(dofGloI,dofGloG) = matIGel;
     matGI(dofGloG,dofGloI) = matGIel;
     matGG(dofGloG,dofGloG) = matGGel;
-    rhsI(dofGloI)          = rhsIel;
-    rhsG(dofGloG)          = rhsGel;
+    rhsI(dofGloI) = rhsIel;
+    rhsG(dofGloG) = rhsGel;
     
 end
 
@@ -243,6 +243,8 @@ solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
+toc
+
 sysA.matIIinv = matIIinv;
 sysA.matII = matII;
 sysA.matIG = matIG;
@@ -254,8 +256,6 @@ sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 sysA.rhsA = [ rhsI ; rhsG ];
 sysA.rhsS = rhsS;
-
-toc
 
 end
 
