@@ -34,7 +34,7 @@ disp(['---------------------------------------------------------']);
 [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm);
 [errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
 
-[solP, matP, rhsP] = computeSolProjL2_2D_CG(mesh, dofm);
+[solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_CG(mesh, dofm, solP);
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
@@ -126,14 +126,3 @@ disp(['---------------------------------------------------------']);
 
 % writeFieldCG(dofm, mesh, solA, "mySol.pos", "mySol");
 % system('gmsh mySol.pos');
-
-% figure(1);
-% subplot(1,3,1);
-% hold off;
-% postProVizu2D_CG(mesh, real(solP), 'Projected solution');
-% subplot(1,3,2);
-% hold off;
-% postProVizu2D_CG(mesh, real(solA), 'Numerical solution');
-% subplot(1,3,3);
-% hold off;
-% postProVizu2D_CG(mesh, real(solA-solP), 'Error');

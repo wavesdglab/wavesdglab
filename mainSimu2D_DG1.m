@@ -5,9 +5,9 @@ headers2D;
 
 % Define parameters
 global k
-k = 50;
-h = 0.1;
-degree = 4;
+k = 20;
+h = 0.2;
+degree = 3;
 tau = 1;
 resTol = 1e-4;
 benchmark2D('open');
@@ -34,7 +34,7 @@ disp(['---------------------------------------------------------']);
 [solA, matA, rhsA] = computeSolNum2D_DG1(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
+[solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
@@ -124,14 +124,3 @@ disp(['---------------------------------------------------------']);
 
 % writeFieldDG(dofm, mesh, solA, "mySol.pos", "mySol");
 % system('gmsh mySol.pos');
-
-% figure(1);
-% subplot(1,3,1);
-% hold off
-% postProVizu2D_DG(mesh,real(solAna), 'Analytic solution');
-% subplot(1,3,2);
-% hold off
-% postProVizu2D_DG(mesh,real(solRef), 'Numerical solution');
-% subplot(1,3,3);
-% hold off
-% postProVizu2D_DG(mesh,real(solRef-solAna), 'Error');

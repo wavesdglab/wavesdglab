@@ -131,7 +131,7 @@ for edgBnd=1:mesh.numEdgBnd
 end
 
 if(~isempty(dofDIR))
-    solP = computeSolProjL2_2D_CG(mesh, dofm);
+    solP = computeSolProjL2_2D(mesh, dofm);
     dofDIR = unique(dofDIR);
     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
     rhsA(dofDIR) = solP(dofDIR);

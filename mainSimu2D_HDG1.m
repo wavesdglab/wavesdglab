@@ -34,13 +34,13 @@ disp(['---------------------------------------------------------']);
 [solA, sysA] = computeSolNum2D_HDG1(mesh, dofm, tau);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, matP, rhsP] = computeSolProjL2_2D_DG(mesh, dofm);
+[solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
 [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
 [errorPostL2, errorPostH1] = computeNormError2D_DG(mesh, dofmPost, solApost);
 
-[solPpost, matPpost, rhsPpost] = computeSolProjL2_2D_DG(mesh, dofmPost);
+[solPpost, matPpost, rhsPpost] = computeSolProjL2_2D(mesh, dofmPost);
 [errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
 
 disp(['---------------------------------------------------------']);
@@ -85,25 +85,11 @@ disp('---------------------------------------------------------');
 % xlabel('1/h')
 % ylabel('error')
 % legend('Without post-pro', 'With post-pro', 'Best approx. p=3', 'Best approx. p=4')
-% 
-
 
 % writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
 % system('gmsh mySol.pos');
 
-% figure(1);
-% subplot(1,3,1);
-% hold off
-% postProVizu2D_DG(mesh,real(solP), 'Projected solution');
-% subplot(1,3,2);
-% hold off
-% postProVizu2D_DG(mesh,real(solA), 'Numerical solution');
-% subplot(1,3,3);
-% hold off
-% postProVizu2D_DG(mesh,real(solP-solA), 'Error');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 % fprintf('Solver  : gmres A\n');
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
