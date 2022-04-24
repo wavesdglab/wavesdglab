@@ -1,7 +1,7 @@
 function errorL2sol = computeNormError1D_DG(mesh, dofm, mySol, vecSol)
 
 Q = 16;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
 
 errorL2sol2 = 0;

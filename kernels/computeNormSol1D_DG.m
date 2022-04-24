@@ -1,7 +1,7 @@
 function normL2sol = computeNormSol1D_DG(mesh, mySol)
 
 Q = 16;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 
 normL2sol2 = 0;
 for e=1:mesh.numE

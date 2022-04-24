@@ -5,7 +5,7 @@ errorL2der2 = 0;
 
 %Q = ceil((degree^2+1)/2);
 Q = 16;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
 shapeFuncDer = functionsShapeDer1D(nodes,dofm.degree);
 

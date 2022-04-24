@@ -17,7 +17,7 @@ function vecSolProjL2 = computeSolProjL2_1D_CG(mesh, dofm, mySol)
 % Build RHS vector
 
 Q = 16;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
 
 vecRhs = zeros(dofm.numDof,1);

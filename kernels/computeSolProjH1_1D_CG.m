@@ -18,7 +18,7 @@ matA = matK + matM;
 % Build RHS vector
 
 Q = 16;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
 shapeFuncDer = functionsShapeDer1D(nodes,dofm.degree);
 

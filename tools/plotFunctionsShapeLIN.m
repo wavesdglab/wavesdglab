@@ -19,7 +19,7 @@ title('Shape Functions');
 box on
 
 Q = 10;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,degree);
 for i=1:degree+1
     L2norm(i) = weights(:)' * abs(shapeFunc(:,i));
@@ -40,7 +40,7 @@ box on
 % 
 
 Q = 10;
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,degree);
 for i=1:degree+1
     L2norm(i) = weights(:)' * abs(shapeFunc(:,i));

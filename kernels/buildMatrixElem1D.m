@@ -2,7 +2,7 @@ function [matM, matK, matD] = buildMatrixElem1D(degree)
 
 N = degree+1;
 Q = ceil((2*(N-1)+1)/2);
-[nodes, weights] = quadratureGauss1D(Q);
+[nodes, weights] = quadratureGaussLIN(Q);
 
 valQ = functionsShape1D(nodes,degree);
 derQ = functionsShapeDer1D(nodes,degree);
