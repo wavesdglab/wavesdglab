@@ -1,4 +1,4 @@
-function [x,flag,relres,iter,resvec] = conjgrad(A,b,tol,maxit)
+function [x,flag,relres,iter,resvec] = solverCG(A,b,tol,maxit)
 
 %minEig = min(eigs(A))
 %cond = condest(A)

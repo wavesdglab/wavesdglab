@@ -1,7 +1,7 @@
 close all;
 clear all;
 
-headers()
+headers2D()
 
 Q = 10;
 [nodes, weights] = quadratureGaussLIN(Q);

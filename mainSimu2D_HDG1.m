@@ -1,20 +1,37 @@
-close all;
+%close all;
 clear all;
 
 headers2D;
+global k
+
+% hPower = [-1 -1.5 -2 -2.5 -3 -3.5];
+% hList = 2.^hPower;
+% for ITER = 1:size(hPower,2)
+% h = hList(ITER);
+
+% FREE SPACE
+% k = 10*pi;
+% h = 1/16;
+% degree = 3;
+% mesh = benchmark2D('open',h);
+
+% WAVEGUIDE
+% k = 6*pi;
+% h = 1/8;
+% degree = 3;
+% mesh = benchmark2D('waveguide',h);
+
+% CAVITY
+k = 5.125*sqrt(2)*pi;
+h = 1/16;
+degree = 3;
+mesh = benchmark2D('cavity',h);
 
 % Define parameters
-global k
-k = 20;
-h = 0.1;
-degree = 3;
-tau = 1i;
-resTol = 1e-4;
-benchmark2D('cavity');
+tol = 1e-4;
+tau = 1;
 
 % Build mesh and dofManager
-system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
-mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
@@ -32,27 +49,86 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_HDG1(mesh, dofm, tau);
-[errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
+[errorL2] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm);
-[errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
+[solP, sysP] = computeSolProjL2_2D(mesh, dofm);
+[errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
 
 [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
-[errorPostL2, errorPostH1] = computeNormError2D_DG(mesh, dofmPost, solApost);
+[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
 
-[solPpost, matPpost, rhsPpost] = computeSolProjL2_2D(mesh, dofmPost);
-[errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+[solPpost, sysPpost] = computeSolProjL2_2D(mesh, dofmPost);
+[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
 
-disp(['---------------------------------------------------------']);
-disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
-%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
-%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
-disp(['    L2-Error (numPost)  ' num2str(errorPostL2)]);
-%disp(['    H1-Error (numPost)  ' num2str(errorPostH1)]);
-disp(['    L2-Error (projPost) ' num2str(errorProjPostL2)]);
-%disp(['    H1-Error (projPost) ' num2str(errorProjPostH1)]);
+% disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2) ' ' num2str(errorPostL2) ' ' num2str(errorProjPostL2)]);
+
+disp(['    L2-Error (numSol)   ' num2str(errorL2, '%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2, '%1.2e')]);
+disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
+disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
 disp('---------------------------------------------------------');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% disp(['--- CALL eigsA']);
+% [eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
+% eigenvalA = diag(eigenvalA);
+% 
+% disp(['A : Size                ' num2str(size(sysA.matA,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
+% disp(['    Cond(A)             ' num2str(condest(sysA.matA))]);
+% disp(['---------------------------------------------------------']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% disp(['--- CALL eigsS']);
+% [eigenvecS,eigenvalS]      = eigs(sysA.matS,size(sysA.matS,1));
+% eigenvalS                  = diag(eigenvalS);
+% 
+% disp(['S : Size                ' num2str(size(sysA.matS,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecS))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecS))]);
+% disp(['    Cond(S)             ' num2str(condest(sysA.matS), '%1.2e')]);
+% disp(['    Cond(SS)            ' num2str(condest(sysA.matS'*sysA.matS), '%1.2e')]);
+% disp(['---------------------------------------------------------']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+color1 = [0, 0.4470, 0.7410];      % blue
+color2 = [0.8500, 0.3250, 0.0980]; % red
+color3 = [0.9290, 0.6940, 0.1250]; % yellow
+color4 = [0.4940, 0.1840, 0.5560]; % magenta
+color5 = [0.4660, 0.6740, 0.1880]; % green
+color6 = [0.3010, 0.7450, 0.9330]; % cyan
+color7 = [0.6350, 0.0780, 0.1840]; % brown
+
+disp(['--- CALL conjgradn']);
+maxit = 1000;
+itout = 10;
+[resVec, resRedVec, resPhyVec, error, errorPP, iter, flag] = solverCGNreduDG(mesh, dofm, sysA, 1e-10, maxit, itout);
+
+figure(3);
+hold off
+semilogy(0:itout:maxit,resVec,'Color',color4,'DisplayName','Relative residual CGN');
+hold on
+semilogy(0:itout:maxit,resPhyVec,'Color',color2,'DisplayName','Relative residual (Phy)');
+semilogy(0:itout:maxit,resRedVec,'Color',color1,'DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,error,'Color',color3,'DisplayName','Relative L2-error');
+semilogy(0:itout:maxit,errorPP,'Color',color5,'DisplayName','Relative L2-error with PostPro');
+plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (Ref)');
+plot([0 maxit],[errorPostL2 errorPostL2],'k--','DisplayName','Relative L2-error with PostPro (Ref)');
+box on;
+grid on;
+legend('Location','southwest');
+xlim([0 maxit]);
+ylim([1e-5 1e0]);
+xlabel('Iteration');
+ylabel('Value');
+set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 400 300]);
+print(['~/Desktop/HistoConvCGN-BenchCavity-HDG1.eps'],'-depsc');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % ValH = [0.2 0.1 0.05];
 % ValSans = [0.04475 0.0020197 0.00023045];   % 8.76
@@ -89,7 +165,7 @@ disp('---------------------------------------------------------');
 % writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
 % system('gmsh mySol.pos');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % fprintf('Solver  : gmres A\n');
 % [solA,~,~,iterA]         = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
@@ -219,3 +295,4 @@ disp('---------------------------------------------------------');
 %     num2str(errorL2JacobiS,'%.1e') ' \\'
 %     ]);
 
+% end

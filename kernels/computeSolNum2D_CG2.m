@@ -1,4 +1,4 @@
-function [solA, matA, rhsA] = computeSolNum2D_CG2(mesh, dofm)
+function [solA, sysA] = computeSolNum2D_CG2(mesh, dofm)
 
 global k
 
@@ -144,7 +144,25 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
-solA = matA\rhsA;
+numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
+dofG = 1:numDofTRIred;
+dofI = (numDofTRIred+1):dofm.numDofTRI;
+
+sysA.matII = matA(dofI,dofI);
+sysA.matIIinv = inv(sysA.matII);
+sysA.matIG = matA(dofI,dofG);
+sysA.matGI = matA(dofG,dofI);
+sysA.matGG = matA(dofG,dofG);
+sysA.matA = matA;
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
+sysA.rhsI = rhsA(dofI);
+sysA.rhsG = rhsA(dofG);
+sysA.rhsA = rhsA;
+sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
+
+solG = sysA.matS\sysA.rhsS;
+solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
+solA = [ solG ; solI ];
 
 end
 

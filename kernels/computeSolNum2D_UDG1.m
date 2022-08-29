@@ -1,7 +1,5 @@
 function [solA, sysA] = computeSolNum2D_UDG1(mesh, dofm, tau)
 
-tic
-
 global k
 
 numDofTRI = dofm.numDofTRI;
@@ -26,6 +24,7 @@ matIG    = sparse(3*numDofTRI, numDofFAC);
 matGI    = sparse(numDofFAC, 3*numDofTRI);
 matGG    = sparse(numDofFAC, numDofFAC);
 matIIinv = sparse(3*numDofTRI, 3*numDofTRI);
+matGGinv = sparse(numDofFAC, numDofFAC);
 rhsI     = zeros(3*numDofTRI,1);
 rhsG     = zeros(numDofFAC,1);
 
@@ -189,20 +188,10 @@ for tri=1:mesh.numTri
                     matGIel(idLocG,idLocV) = matGIel(idLocG,idLocV) - ny  * matMel;
                     rhsGel(idLocG) = rhsGel(idLocG) - 2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    
-                    matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*(1-tau)           * matMel;
-                    
-                    matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*(1-1/tau) * nx * nx * matMel;
-                    matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*(1-1/tau) * nx * ny * matMel;
-                    matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5*(1-1/tau)      * nx * matMel;
-                    
-                    matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*(1-1/tau) * nx * ny * matMel;
-                    matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*(1-1/tau) * ny * ny * matMel;
-                    matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*(1-1/tau)      * ny * matMel;
-                    
-                    rhsGel(idLocG) = rhsGel(idLocG) + (rhsPel - (nx*rhsUel + ny*rhsVel));
-                    
-                    %rhsGel(idLocG) = rhsGel(idLocG) + (tau*rhsPel - (nx*rhsUel + ny*rhsVel));
+                    matGIel(idLocG,idLocP) = matGIel(idLocG,idLocP) + tau * matMel * (1-tau)/(1+tau);
+                    matGIel(idLocG,idLocU) = matGIel(idLocG,idLocU) + nx  * matMel * (1-tau)/(1+tau);
+                    matGIel(idLocG,idLocV) = matGIel(idLocG,idLocV) + ny  * matMel * (1-tau)/(1+tau);
+                    rhsGel(idLocG) = rhsGel(idLocG) + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
                 otherwise
                     warning('Error - Bad BC.')
             end
@@ -223,19 +212,16 @@ for tri=1:mesh.numTri
     matII(dofGloI,dofGloI) = matIIel;
     matIG(dofGloI,dofGloG) = matIGel;
     matGI(dofGloG,dofGloI) = matGIel;
+    matGGinv(dofGloG,dofGloG) = inv(matGGel);
     matGG(dofGloG,dofGloG) = matGGel;
     rhsI(dofGloI) = rhsIel;
     rhsG(dofGloG) = rhsGel;
     
 end
 
-toc
-
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
-
-tic
 
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
@@ -243,19 +229,25 @@ solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
-toc
+matPhy = matII - matIG*(matGGinv*matGI);
+rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
-sysA.matIIinv = matIIinv;
 sysA.matII = matII;
 sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
-sysA.matA = [ matII matIG ; matGI matGG ];
-sysA.matS = matS;
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = matGGinv;
+
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
+
+sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
+sysA.matS = matS;
 sysA.rhsS = rhsS;
+sysA.matPhy = matPhy;
+sysA.rhsPhy = rhsPhy;
 
 end
 

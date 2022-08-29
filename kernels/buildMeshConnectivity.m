@@ -20,7 +20,6 @@
 % global mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
 
 function mesh = buildMeshConnectivity(mesh)
-disp(['--- CALL buildMeshConnectivity']);
 
 % -------------------------------------------------------------------------
 % List of boundary/interior edges + Connectivity

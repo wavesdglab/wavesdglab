@@ -1,7 +1,5 @@
 function [solA, sysA] = computeSolNum2D_HDG1(mesh, dofm, tau)
 
-tic
-
 global k
 
 numDofTRI = dofm.numDofTRI;
@@ -26,6 +24,7 @@ matIG    = sparse(3*numDofTRI, numDofLIN);
 matGI    = sparse(numDofLIN, 3*numDofTRI);
 matGG    = sparse(numDofLIN, numDofLIN);
 matIIinv = sparse(3*numDofTRI, 3*numDofTRI);
+matGGinv = sparse(numDofLIN, numDofLIN);
 rhsI     = zeros(3*numDofTRI,1);
 rhsG     = zeros(numDofLIN,1);
 
@@ -205,6 +204,7 @@ for tri=1:mesh.numTri
         matIG(dofGloI,dofGloG) = matIG(dofGloI,dofGloG) + matIGel;
         matGI(dofGloG,dofGloI) = matGI(dofGloG,dofGloI) + matGIel;
         matGG(dofGloG,dofGloG) = matGG(dofGloG,dofGloG) + matGGel;
+        %matGGinv(dofGloG,dofGloG) = matGGinv(dofGloG,dofGloG) + int(matGGel);
         rhsG(dofGloG) = rhsG(dofGloG) + rhsGel;
         
     end
@@ -219,13 +219,9 @@ for tri=1:mesh.numTri
     
 end
 
-toc
-
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
-
-tic
 
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
@@ -233,19 +229,26 @@ solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
-toc
+matGGinv = inv(matGG);
+matPhy = matII - matIG*(matGGinv*matGI);
+rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
-sysA.matIIinv = matIIinv;
 sysA.matII = matII;
 sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
-sysA.matA = [ matII matIG ; matGI matGG ];
-sysA.matS = matS;
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = matGGinv;
+
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
+
+sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
+sysA.matS = matS;
 sysA.rhsS = rhsS;
+sysA.matPhy = matPhy;
+sysA.rhsPhy = rhsPhy;
 
 end
 

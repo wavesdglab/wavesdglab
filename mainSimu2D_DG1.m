@@ -2,19 +2,37 @@
 clear all;
 
 headers2D;
+global k
+
+% hPower = [-1 -1.5 -2 -2.5 -3 -3.5];
+% hList = 2.^hPower;
+% for ITER = 1:size(hPower,2)
+% h = hList(ITER);
+
+% FREE SPACE
+k = 10*pi;
+h = 1/8;
+degree = 3;
+mesh = benchmark2D('open',h);
+
+% WAVEGUIDE
+% k = 6*pi;
+% h = 1/8;
+% degree = 3;
+% mesh = benchmark2D('waveguide',h);
+
+% CAVITY
+% k = 5.125*sqrt(2)*pi;
+% h = 1/8;
+% degree = 3;
+% mesh = benchmark2D('cavity',h);
 
 % Define parameters
-global k
-k = 20;
-h = 0.2;
-degree = 3;
-tau = 1;
 resTol = 1e-4;
-benchmark2D('open');
+tau = 1;
+theta = 0;
 
 % Build mesh and dofManager
-system(['gmsh -2 mesh.geo -v 0 -clmax ' num2str(h) ' -clmin ' num2str(h)]);
-mesh = readMesh('mesh.msh');
 mesh = buildMeshConnectivity(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
@@ -31,16 +49,24 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, matA, rhsA] = computeSolNum2D_DG1(mesh, dofm, tau);
+[solA, matA, rhsA] = computeSolNum2D_DG1(mesh, dofm, tau, theta);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm);
+[solP, sysP] = computeSolProjL2_2D(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_DG(mesh, dofm, solP);
 
+[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
+[errorPostL2, errorPostH1] = computeNormError2D_DG(mesh, dofmPost, solApost);
+
+[solPpost, sysPpost] = computeSolProjL2_2D(mesh, dofmPost);
+[errorProjPostL2, errorProjPostH1] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+
+% disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2) ' ' num2str(errorPostL2) ' ' num2str(errorProjPostL2)]);
+
 disp(['    L2-Error (numSol)   ' num2str(errorL2)]);
-%disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
+% disp(['    H1-Error (numSol)   ' num2str(errorH1)]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2)]);
-%disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
+% disp(['    H1-Error (projSol)  ' num2str(errorProjH1)]);
 disp(['---------------------------------------------------------']);
 
 % [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
@@ -51,6 +77,11 @@ disp(['---------------------------------------------------------']);
 % disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
 % disp(['    Cond(A)             ' num2str(condest(matA))]);
 % disp(['---------------------------------------------------------']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+writeFieldDG(dofm, mesh, solA, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -120,7 +151,4 @@ disp(['---------------------------------------------------------']);
 %     num2str(errorL2JacobiA,'%.1e') ' \\'
 %     ]);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% writeFieldDG(dofm, mesh, solA, "mySol.pos", "mySol");
-% system('gmsh mySol.pos');
+% end

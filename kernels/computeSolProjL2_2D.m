@@ -1,4 +1,4 @@
-function [solP, matP, rhsP] = computeSolProjL2_2D(mesh, dofm)
+function [solP, sysP] = computeSolProjL2_2D(mesh, dofm)
 
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
 rhsP = zeros(dofm.numDofTRI, 1);
@@ -54,5 +54,8 @@ end
 
 % Solution
 solP = matP\rhsP;
+
+sysP.matP = matP;
+sysP.rhsP = rhsP;
 
 end

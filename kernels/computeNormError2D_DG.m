@@ -1,7 +1,7 @@
 function [errorL2, errorH1, normL2, normH1] = computeNormError2D_DG(mesh, dofm, vecSol, vecRef)
 
 % Quadrature
-degreeQ = 4*dofm.degree;
+degreeQ = 2*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 
 % Shape functions (f, dfdu, dfdv)
