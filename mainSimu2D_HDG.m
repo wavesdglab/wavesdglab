@@ -40,7 +40,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method HDG-1']);
+disp(['Method HDG']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -48,7 +48,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_HDG1(mesh, dofm, tau);
+[solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau);
 [errorL2] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, sysP] = computeSolProjL2_2D(mesh, dofm);
@@ -126,7 +126,7 @@ ylim([1e-5 1e0]);
 xlabel('Iteration');
 ylabel('Value');
 set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 400 300]);
-print(['~/Desktop/HistoConvCGN-BenchCavity-HDG1.eps'],'-depsc');
+print(['~/Desktop/HistoConvCGN-BenchCavity-HDG.eps'],'-depsc');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -261,7 +261,7 @@ print(['~/Desktop/HistoConvCGN-BenchCavity-HDG1.eps'],'-depsc');
 % disp(['    Final L2-Error     ' num2str(errorL2RichS)]);
 % disp(['---------------------------------------------------------']);
 
-% disp(['\text{HDG-1}(\tau=1) & full & ' ...
+% disp(['\text{HDG}(\tau=1) & full & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
 %     num2str(errorH1,'%.1e') ' & ' ...
 %     num2str(size(matA,1)) ' & ' ...
@@ -278,7 +278,7 @@ print(['~/Desktop/HistoConvCGN-BenchCavity-HDG1.eps'],'-depsc');
 %     num2str(errorL2JacobiA,'%.1e') ' \\'
 %     ]);
 
-% disp(['\text{HDG-1}(\tau=i) & red & ' ...
+% disp(['\text{HDG}(\tau=i) & red & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
 %     num2str(errorH1,'%.1e') ' & ' ...
 %     num2str(size(matS,1)) ' & ' ...

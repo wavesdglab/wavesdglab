@@ -41,7 +41,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method DG-1']);
+disp(['Method DG']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -49,7 +49,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, matA, rhsA] = computeSolNum2D_DG1(mesh, dofm, tau, theta);
+[solA, matA, rhsA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
 [errorL2, errorH1] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, sysP] = computeSolProjL2_2D(mesh, dofm);

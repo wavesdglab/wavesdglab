@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum2D_CG2(mesh, dofm)
+function [solA, sysA] = computeSolNum2D_CG(mesh, dofm)
 
 global k
 

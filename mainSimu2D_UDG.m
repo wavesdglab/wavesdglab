@@ -1,4 +1,4 @@
-%close all;
+close all;
 clear all;
 
 headers2D;
@@ -28,10 +28,10 @@ global k
 % mesh = benchmark2D('cavity',h);
 
 % BENCH FREE SPACE
-k = 10*pi;
-h = 1/8;
-degree = 3;
-mesh = benchmark2D('open',h);
+% k = 10*pi;
+% h = 1/8;
+% degree = 3;
+% mesh = benchmark2D('open',h);
 
 % BENCH WAVEGUIDE
 % k = 6*pi;
@@ -40,10 +40,10 @@ mesh = benchmark2D('open',h);
 % mesh = benchmark2D('waveguide',h);
 
 % BENCH CAVITY
-% k = 5.125*sqrt(2)*pi;
-% h = 1/20;
-% degree = 3;
-% mesh = benchmark2D('cavity',h);
+k = 5.125*sqrt(2)*pi;
+h = 1/20;
+degree = 3;
+mesh = benchmark2D('cavity',h);
 
 % Define parameters
 tol = 1e-4;
@@ -58,7 +58,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method UDG-1']);
+disp(['Method UDG']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -67,7 +67,7 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_UDG1(mesh, dofm, tau);
+[solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau);
 [errorL2] = computeNormError2D_DG(mesh, dofm, solA);
 
 [solP, sysP] = computeSolProjL2_2D(mesh, dofm);
@@ -106,9 +106,9 @@ disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- CALL eigsS']);
-[eigenvecS,eigenvalS]      = eigs(sysA.matS,size(sysA.matS,1));
-eigenvalS                  = diag(eigenvalS);
+% disp(['--- CALL eigsS']);
+% [eigenvecS,eigenvalS]      = eigs(sysA.matS,size(sysA.matS,1));
+% eigenvalS                  = diag(eigenvalS);
 
 % disp(['S : Size                ' num2str(size(sysA.matS,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecS))]);
@@ -117,17 +117,17 @@ eigenvalS                  = diag(eigenvalS);
 % disp(['    Cond(SS)            ' num2str(condest(sysA.matS'*sysA.matS), '%1.2e')]);
 % disp(['---------------------------------------------------------']);
 % 
-figure(3);
-hold off
-scatter(real(eigenvalS),imag(eigenvalS));
-%hold on
-%plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
-grid on; box on;
-%title(['Eigenvalues S  —  Min real eigenvalues: ' num2str(min(real(eigenvalS)))]);
-%legend();
-axis([-0.02 0.14 -0.08 0.08]);
-set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-print(['~/Desktop/Eigenvalues-BenchCavity-UDG1.eps'],'-depsc');
+% figure(3);
+% hold off
+% scatter(real(eigenvalS),imag(eigenvalS));
+% %hold on
+% %plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
+% grid on; box on;
+% %title(['Eigenvalues S  —  Min real eigenvalues: ' num2str(min(real(eigenvalS)))]);
+% %legend();
+% axis([-0.02 0.14 -0.08 0.08]);
+% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+% print(['~/Desktop/Eigenvalues-BenchCavity-UDG.eps'],'-depsc');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -304,7 +304,7 @@ print(['~/Desktop/Eigenvalues-BenchCavity-UDG1.eps'],'-depsc');
 % disp(['    Final L2-Error     ' num2str(errorL2RichS)]);
 % disp(['---------------------------------------------------------']);
 
-% disp(['\text{UDG-1}(\tau=1) & full & ' ...
+% disp(['\text{UDG}(\tau=1) & full & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
 %     num2str(errorH1,'%.1e') ' & ' ...
 %     num2str(size(matA,1)) ' & ' ...
@@ -321,7 +321,7 @@ print(['~/Desktop/Eigenvalues-BenchCavity-UDG1.eps'],'-depsc');
 %     num2str(errorL2JacobiA,'%.1e') ' \\'
 %     ]);
 
-% disp(['\text{UDG-1}(\tau=i) & red & ' ...
+% disp(['\text{UDG}(\tau=i) & red & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
 %     num2str(errorH1,'%.1e') ' & ' ...
 %     num2str(size(matS,1)) ' & ' ...

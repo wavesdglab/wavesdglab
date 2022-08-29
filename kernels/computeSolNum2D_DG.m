@@ -1,4 +1,4 @@
-function [solA, matA, rhsA] = computeSolNum2D_DG1(mesh, dofm, tau, theta)
+function [solA, matA, rhsA] = computeSolNum2D_DG(mesh, dofm, tau, theta)
 
 global k
 

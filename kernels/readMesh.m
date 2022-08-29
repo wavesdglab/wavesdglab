@@ -99,17 +99,17 @@ end
 for i=1:geo.numCurves
     data = str2num(fgetl(file));
     geo.curveGeoTag(i) = data(1);
-    geo.curveGeoTag(i) = data(8);
+    geo.curvePhyTag(i) = data(9);
 end
 for i=1:geo.numSurfaces
     data = str2num(fgetl(file));
     geo.surfaceGeoTag(i) = data(1);
-    geo.surfacePhyTag(i) = data(8);
+    geo.surfacePhyTag(i) = data(9);
 end
 for i=1:geo.numVolumes
     data = str2num(fgetl(file));
     geo.volumeGeoTag(i) = data(1);
-    geo.volumePhyTag(i) = data(8);
+    geo.volumePhyTag(i) = data(9);
 end
 
 % Read nodes
@@ -161,7 +161,8 @@ for ent=1:numEntityBlocks
     if(entityType == 1)
         for i=1:numElementsInBlock
             data = str2num(fgetl(file));
-            mesh.tagEdgBndFile  = [mesh.tagEdgBndFile; entityTag];
+            phyTag = geo.curvePhyTag(geo.curveGeoTag == entityTag);
+            mesh.tagEdgBndFile  = [mesh.tagEdgBndFile; phyTag];
             mesh.mapEdgBndToVer = [mesh.mapEdgBndToVer; data(2:3)];
         end
         numElementsLIN = numElementsLIN + numElementsInBlock;

@@ -1,9 +1,9 @@
-function [solA, sysA] = computeSolNum2D_UDG1(mesh, dofm, tau)
+function [solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau)
 
 global k
 
 numDofTRI = dofm.numDofTRI;
-numDofFAC = dofm.numDofFAC;
+numDofLIN = dofm.numDofLIN;
 numDofPerTRI = dofm.numDofPerTRI;
 
 % Quadrature
@@ -20,13 +20,12 @@ shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
 matII    = sparse(3*numDofTRI, 3*numDofTRI);
-matIG    = sparse(3*numDofTRI, numDofFAC);
-matGI    = sparse(numDofFAC, 3*numDofTRI);
-matGG    = sparse(numDofFAC, numDofFAC);
+matIG    = sparse(3*numDofTRI, numDofLIN);
+matGI    = sparse(numDofLIN, 3*numDofTRI);
+matGG    = sparse(numDofLIN, numDofLIN);
 matIIinv = sparse(3*numDofTRI, 3*numDofTRI);
-matGGinv = sparse(numDofFAC, numDofFAC);
 rhsI     = zeros(3*numDofTRI,1);
-rhsG     = zeros(numDofFAC,1);
+rhsG     = zeros(numDofLIN,1);
 
 for tri=1:mesh.numTri
     
@@ -81,14 +80,15 @@ for tri=1:mesh.numTri
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
+    % Global ID
+    dofGloP = 0*numDofTRI + dofm.locToGloTRI(tri,:);
+    dofGloU = 1*numDofTRI + dofm.locToGloTRI(tri,:);
+    dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
+    dofGloI = [dofGloP dofGloU dofGloV];
+    
     % -------------------------------------------------------------------------
     % Surface terms
     % -------------------------------------------------------------------------
-    
-    matIGel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
-    matGIel = zeros(3*dofm.numDofPerLIN,3*dofm.numDofPerTRI);
-    matGGel = zeros(3*dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-    rhsGel  = zeros(3*dofm.numDofPerLIN,1);
     
     % Exterior normals
     verTri = mesh.mapTriToVer(tri,:);
@@ -102,6 +102,11 @@ for tri=1:mesh.numTri
     
     % Loop over faces
     for fac = 1:3
+        
+        matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
+        matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);
+        matGGel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
+        rhsGel = zeros(dofm.numDofPerLIN,1);
         
         % Mapping
         V1 = mesh.coord(n1(fac),:);
@@ -124,98 +129,92 @@ for tri=1:mesh.numTri
         
         % Elemental matrices
         matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
-        rhsPel = shapeOrQ' * weightsLinQ * solQ * Jdxdu;
-        rhsUel = shapeOrQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
-        rhsVel = shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
         
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
         
         % Local ID for interior unknowns and incoming characteristics
-        idLocP = 0*dofm.numDofPerTRI + dofm.locFac(fac,:);
-        idLocU = 1*dofm.numDofPerTRI + dofm.locFac(fac,:);
-        idLocV = 2*dofm.numDofPerTRI + dofm.locFac(fac,:);
-        idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
+        idLocP = 0*numDofPerTRI + dofm.locFac(fac,:);
+        idLocU = 1*numDofPerTRI + dofm.locFac(fac,:);
+        idLocV = 2*numDofPerTRI + dofm.locFac(fac,:);
         
-        % Interior contributions
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matMel;
-        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matMel;
-        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matMel;
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matMel;
+        % Surface terms for the volume fields
+        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + tau * matMel;
+        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + nx  * matMel;
+        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + ny  * matMel;
+        matIGel(idLocP,:) = -tau * matMel;
+        matIGel(idLocU,:) =  nx  * matMel;
+        matIGel(idLocV,:) =  ny  * matMel;
         
-        matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matMel;
-        matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5/tau * nx * nx * matMel;
-        matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5/tau * nx * ny * matMel;
-        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matMel;
-        
-        matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matMel;
-        matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5/tau * nx * ny * matMel;
-        matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5/tau * ny * ny * matMel;
-        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matMel;
-        
-        % Infos on neighboring element
+        % Surface terms for the surface field
         triNeigh = mesh.mapTriToTri(tri,fac);
-        facNeigh = mesh.mapTriToFac(tri,fac);
-        
-        matGGel(idLocG,idLocG) = matMel;
-        
         if (triNeigh > 0)
             
-            % Get global ID for exterior unknowns
-            idIncG = dofm.locToGloFAC(tri,(1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN);
-            dofExt = dofm.locFacNeigh(facNeigh,:);
-            idExtP = 0*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
-            idExtU = 1*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
-            idExtV = 2*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
-            
-            matGI(idIncG,idExtP) = matGI(idIncG,idExtP) - tau * matMel;
-            matGI(idIncG,idExtU) = matGI(idIncG,idExtU) + nx  * matMel;
-            matGI(idIncG,idExtV) = matGI(idIncG,idExtV) + ny  * matMel;
+            matGIel(:,idLocP) = tau * matMel;
+            matGIel(:,idLocU) = nx  * matMel;
+            matGIel(:,idLocV) = ny  * matMel;
+            matGGel = -tau * matMel;
             
         else
+            
+            rhsPel = shapeOrQ' * weightsLinQ * solQ * Jdxdu;
+            rhsUel = shapeOrQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
+            rhsVel = shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             switch tagToBC(mesh.tagEdg(edgGlo))
                 case 'DIR'
-                    matGIel(idLocG,idLocP) = matGIel(idLocG,idLocP) + tau * matMel;
-                    matGIel(idLocG,idLocU) = matGIel(idLocG,idLocU) + nx  * matMel;
-                    matGIel(idLocG,idLocV) = matGIel(idLocG,idLocV) + ny  * matMel;
-                    rhsGel(idLocG) = rhsGel(idLocG) + 2*tau*rhsPel;
+                    matGGel = matMel;
+                    rhsGel = rhsPel;
                 case 'NEU'
-                    matGIel(idLocG,idLocP) = matGIel(idLocG,idLocP) - tau * matMel;
-                    matGIel(idLocG,idLocU) = matGIel(idLocG,idLocU) - nx  * matMel;
-                    matGIel(idLocG,idLocV) = matGIel(idLocG,idLocV) - ny  * matMel;
-                    rhsGel(idLocG) = rhsGel(idLocG) - 2*(nx*rhsUel + ny*rhsVel);
+                    matGIel(:,idLocP) = tau * matMel;
+                    matGIel(:,idLocU) = nx  * matMel;
+                    matGIel(:,idLocV) = ny  * matMel;
+                    matGGel = -tau * matMel;
+                    rhsGel = nx*rhsUel + ny*rhsVel;
                 case 'ABC'
-                    matGIel(idLocG,idLocP) = matGIel(idLocG,idLocP) + tau * matMel * (1-tau)/(1+tau);
-                    matGIel(idLocG,idLocU) = matGIel(idLocG,idLocU) + nx  * matMel * (1-tau)/(1+tau);
-                    matGIel(idLocG,idLocV) = matGIel(idLocG,idLocV) + ny  * matMel * (1-tau)/(1+tau);
-                    rhsGel(idLocG) = rhsGel(idLocG) + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + (1-tau) * matMel;
+                    matIGel(idLocP,:) = matIGel(idLocP,:) - (1-tau) * matMel;
+                    %
+                    matGIel(:,idLocP) =       matMel;
+                    matGIel(:,idLocU) = nx  * matMel;
+                    matGIel(:,idLocV) = ny  * matMel;
+                    matGGel = -2 * matMel;
+                    rhsGel  = nx*rhsUel + ny*rhsVel - rhsPel;
                 otherwise
-                    warning('Error - Bad BC.')
+                    warning('Error - Bad BC.');
             end
         end
+        
+        % Global ID for edge unknowns
+        edgGlo = abs(mesh.mapTriToEdg(tri,fac));
+        dofGloG = dofm.locToGloLIN(edgGlo,:);
+        if(mesh.mapTriToEdg(tri,fac) < 0)
+            tmp = dofGloG;
+            dofGloG(1) = tmp(2);
+            dofGloG(2) = tmp(1);
+        end
+        
+        % -------------------------------------------------------------------------
+        % Matrix assembling
+        % -------------------------------------------------------------------------
+        
+        matIG(dofGloI,dofGloG) = matIG(dofGloI,dofGloG) + matIGel;
+        matGI(dofGloG,dofGloI) = matGI(dofGloG,dofGloI) + matGIel;
+        matGG(dofGloG,dofGloG) = matGG(dofGloG,dofGloG) + matGGel;
+        %matGGinv(dofGloG,dofGloG) = matGGinv(dofGloG,dofGloG) + int(matGGel);
+        rhsG(dofGloG) = rhsG(dofGloG) + rhsGel;
+        
     end
     
     % -------------------------------------------------------------------------
     % Matrix assembling
     % -------------------------------------------------------------------------
     
-    dofGloP = 0*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloU = 1*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloI = [dofGloP dofGloU dofGloV];
-    dofGloG = dofm.locToGloFAC(tri,:);
-    
     matIIinv(dofGloI,dofGloI) = inv(matIIel);
     matII(dofGloI,dofGloI) = matIIel;
-    matIG(dofGloI,dofGloG) = matIGel;
-    matGI(dofGloG,dofGloI) = matGIel;
-    matGGinv(dofGloG,dofGloG) = inv(matGGel);
-    matGG(dofGloG,dofGloG) = matGGel;
     rhsI(dofGloI) = rhsIel;
-    rhsG(dofGloG) = rhsGel;
     
 end
 
@@ -229,6 +228,7 @@ solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
+matGGinv = inv(matGG);
 matPhy = matII - matIG*(matGGinv*matGI);
 rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
@@ -263,6 +263,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set on the East.')
+        warning('Error - No valid BC has been set.')
 end
 end

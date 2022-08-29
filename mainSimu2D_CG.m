@@ -1,7 +1,7 @@
 %close all;
 clear all;
 
-headers2D;
+headers2D();
 global k
 
 % hPower = [-1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5];
@@ -39,7 +39,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method CG-2']);
+disp(['Method CG']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -47,7 +47,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_CG2(mesh, dofm);
+[solA, sysA] = computeSolNum2D_CG(mesh, dofm);
 [errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
 
 [solP, sysP] = computeSolProjL2_2D(mesh, dofm);
@@ -143,7 +143,7 @@ disp(['---------------------------------------------------------']);
 % disp(['    Final L2-Error      ' num2str(errorL2JacobiA)]);
 % disp(['---------------------------------------------------------']);
 % 
-% disp(['\text{CG-2} & & ' ...
+% disp(['\text{CG} & & ' ...
 %     num2str(errorL2,'%.1e') ' & ' ...
 %     num2str(size(sysA.matA,1)) ' & ' ...
 %     num2str(rank(eigenvecA)) ' & ' ...
