@@ -1,11 +1,8 @@
 function headers2D()
 
-addpath('benchmarks2D/');
-addpath('kernels/');
-addpath('tools/');
-addpath('tools/triasymq/');
-addpath('tools/cavity/');
-addpath('tools/waveguide/');
+addpath(genpath('benchmarks2D/'));
+addpath(genpath('kernels/'));
+addpath(genpath('tools/'));
 
 path1 = getenv('PATH');
 if(~contains(path1, ':/Applications/Gmsh.app/Contents/MacOS/'))
@@ -14,6 +11,5 @@ if(~contains(path1, ':/Applications/Gmsh.app/Contents/MacOS/'))
 end
 
 set(0, 'DefaultLineLineWidth', 2);
-
 
 end
