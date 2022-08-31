@@ -6,10 +6,9 @@ global k
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% BENCH FREE SPACE 1/32
+% BENCH FREE SPACE
 % benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
 % benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8; % In paper: k = 40*pi; h = 1/32
-benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
 
 % BENCH WAVEGUIDE
 % benchmark = 'waveguide'; degree = 1; k = 2*pi; h = 1/16;
@@ -17,9 +16,9 @@ benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
 
 % BENCH CAVITY
 % benchmark = 'cavity'; degree = 1; k = 3*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/32;
-% benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/8;
+benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/8;
 
-tau = 1;
+tau = 1i;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -33,7 +32,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method UDG']);
+disp(['Method UDG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -68,12 +67,13 @@ disp('---------------------------------------------------------');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % disp(['--- Solver Richardson']);
-% maxit = 100000;
-% itout = 5000;
+% tol = 1e-10;
+% iMax = 100000;
+% iOut = 5000;
 % alpha = 1;
-% [resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, 1e-10, maxit, itout, alpha);
+% [resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
 % 
-% iterVec = (0:itout:maxit)';
+% iterVec = (0:iOut:iMax)';
 % errorRef = errorL2*ones(size(error));
 % errorRefPost = errorPostL2*ones(size(error));
 % 
@@ -85,11 +85,12 @@ disp('---------------------------------------------------------');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGN']);
-maxit = 1000;
-itout = 20;
-[resVec, resRedVec, resPhyVec, error, errorPost, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, 1e-10, maxit, itout);
+tol = 1e-10;
+iMax = 1000;
+iOut = 50;
+[resRedVec, resPhyVec, error, errorPost] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
 
-iterVec = (0:itout:maxit)';
+iterVec = (0:iOut:iMax)';
 errorRef = errorL2*ones(size(error));
 errorRefPost = errorPostL2*ones(size(error));
 
@@ -100,35 +101,35 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver GMRES']);
-% tol = 1e-10;
-% maxit = 1000;
-% itout = 20;
-% [resRedVec, resPhyVec, error, errorPost, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout);
-% 
-% iterVec = (0:itout:maxit)';
-% errorRef = errorL2*ones(size(error));
-% errorRefPost = errorPostL2*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
-% name = sprintf('output/historyGMRES_UDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver GMRES']);
+tol = 1e-10;
+iMax = 1000;
+iOut = 50;
+[resRedVec, resPhyVec, error, errorPost] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
+
+iterVec = (0:iOut:iMax)';
+errorRef = errorL2*ones(size(error));
+errorRefPost = errorPostL2*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
+name = sprintf('output/historyGMRES_UDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure;
-hold off
-semilogy(iterVec,resPhyVec   ,'-o','DisplayName','Relative residual (Phy)');
-hold on
-semilogy(iterVec,resRedVec   ,'-x','DisplayName','Relative residual (Red)');
-semilogy(iterVec,error       ,'-o','DisplayName','Relative L2-error');
-semilogy(iterVec,errorPost   ,'-x','DisplayName','Relative L2-error with PostPro');
-semilogy(iterVec,errorRef    ,'k--','DisplayName','Relative L2-error (Ref)');
-semilogy(iterVec,errorRefPost,'k--','DisplayName','Relative L2-error with PostPro (Ref)');
-box on;
-grid on;
-legend('Location','southwest');
-xlabel('Iteration');
-ylabel('Value');
-axis([0 1000 1e-7 1]);
+% figure;
+% hold off
+% semilogy(iterVec,resPhyVec   ,'-o','DisplayName','Relative residual (Phy)');
+% hold on
+% semilogy(iterVec,resRedVec   ,'-x','DisplayName','Relative residual (Red)');
+% semilogy(iterVec,error       ,'-o','DisplayName','Relative L2-error');
+% semilogy(iterVec,errorPost   ,'-x','DisplayName','Relative L2-error with PostPro');
+% semilogy(iterVec,errorRef    ,'k--','DisplayName','Relative L2-error (Ref)');
+% semilogy(iterVec,errorRefPost,'k--','DisplayName','Relative L2-error with PostPro (Ref)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% xlabel('Iteration');
+% ylabel('Value');
+% %axis([0 1000 1e-7 1]);

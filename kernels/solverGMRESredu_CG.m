@@ -1,4 +1,4 @@
-function [resRedVec, resPhyVec, errorVec, errorPostVec, i, flag] = solverGMRESredu_DG(mesh, dofm, sys, tol, iMax, iOut)
+function [resRedVec, resPhyVec, errorVec, i, flag] = solverGMRESredu_CG(mesh, dofm, sys, tol, iMax, iOut)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -18,25 +18,25 @@ beta = r_norm * e1;
 resRedVec    = zeros(iMax/iOut+1,1);
 resPhyVec    = zeros(iMax/iOut+1,1);
 errorVec     = zeros(iMax/iOut+1,1);
-errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
 solG = x;
 solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
-resPhy = sys.rhsPhy - sys.matPhy*solI;
+solA = [ solG ; solI ];
+resRed = sys.rhsS - sys.matS*solG;
+resPhy = sys.rhsA - sys.matA*solA;
+resRedIni = resRed'*resRed;
 resPhyIni = resPhy'*resPhy;
-resRedVec(1)    = 1;
-resPhyVec(1)    = 1;
-errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
-errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+resRedVec(1) = 1;
+resPhyVec(1) = 1;
+errorVec(1)  = computeNormError2D_CG(mesh, dofm, solA);
 %%%%%%%
 
 flag = 0;
 i = 1;
 while(i <= iMax)
     
-    % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
+    % Arnoldi iteration – Add one vector to basis Q, and orthogonalize it
     Q(:,i+1) = A*Q(:,i);
     for j = 1:i
         H(j,i) = Q(:,i+1)' * Q(:,j);
@@ -74,13 +74,14 @@ while(i <= iMax)
         
         solG = x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
-        resPhy = sys.rhsPhy - sys.matPhy*solI;
+        solA = [ solG ; solI ];
+        resRed = sys.rhsS - sys.matS*solG;
+        resPhy = sys.rhsA - sys.matA*solA;
+        resRedNew = resRed'*resRed;
         resPhyNew = resPhy'*resPhy;
-        resRedVec(i/iOut+1)    = error;
-        resPhyVec(i/iOut+1)    = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1)     = computeNormError2D_DG(mesh, dofm, solI);
-        errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        resRedVec(i/iOut+1) = sqrt(resRedNew/resRedIni);
+        resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
+        errorVec(i/iOut+1)  = computeNormError2D_CG(mesh, dofm, solA);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%

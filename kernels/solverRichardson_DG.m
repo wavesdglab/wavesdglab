@@ -1,61 +1,59 @@
-function [resRedVec, resPhyVec, error, errorPP, iter, flag] = solverRichardson_DG(mesh, dofm, sys, tol, maxit, itoutput, alpha)
+function [resRedVec, resPhyVec, errorVec, errorPostVec, i, flag] = solverRichardson_DG(mesh, dofm, sys, tol, iMax, iOut, alpha)
 
 A = sys.matS;
 b = sys.rhsS;
-x = zeros(size(A,1),1);
+x = zeros(size(A,2),1);
+r = b - A*x;
+
+rrini = r'*r;
+
+resRedVec    = zeros(iMax/iOut+1,1); 
+resPhyVec    = zeros(iMax/iOut+1,1); 
+errorVec     = zeros(iMax/iOut+1,1);
+errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%
 solG = x;
 solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-resRed = sys.rhsS - sys.matS*solG;
+[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
-resRedIni = resRed'*resRed;
 resPhyIni = resPhy'*resPhy;
+resRedVec(1)    = 1;
+resPhyVec(1)    = 1;
+errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
+errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
 %%%%%
 
-resRedVec = zeros(maxit/itoutput+1,1); 
-resPhyVec = zeros(maxit/itoutput+1,1); 
-error   = zeros(maxit/itoutput+1,1);
-errorPP = zeros(maxit/itoutput+1,1);
-
-resRedVec(1) = 1;
-resPhyVec(1) = 1;
-error(1) = computeNormError2D_DG(mesh, dofm, solI);
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
-errorPP(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
-
-iter = 1;
-while(iter < maxit+1)
-    if(mod(iter/itoutput,1)==0)
-        disp(num2str(iter))
-    end
+flag = 0;
+i = 1;
+while(i <= iMax)
     
     xNew = x - A*x + b;
     x = alpha*xNew + (1-alpha)*x;
-    resRed = b - A*x;
-    resRedNew = resRed'*resRed;
+    r = b - A*x;
+    rrnew = r'*r;
     
     %%%%%%%
-    if(mod(iter,itoutput)==0)
+    if(mod(i,iOut)==0)
         solG = x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
+        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
         resPhy = sys.rhsPhy - sys.matPhy*solI;
         resPhyNew = resPhy'*resPhy;
-        resRedVec(iter/itoutput+1) = sqrt(resRedNew/resRedIni);
-        resPhyVec(iter/itoutput+1) = sqrt(resPhyNew/resPhyIni);
-        error(iter/itoutput+1) = computeNormError2D_DG(mesh, dofm, solI);
-        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
-        errorPP(iter/itoutput+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        resRedVec(i/iOut+1)    = sqrt(rrnew/rrini);
+        resPhyVec(i/iOut+1)    = sqrt(resPhyNew/resPhyIni);
+        errorVec(i/iOut+1)     = computeNormError2D_DG(mesh, dofm, solI);
+        errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
-    if(sqrt(resRedNew/resRedIni) < tol)
+    if(sqrt(rrnew/rrini) < tol)
         flag = 1;
         return;
     end
     
-    iter = iter+1;
+    i = i+1;
 end
-flag = 2;
 
 end

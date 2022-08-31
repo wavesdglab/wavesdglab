@@ -1,21 +1,21 @@
-function [resVec, resRedVec, resPhyVec, error, errorPP, iter, flag] = solverCGNredu_DG(mesh, dofm, sys, tol, maxit, itoutput)
+function [resRedVec, resPhyVec, errorVec, errorPostVec, i, flag] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut)
 
 A = sys.matS;
 b = sys.rhsS;
-
 x = zeros(size(A,2),1);
 r = b - A*x;
+
 z = A'*r;
 p = z;
 rrini = r'*r;
 zzini = z'*z;
 zzold = zzini;
 
-resVec    = zeros(maxit/itoutput+1,1);
-resRedVec = zeros(maxit/itoutput+1,1);
-resPhyVec = zeros(maxit/itoutput+1,1);
-error     = zeros(maxit/itoutput+1,1);
-errorPP   = zeros(maxit/itoutput+1,1);
+% resVec       = zeros(iMax/iOut+1,1);
+resRedVec    = zeros(iMax/iOut+1,1);
+resPhyVec    = zeros(iMax/iOut+1,1);
+errorVec     = zeros(iMax/iOut+1,1);
+errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
 solG = x;
@@ -23,19 +23,16 @@ solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
 [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
 resPhyIni = resPhy'*resPhy;
-resVec(1)    = 1;
-resRedVec(1) = 1;
-resPhyVec(1) = 1;
-error(1)     = computeNormError2D_DG(mesh, dofm, solI);
-errorPP(1)   = computeNormError2D_DG(mesh, dofmPost, solApost);
+% resVec(1)       = 1;
+resRedVec(1)    = 1;
+resPhyVec(1)    = 1;
+errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
+errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
 %%%%%%%
 
 flag = 0;
-iter = 1;
-while(iter <= maxit)
-    if(mod(iter,100)==0)
-        disp(num2str(iter))
-    end
+i = 1;
+while(i <= iMax)
     
     Ap = A*p;
     alpha = zzold/(Ap'*Ap);
@@ -46,17 +43,18 @@ while(iter <= maxit)
     zznew = z'*z;
     
     %%%%%%%
-    if(mod(iter,itoutput)==0)
+    if(mod(i,iOut) == 0)
         solG = x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
+        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
         resPhy = sys.rhsPhy - sys.matPhy*solI;
         resPhyNew = resPhy'*resPhy;
-        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
-        resVec(iter/itoutput+1)    = sqrt(zznew/zzini);
-        resRedVec(iter/itoutput+1) = sqrt(rrnew/rrini);
-        resPhyVec(iter/itoutput+1) = sqrt(resPhyNew/resPhyIni);
-        error(iter/itoutput+1)     = computeNormError2D_DG(mesh, dofm, solI);
-        errorPP(iter/itoutput+1)   = computeNormError2D_DG(mesh, dofmPost, solApost);
+        % resVec(i/iOut+1)       = sqrt(zznew/zzini);
+        resRedVec(i/iOut+1)    = sqrt(rrnew/rrini);
+        resPhyVec(i/iOut+1)    = sqrt(resPhyNew/resPhyIni);
+        errorVec(i/iOut+1)     = computeNormError2D_DG(mesh, dofm, solI);
+        errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
@@ -64,10 +62,9 @@ while(iter <= maxit)
         flag = 1;
         return;
     end
-    
     p = z + (zznew/zzold)*p;
     zzold = zznew;
-    iter = iter+1;
+    i = i+1;
 end
 
 end
