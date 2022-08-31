@@ -1,4 +1,4 @@
-function writeFieldDG(dofm, mesh, field, nameFile, nameField)
+function writeField_DG(dofm, mesh, field, nameFile, nameField)
 
 % Open file
 

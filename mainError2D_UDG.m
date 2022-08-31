@@ -7,24 +7,16 @@ global k
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % BENCH FREE SPACE [ P1 10pi h=1/32 ; P3 40pi h=1/32 ]
-% k = 20*pi;
-% hList = 2.^(-(1:0.5:6));
-% degree = 3;
-% benchmark = 'open';
+% benchmark = 'open'; degree = 1; k = 10*pi; hList = 2.^(-(2.5:0.5:6));
+% benchmark = 'open'; degree = 3; k = 40*pi; hList = 2.^(-(2.5:0.5:6));
 
 % BENCH WAVEGUIDE [ P1 2pi h=1/16 ; P3 6pi h=1/8 ]
-% k = 6*pi;
-% hList = 2.^(-(0.5:0.5:4.5));
-% degree = 3;
-% benchmark = 'waveguide';
+% benchmark = 'waveguide'; degree = 1; k = 2*pi; hList = 2.^(-(1:0.5:5));
+benchmark = 'waveguide'; degree = 3; k = 6*pi; hList = 2.^(-(0.5:0.5:4.5));
 
 % BENCH CAVITY [ P1 (3*sqrt(2)*pi+sqrt(2)*pi/8 or /64) h=1/32 ; P3 (5*sqrt(2)*pi+sqrt(2)*pi/8 or /64) h=1/8 ]
-k = 5*sqrt(2)*pi+sqrt(2)*pi/64;
-hList = 2.^(-(1:0.5:5));
-degree = 3;
-benchmark = 'cavity';
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% benchmark = 'cavity'; degree = 1; k = 3*sqrt(2)*pi+sqrt(2)*pi/8; hList = 2.^(-(2:0.5:5));
+% benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; hList = 2.^(-(1:0.5:4));
 
 tau = 1;
 
@@ -57,8 +49,10 @@ end
 
 Dlambda = 2*pi/k * (sqrt(Ndof) - 1);
 
-rezu = [hList' Dlambda' errorL2' errorProjL2' errorPostL2' errorProjPostL2'];
-writematrix(rezu,'output/errorVsH_UDG_Open_1.csv','Delimiter','semi');
+rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2" "errorPostL2" "errorProjPostL2"];
+rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2' errorPostL2' errorProjPostL2'];
+name = sprintf('output/errorVsH_UDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 figure(1);
 hold off;
@@ -67,7 +61,3 @@ hold on;
 loglog(Dlambda, errorProjL2, '*:r');
 loglog(Dlambda, errorPostL2, '*-b');
 loglog(Dlambda, errorProjPostL2, '*:b');
-axis([1 100 1e-8 10])
-
-% rezu = ones(5);
-% writematrix(rezu,'test.csv','Delimiter','tab')

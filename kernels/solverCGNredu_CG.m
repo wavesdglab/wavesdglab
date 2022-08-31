@@ -1,4 +1,4 @@
-function [resVec, resRedVec, resPhyVec, error, iter, flag] = solverCGNreduCG(mesh, dofm, sys, tol, maxit, itoutput)
+function [resVec, resRedVec, resPhyVec, error, iter, flag] = solverCGNredu_CG(mesh, dofm, sys, tol, maxit, itoutput)
 
 A = sys.matS'*sys.matS;
 b = sys.matS'*sys.rhsS;

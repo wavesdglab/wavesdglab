@@ -7,7 +7,7 @@ switch TAGbench
         [sol, solDx, solDy] = cavity(x,y,k);
         solF = 0*x+1;
     case 'waveguide'
-        L     = 4.;
+        L = 4.;
         theta = 30.*(pi/180.);
         [sol, solDx, solDy] = waveguide(x,y,k,L,theta);
         solF = 0*x;

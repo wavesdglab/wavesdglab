@@ -1,4 +1,4 @@
-function [resRedVec, resPhyVec, error, errorPP, iter, flag] = solverRichardsonDG(mesh, dofm, sys, tol, maxit, itoutput, alpha)
+function [resRedVec, resPhyVec, error, errorPP, iter, flag] = solverRichardson_DG(mesh, dofm, sys, tol, maxit, itoutput, alpha)
 
 A = sys.matS;
 b = sys.rhsS;
