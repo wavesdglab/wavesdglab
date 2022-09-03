@@ -1,4 +1,4 @@
-close all;
+% close all;
 clear all;
 
 headers2D;
@@ -8,7 +8,7 @@ global k
 
 % BENCH FREE SPACE
 % benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
-benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
+benchmark = 'open'; degree = 3; k = 10*pi; h = 1/16;
 
 % BENCH CAVITY
 % benchmark = 'cavity'; degree = 1; k = (3+1/8)*sqrt(2)*pi; h = 1/32;
@@ -62,37 +62,41 @@ disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp('---------------------------------------------------------');
-disp(['Spectrum matA:']);
-disp(['    Size                ' num2str(size(sysA.matA,1))]);
-
-[eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
-eigenvalA = diag(eigenvalA);
-
-disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
-disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
-disp(['    Cond(A)             ' num2str(condest(sysA.matA))]);
-disp(['    Min eigenval        ' num2str(min(eigenvalA))]);
-
-figure;
-scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','Eigenvalues');
-%hold on
-%plot(fovals(sysA.matA,100),'-b','DisplayName','Numerical range');
-grid on; box on;
-title(['Eigenvalues matA  —  Min real eigenvalues: ' num2str(min(real(eigenvalA)))]);
+% disp('---------------------------------------------------------');
+% disp(['Spectrum matA:']);
+% disp(['    Size                ' num2str(size(sysA.matA,1))]);
+% 
+% [eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
+% eigenvalA = diag(eigenvalA);
+% 
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
+% disp(['    Cond(A)             ' num2str(condest(sysA.matA))]);
+% disp(['    Min eigenval        ' num2str(min(eigenvalA))]);
+% 
+% figure;
+% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','Eigenvalues');
+% %hold on
+% %plot(fovals(sysA.matA,100),'-b','DisplayName','Numerical range');
+% grid on; box on;
+% title(['Eigenvalues matA  —  Min real eigenvalues: ' num2str(min(real(eigenvalA)))]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+mat = sysA.matS;
+%diMat = sparse(1:size(mat,1),1:size(mat,1),sqrt(diag(mat)));
+%mat = diMat\mat;
+
 disp('---------------------------------------------------------');
 disp(['Spectrum matS:']);
-disp(['    Size                ' num2str(size(sysA.matS,1))]);
+disp(['    Size                ' num2str(size(mat,1))]);
 
-[eigenvecS,eigenvalS]      = eigs(sysA.matS,size(sysA.matS,1));
+[eigenvecS,eigenvalS]      = eigs(mat,size(mat,1));
 eigenvalS                  = diag(eigenvalS);
 
 disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecS))]);
 disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecS))]);
-disp(['    Cond(S)             ' num2str(condest(sysA.matS), '%1.2e')]);
+disp(['    Cond(S)             ' num2str(condest(mat), '%1.2e')]);
 disp(['    Min eigenval        ' num2str(min(eigenvalS))]);
 
 figure;
@@ -100,26 +104,26 @@ scatter(real(eigenvalS),imag(eigenvalS),'DisplayName','Eigenvalues');
 %hold on
 %plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
 grid on; box on;
-title(['Eigenvalues matS  —  Min real eigenvalues: ' num2str(min(real(eigenvalS)))]);
+title(['Benchmark "' benchmark '" — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h) ' — MinRealEigenval(S): ' num2str(min(real(eigenvalS)))]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['---------------------------------------------------------']);
-disp(['Spectrum matPhy:']);
-disp(['    Size                ' num2str(size(sysA.matPhy,1))]);
-
-[eigenvecP,eigenvalP]      = eigs(sysA.matPhy,size(sysA.matPhy,1));
-eigenvalP                  = diag(eigenvalP);
-
-disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecP))]);
-disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecP))]);
-disp(['    Cond(P)             ' num2str(condest(sysA.matPhy), '%1.2e')]);
-disp(['    Min eigenval        ' num2str(min(eigenvalP))]);
-
-figure(3);
-hold off;
-scatter(real(eigenvalP),imag(eigenvalP),'DisplayName','Eigenvalues');
-%hold on
-%plot(fovals(sysA.matP,100),'-b','DisplayName','Numerical range');
-grid on; box on;
-title(['Eigenvalues matP  —  Min real eigenvalues: ' num2str(min(real(eigenvalP)))]);
+% disp(['---------------------------------------------------------']);
+% disp(['Spectrum matPhy:']);
+% disp(['    Size                ' num2str(size(sysA.matPhy,1))]);
+% 
+% [eigenvecP,eigenvalP]      = eigs(sysA.matPhy,size(sysA.matPhy,1));
+% eigenvalP                  = diag(eigenvalP);
+% 
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecP))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecP))]);
+% disp(['    Cond(P)             ' num2str(condest(sysA.matPhy), '%1.2e')]);
+% disp(['    Min eigenval        ' num2str(min(eigenvalP))]);
+% 
+% figure(3);
+% hold off;
+% scatter(real(eigenvalP),imag(eigenvalP),'DisplayName','Eigenvalues');
+% %hold on
+% %plot(fovals(sysA.matP,100),'-b','DisplayName','Numerical range');
+% grid on; box on;
+% title(['Eigenvalues matP  —  Min real eigenvalues: ' num2str(min(real(eigenvalP)))]);

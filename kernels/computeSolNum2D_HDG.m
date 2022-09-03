@@ -200,7 +200,7 @@ for tri=1:mesh.numTri
         matIG(dofGloI,dofGloG) = matIG(dofGloI,dofGloG) + matIGel;
         matGI(dofGloG,dofGloI) = matGI(dofGloG,dofGloI) + matGIel;
         matGG(dofGloG,dofGloG) = matGG(dofGloG,dofGloG) + matGGel;
-        %matGGinv(dofGloG,dofGloG) = matGGinv(dofGloG,dofGloG) + int(matGGel);
+        %matGGinv(dofGloG,dofGloG) = matGGinv(dofGloG,dofGloG) + inv(matGGel);
         rhsG(dofGloG) = rhsG(dofGloG) + rhsGel;
         
     end
@@ -218,6 +218,10 @@ end
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
+
+% rhsG  = matGG\rhsG;
+% matGI = matGG\matGI;
+% matGG = matGG\matGG;
 
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);

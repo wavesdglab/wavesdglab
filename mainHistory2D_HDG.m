@@ -8,7 +8,7 @@ global k
 
 % BENCH FREE SPACE
 % benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
-benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
+benchmark = 'open'; degree = 3; k = 10*pi; h = 1/16;
 
 % BENCH CAVITY
 % benchmark = 'cavity'; degree = 1; k = (3+1/8)*sqrt(2)*pi; h = 1/32;
@@ -66,26 +66,8 @@ disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver Richardson']);
-% tol = 1e-10;
-% iMax = 100000;
-% iOut = 5000;
-% alpha = 1;
-% [resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = errorL2*ones(size(error));
-% errorRefPost = errorPostL2*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
-% name = sprintf('output/historyRich_HDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 disp(['--- Solver CGN']);
-tol = 1e-10;
+tol = 1e-100;
 iMax = 1000;
 iOut = 50;
 [resRedVec, resPhyVec, error, errorPost] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
@@ -102,7 +84,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-tol = 1e-10;
+tol = 1e-100;
 iMax = 1000;
 iOut = 50;
 [resRedVec, resPhyVec, error, errorPost] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
@@ -132,4 +114,5 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 % legend('Location','southwest');
 % xlabel('Iteration');
 % ylabel('Value');
+% title(['HDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
 % %axis([0 1000 1e-4 1]);
