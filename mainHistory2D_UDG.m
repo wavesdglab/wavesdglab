@@ -8,17 +8,17 @@ global k
 
 % BENCH FREE SPACE
 % benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
-% benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8; % In paper: k = 40*pi; h = 1/32
+benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
+
+% BENCH CAVITY
+% benchmark = 'cavity'; degree = 1; k = (3+1/8)*sqrt(2)*pi; h = 1/32;
+% benchmark = 'cavity'; degree = 3; k = (5+1/8)*sqrt(2)*pi; h = 1/8;
 
 % BENCH WAVEGUIDE
 % benchmark = 'waveguide'; degree = 1; k = 2*pi; h = 1/16;
 % benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8;
 
-% BENCH CAVITY
-% benchmark = 'cavity'; degree = 1; k = 3*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/32;
-benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/8;
-
-tau = 1i;
+tau = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -66,21 +66,21 @@ disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver Richardson']);
-% tol = 1e-10;
-% iMax = 100000;
-% iOut = 5000;
-% alpha = 1;
-% [resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = errorL2*ones(size(error));
-% errorRefPost = errorPostL2*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
-% name = sprintf('output/historyRich_UDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver Richardson']);
+tol = 1e-10;
+iMax = 100000;
+iOut = 5000;
+alpha = 1;
+[resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
+
+iterVec = (0:iOut:iMax)';
+errorRef = errorL2*ones(size(error));
+errorRefPost = errorPostL2*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
+name = sprintf('output/historyRich_UDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

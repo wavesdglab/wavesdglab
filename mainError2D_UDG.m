@@ -10,13 +10,13 @@ global k
 % benchmark = 'open'; degree = 1; k = 10*pi; hList = 2.^(-(2.5:0.5:6));
 % benchmark = 'open'; degree = 3; k = 40*pi; hList = 2.^(-(2.5:0.5:6));
 
-% BENCH WAVEGUIDE [ P1 2pi h=1/16 ; P3 6pi h=1/8 ]
-% benchmark = 'waveguide'; degree = 1; k = 2*pi; hList = 2.^(-(1:0.5:5));
-benchmark = 'waveguide'; degree = 3; k = 6*pi; hList = 2.^(-(0.5:0.5:4.5));
-
 % BENCH CAVITY [ P1 (3*sqrt(2)*pi+sqrt(2)*pi/8 or /64) h=1/32 ; P3 (5*sqrt(2)*pi+sqrt(2)*pi/8 or /64) h=1/8 ]
 % benchmark = 'cavity'; degree = 1; k = 3*sqrt(2)*pi+sqrt(2)*pi/8; hList = 2.^(-(2:0.5:5));
 % benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; hList = 2.^(-(1:0.5:4));
+
+% BENCH WAVEGUIDE [ P1 2pi h=1/16 ; P3 6pi h=1/8 ]
+% benchmark = 'waveguide'; degree = 1; k = 2*pi; hList = 2.^(-(1:0.5:5));
+benchmark = 'waveguide'; degree = 3; k = 6*pi; hList = 2.^(-(0.5:0.5:4.5));
 
 tau = 1;
 

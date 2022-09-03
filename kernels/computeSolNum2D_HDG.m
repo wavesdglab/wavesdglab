@@ -174,14 +174,11 @@ for tri=1:mesh.numTri
                     matGGel = -tau * matMel;
                     rhsGel = nx*rhsUel + ny*rhsVel;
                 case 'ABC'
-                    matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + (1-tau) * matMel;
-                    matIGel(idLocP,:) = matIGel(idLocP,:) - (1-tau) * matMel;
-                    %
-                    matGIel(:,idLocP) =       matMel;
-                    matGIel(:,idLocU) = nx  * matMel;
-                    matGIel(:,idLocV) = ny  * matMel;
-                    matGGel = -2 * matMel;
-                    rhsGel  = nx*rhsUel + ny*rhsVel - rhsPel;
+                    matGIel(:,idLocP) = -tau * matMel;
+                    matGIel(:,idLocU) = -nx  * matMel;
+                    matGIel(:,idLocV) = -ny  * matMel;
+                    matGGel = (1+tau) * matMel;
+                    rhsGel  = rhsPel - nx*rhsUel - ny*rhsVel;
                 otherwise
                     warning('Error - Bad BC.');
             end

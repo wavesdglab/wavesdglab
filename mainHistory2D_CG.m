@@ -8,15 +8,15 @@ global k
 
 % BENCH FREE SPACE
 % benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
-benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8; % In paper: k = 40*pi; h = 1/32
+benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
+
+% BENCH CAVITY
+% benchmark = 'cavity'; degree = 1; k = (3+1/8)*sqrt(2)*pi; h = 1/32;
+% benchmark = 'cavity'; degree = 3; k = (5+1/8)*sqrt(2)*pi; h = 1/8;
 
 % BENCH WAVEGUIDE
 % benchmark = 'waveguide'; degree = 1; k = 2*pi; h = 1/16;
 % benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8;
-
-% BENCH CAVITY
-% benchmark = 'cavity'; degree = 1; k = 3*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/32;
-% benchmark = 'cavity'; degree = 3; k = 5*sqrt(2)*pi+sqrt(2)*pi/8; h = 1/8;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
