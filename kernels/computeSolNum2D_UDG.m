@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau)
+function [solA, sysA, condLoc] = computeSolNum2D_UDG(mesh, dofm, tau)
 
 global k
 
@@ -43,6 +43,8 @@ matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerLIN);
 
 rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofFAC,1);
+
+condLoc = zeros(mesh.numTri,1);
 
 for tri=1:mesh.numTri
     
@@ -291,6 +293,8 @@ for tri=1:mesh.numTri
     matGGv(idLIN,:) = matGGel;
     matIIvInv(idTRI,:) = inv(matIIel);
     matGGvInv(idLIN,:) = inv(matGGel);
+    
+    condLoc(tri) = cond(full(matIIel));
     
     rhsI(dofGloI) = rhsIel;
     rhsG(dofGloG) = rhsGel;

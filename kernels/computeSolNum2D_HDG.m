@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau)
+function [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau)
 
 global k
 
@@ -19,13 +19,29 @@ shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
-matII    = sparse(3*numDofTRI, 3*numDofTRI);
-matIG    = sparse(3*numDofTRI, numDofLIN);
-matGI    = sparse(numDofLIN, 3*numDofTRI);
-matGG    = sparse(numDofLIN, numDofLIN);
-matIIinv = sparse(3*numDofTRI, 3*numDofTRI);
+% matII    = sparse(3*numDofTRI, 3*numDofTRI);
+% matIG    = sparse(3*numDofTRI, numDofLIN);
+% matGI    = sparse(numDofLIN, 3*numDofTRI);
+% matGG    = sparse(numDofLIN, numDofLIN);
+% matIIinv = sparse(3*numDofTRI, 3*numDofTRI);
 rhsI     = zeros(3*numDofTRI,1);
 rhsG     = zeros(numDofLIN,1);
+
+matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
+matIIy = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
+matIIv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
+matIGx = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
+matIGy = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
+matIGv = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
+matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerTRI);
+matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerTRI);
+matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerTRI);
+matGGx = zeros(numDofLIN,dofm.numDofPerLIN);
+matGGy = zeros(numDofLIN,dofm.numDofPerLIN);
+matGGv = zeros(numDofLIN,dofm.numDofPerLIN);
+matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
+
+condLoc = zeros(mesh.numTri,1);
 
 for tri=1:mesh.numTri
     
@@ -187,21 +203,31 @@ for tri=1:mesh.numTri
         % Global ID for edge unknowns
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
         dofGloG = dofm.locToGloLIN(edgGlo,:);
+        dofLocG = 1:dofm.numDofPerLIN;
         if(mesh.mapTriToEdg(tri,fac) < 0)
-            tmp = dofGloG;
-            dofGloG(1) = tmp(2);
-            dofGloG(2) = tmp(1);
+            dofLocG(1) = 2;
+            dofLocG(2) = 1;
         end
         
         % -------------------------------------------------------------------------
         % Matrix assembling
         % -------------------------------------------------------------------------
         
-        matIG(dofGloI,dofGloG) = matIG(dofGloI,dofGloG) + matIGel;
-        matGI(dofGloG,dofGloI) = matGI(dofGloG,dofGloI) + matGIel;
-        matGG(dofGloG,dofGloG) = matGG(dofGloG,dofGloG) + matGGel;
-        %matGGinv(dofGloG,dofGloG) = matGGinv(dofGloG,dofGloG) + inv(matGGel);
-        rhsG(dofGloG) = rhsG(dofGloG) + rhsGel;
+        idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
+        matGIx(idLIN,:) = dofGloG'*ones(1,size(dofGloI,2));
+        matGIy(idLIN,:) = ones(size(dofGloG,2),1)*dofGloI;
+        matGIv(idLIN,:) = matGIel(dofLocG,:);
+        matIGx(:,idLIN) = dofGloI'*ones(1,size(dofGloG,2));
+        matIGy(:,idLIN) = ones(size(dofGloI,2),1)*dofGloG;
+        matIGv(:,idLIN) = matIGel(:,dofLocG);
+        matGGx(dofGloG,:) = dofGloG'*ones(1,size(dofGloG,2));
+        matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
+        matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
+        
+        % matIG(dofGloI,dofGloG) = matIGel(:,dofLocG);
+        % matGI(dofGloG,dofGloI) = matGIel(dofLocG,:);
+        % matGG(dofGloG,dofGloG) = matGG(dofGloG,dofGloG) + matGGel(dofLocG,dofLocG);
+        rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
         
     end
     
@@ -209,11 +235,25 @@ for tri=1:mesh.numTri
     % Matrix assembling
     % -------------------------------------------------------------------------
     
-    matIIinv(dofGloI,dofGloI) = inv(matIIel);
-    matII(dofGloI,dofGloI) = matIIel;
+    idTRI = (tri-1)*3*dofm.numDofPerTRI + (1:3*dofm.numDofPerTRI);
+    matIIx(idTRI,:) = dofGloI'*ones(1,size(dofGloI,2));
+    matIIy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloI;
+    matIIv(idTRI,:) = matIIel;
+    matIIvInv(idTRI,:) = inv(matIIel);
+    
+    condLoc(tri) = cond(full(matIIel));
+    
+    % matIIinv(dofGloI,dofGloI) = inv(matIIel);
+    % matII(dofGloI,dofGloI) = matIIel;
     rhsI(dofGloI) = rhsIel;
     
 end
+
+matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
+matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
+matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
+matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
+matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -229,16 +269,14 @@ solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
-matGGinv = inv(matGG);
-matPhy = matII - matIG*(matGGinv*matGI);
-rhsPhy = rhsI - matIG*(matGGinv*rhsG);
+% matPhy = matII - matIG*(matGG\matGI);
+% rhsPhy = rhsI - matIG*(matGG\rhsG);
 
 sysA.matII = matII;
 sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-sysA.matGGinv = matGGinv;
 
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
@@ -247,8 +285,8 @@ sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
 sysA.matS = matS;
 sysA.rhsS = rhsS;
-sysA.matPhy = matPhy;
-sysA.rhsPhy = rhsPhy;
+% sysA.matPhy = matPhy;
+% sysA.rhsPhy = rhsPhy;
 
 end
 

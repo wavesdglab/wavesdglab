@@ -1,6 +1,8 @@
+clear all;
+
 L     = 1.;
-k     = 20.*pi;
-theta = 18.*(pi/180.);
+k     = 8.*pi;
+theta = 30.*(pi/180.);
 
 N = 128;
 
@@ -11,4 +13,6 @@ y = linspace(0,1,  N);
 
 [u,dx,dy] = waveguide(X,Y,k,L,theta);
 
+figure(1);
+hold off;
 pcolor(X,Y,real(u));
