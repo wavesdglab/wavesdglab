@@ -11,10 +11,10 @@ k = 10*pi;
 h = 1/16;
 %C = h^(2*p)*k^(2*(p+1));
 C = h^(2*p)*k^(2*p);
-% benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1;
-% run(benchmark,degree,C,kList,hList,tau);
-benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1i;
+benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1;
 run(benchmark,degree,C,kList,hList,tau);
+% benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1i;
+% run(benchmark,degree,C,kList,hList,tau);
 
 % % BENCH CAVITY
 % p = 3;

@@ -1,4 +1,4 @@
-function [solA, sysA, condLoc] = computeSolNum2D_UDG(mesh, dofm, tau)
+function [solA, sysA, condLoc] = computeSolNum2D_UDG(mesh, dofm, tau, prec)
 
 global k
 
@@ -127,9 +127,6 @@ for tri=1:mesh.numTri
         [xQ, yQ] = locToGloLIN(uLinQ, V1, V2);
         Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
         
-        % Solution function
-        [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-        
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
@@ -142,9 +139,6 @@ for tri=1:mesh.numTri
         
         % Elemental matrices
         matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
-        rhsPel = matMel\shapeOrQ' * weightsLinQ * solQ * Jdxdu;
-        rhsUel = matMel\shapeOrQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
-        rhsVel = matMel\shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
         matIel = sparse(1:size(matMel,1),1:size(matMel,2),1);
         
         % Exterior normal
@@ -177,8 +171,11 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
         
-%         matGGel(idLocG,idLocG) = matMel;
-        matGGel(idLocG,idLocG) = matIel;
+        if (prec == 0)
+            matGGel(idLocG,idLocG) = matMel;
+        else
+            matGGel(idLocG,idLocG) = matIel;
+        end
         
         if (triNeigh > 0)
             
@@ -196,60 +193,64 @@ for tri=1:mesh.numTri
             idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
             matGIx(idLIN,:) = idIncG'*ones(1,size([idExtP idExtU idExtV],2));
             matGIy(idLIN,:) = ones(size(idIncG,2),1)*[idExtP idExtU idExtV];
-            %matGIv(idLIN,:) = [-tau*matMel nx*matMel ny*matMel];
-            matGIv(idLIN,:) = [-tau*matIel nx*matIel ny*matIel];
+            if (prec == 0)
+                matGIv(idLIN,:) = [-tau*matMel nx*matMel ny*matMel];
+            else
+                matGIv(idLIN,:) = [-tau*matIel nx*matIel ny*matIel];
+            end
             
         else
             
-%             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-%             switch tagToBC(mesh.tagEdg(edgGlo))
-%                 case 'DIR'
-%                     matGIel(idLocG,idLocP) = + tau * matMel;
-%                     matGIel(idLocG,idLocU) = + nx  * matMel;
-%                     matGIel(idLocG,idLocV) = + ny  * matMel;
-%                     rhsGel(idLocG) = + 2*tau*rhsPel;
-%                 case 'NEU'
-%                     matGIel(idLocG,idLocP) = - tau * matMel;
-%                     matGIel(idLocG,idLocU) = - nx  * matMel;
-%                     matGIel(idLocG,idLocV) = - ny  * matMel;
-%                     rhsGel(idLocG) = - 2*(nx*rhsUel + ny*rhsVel);
-%                 case 'ABC'
-%                     matGIel(idLocG,idLocP) = + tau * matMel * (1-tau)/(1+tau);
-%                     matGIel(idLocG,idLocU) = + nx  * matMel * (1-tau)/(1+tau);
-%                     matGIel(idLocG,idLocV) = + ny  * matMel * (1-tau)/(1+tau);
-%                     rhsGel(idLocG) = + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
-%                 otherwise
-%                     warning('Error - Bad BC.')
-%             end
-%             
-%             idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
-%             idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-%             idGloU = 1*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-%             idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-%             idGloG = dofm.locToGloFAC(tri,idLocG);
-%             matGIx(idLIN,:) = idGloG'*ones(1,size([idGloP idGloU idGloV],2));
-%             matGIy(idLIN,:) = ones(size(idGloG,2),1)*[idGloP idGloU idGloV];
-%             matGIv(idLIN,:) = matGIel(idLocG,[idLocP idLocU idLocV]);
+            % Solution function
+            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
+            
+            % Elemental matrices
+            rhsPel = shapeOrQ' * weightsLinQ * solQ * Jdxdu;
+            rhsUel = shapeOrQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
+            rhsVel = shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            switch tagToBC(mesh.tagEdg(edgGlo))
-                case 'DIR'
-                    matGIel(idLocG,idLocP) = + tau * matIel;
-                    matGIel(idLocG,idLocU) = + nx  * matIel;
-                    matGIel(idLocG,idLocV) = + ny  * matIel;
-                    rhsGel(idLocG) = + 2*tau*rhsPel;
-                case 'NEU'
-                    matGIel(idLocG,idLocP) = - tau * matIel;
-                    matGIel(idLocG,idLocU) = - nx  * matIel;
-                    matGIel(idLocG,idLocV) = - ny  * matIel;
-                    rhsGel(idLocG) = - 2*(nx*rhsUel + ny);
-                case 'ABC'
-                    matGIel(idLocG,idLocP) = + tau * matIel * (1-tau)/(1+tau);
-                    matGIel(idLocG,idLocU) = + nx  * matIel * (1-tau)/(1+tau);
-                    matGIel(idLocG,idLocV) = + ny  * matIel * (1-tau)/(1+tau);
-                    rhsGel(idLocG) = + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
-                otherwise
-                    warning('Error - Bad BC.')
+            
+            if (prec == 0)
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGIel(idLocG,idLocP) = + tau * matMel;
+                        matGIel(idLocG,idLocU) = + nx  * matMel;
+                        matGIel(idLocG,idLocV) = + ny  * matMel;
+                        rhsGel(idLocG) = + 2*tau*rhsPel;
+                    case 'NEU'
+                        matGIel(idLocG,idLocP) = - tau * matMel;
+                        matGIel(idLocG,idLocU) = - nx  * matMel;
+                        matGIel(idLocG,idLocV) = - ny  * matMel;
+                        rhsGel(idLocG) = - 2*(nx*rhsUel + ny*rhsVel);
+                    case 'ABC'
+                        matGIel(idLocG,idLocP) = + tau * matMel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocU) = + nx  * matMel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocV) = + ny  * matMel * (1-tau)/(1+tau);
+                        rhsGel(idLocG) = + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    otherwise
+                        warning('Error - Bad BC.')
+                end
+            else
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGIel(idLocG,idLocP) = + tau * matIel;
+                        matGIel(idLocG,idLocU) = + nx  * matIel;
+                        matGIel(idLocG,idLocV) = + ny  * matIel;
+                        rhsGel(idLocG) = + 2*tau*matMel\rhsPel;
+                    case 'NEU'
+                        matGIel(idLocG,idLocP) = - tau * matIel;
+                        matGIel(idLocG,idLocU) = - nx  * matIel;
+                        matGIel(idLocG,idLocV) = - ny  * matIel;
+                        rhsGel(idLocG) = - 2*matMel\(nx*rhsUel + ny*rhsVel);
+                    case 'ABC'
+                        matGIel(idLocG,idLocP) = + tau * matIel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocU) = + nx  * matIel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocV) = + ny  * matIel * (1-tau)/(1+tau);
+                        rhsGel(idLocG) = + matMel\(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    otherwise
+                        warning('Error - Bad BC.')
+                end
             end
             
             idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
@@ -295,6 +296,26 @@ for tri=1:mesh.numTri
     matGGvInv(idLIN,:) = inv(matGGel);
     
     condLoc(tri) = cond(full(matIIel));
+    
+%     figure(2);
+%     hold off;
+%     diag(matIIel)
+%     LLL = size(full(matIIel),1);
+%     tmp1 = zeros(LLL,1);
+%     tmp2 = zeros(LLL,1);
+%     for i=1:LLL
+%         tmp1(i) = abs(matIIel(i,i));
+%         for j=1:LLL
+%             if(i ~= j)
+%                 tmp2(i) = tmp2(i) + abs(matIIel(i,j));
+%             end
+%         end
+%     end
+%     eigval = eigs(full(matIIel),LLL);
+%     min(real(eigval))
+%     [tmp1 tmp2]
+%     scatter(real(eigval),imag(eigval),'DisplayName','Eigenvalues');
+%     pause;
     
     rhsI(dofGloI) = rhsIel;
     rhsG(dofGloG) = rhsGel;

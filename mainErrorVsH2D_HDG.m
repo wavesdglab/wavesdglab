@@ -5,35 +5,35 @@ headers2D;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% BENCH FREE SPACE
-benchmark = 'open'; degree = 1; kList = 10*pi; hList = 2.^(-(4:0.5:7)); tau = 1;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'open'; degree = 1; kList = 10*pi; hList = 2.^(-(4:0.5:7)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
+% % BENCH FREE SPACE
+% benchmark = 'open'; degree = 1; kList = 10*pi; hList = 2.^(-(4:0.5:7)); tau = 1;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'open'; degree = 1; kList = 10*pi; hList = 2.^(-(4:0.5:7)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
 benchmark = 'open'; degree = 3; kList = 10*pi; hList = 2.^(-(2:0.5:5)); tau = 1;
 run(benchmark,degree,kList,hList,tau);
-benchmark = 'open'; degree = 3; kList = 10*pi; hList = 2.^(-(2:0.5:5)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
+% benchmark = 'open'; degree = 3; kList = 10*pi; hList = 2.^(-(2:0.5:5)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
 
-% BENCH CAVITY
-benchmark = 'cavity'; degree = 1; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(3:0.5:6)); tau = 1;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'cavity'; degree = 1; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(3:0.5:6)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'cavity'; degree = 3; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(2:0.5:4)); tau = 1;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'cavity'; degree = 3; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(2:0.5:4)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
+% % BENCH CAVITY
+% benchmark = 'cavity'; degree = 1; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(3:0.5:6)); tau = 1;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'cavity'; degree = 1; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(3:0.5:6)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'cavity'; degree = 3; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(2:0.5:4)); tau = 1;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'cavity'; degree = 3; kList = (5+1/8)*sqrt(2)*pi; hList = 2.^(-(2:0.5:4)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
 
 % BENCH WAVEGUIDE
-benchmark = 'waveguide'; degree = 1; kList = 6*pi; hList = 2.^(-(2.5:0.5:5)); tau = 1;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'waveguide'; degree = 1; kList = 6*pi; hList = 2.^(-(2.5:0.5:5)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'waveguide'; degree = 3; kList = 6*pi; hList = 2.^(-(1:0.5:3.5)); tau = 1;
-run(benchmark,degree,kList,hList,tau);
-benchmark = 'waveguide'; degree = 3; kList = 6*pi; hList = 2.^(-(1:0.5:3.5)); tau = 1i;
-run(benchmark,degree,kList,hList,tau);
+% benchmark = 'waveguide'; degree = 1; kList = 6*pi; hList = 2.^(-(2.5:0.5:5)); tau = 1;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'waveguide'; degree = 1; kList = 6*pi; hList = 2.^(-(2.5:0.5:5)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'waveguide'; degree = 3; kList = 6*pi; hList = 2.^(-(1:0.5:3.5)); tau = 1;
+% run(benchmark,degree,kList,hList,tau);
+% benchmark = 'waveguide'; degree = 3; kList = 6*pi; hList = 2.^(-(1:0.5:3.5)); tau = 1i;
+% run(benchmark,degree,kList,hList,tau);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -78,23 +78,23 @@ end
 
 Dlambda = 2*pi/k * (sqrt(Ndof) - 1);
 
-rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2" "errorPostL2" "errorProjPostL2"];
-rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2' errorPostL2' errorProjPostL2'];
-name = sprintf('output/errorVsH_HDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
-writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+% rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2" "errorPostL2" "errorProjPostL2"];
+% rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2' errorPostL2' errorProjPostL2'];
+% name = sprintf('output/errorVsH_HDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+% 
+% rezu1 = ["hList" "Ndof" "Dlambda" "condGlo" "condLocMin" "condLocMax"];
+% rezu2 = [hList' Ndof' Dlambda' condGlo' condLocMin' condLocMax'];
+% name = sprintf('output/condVsH_HDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
-rezu1 = ["hList" "Ndof" "Dlambda" "condGlo" "condLocMin" "condLocMax"];
-rezu2 = [hList' Ndof' Dlambda' condGlo' condLocMin' condLocMax'];
-name = sprintf('output/condVsH_HDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
-writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
-% figure(1);
-% hold off;
-% loglog(Dlambda, errorL2, '*-r');
-% hold on;
-% loglog(Dlambda, errorProjL2, '*:r');
-% loglog(Dlambda, errorPostL2, '*-b');
-% loglog(Dlambda, errorProjPostL2, '*:b');
+figure(2);
+hold off;
+loglog(Dlambda, errorL2, '*-r');
+hold on;
+loglog(Dlambda, errorProjL2, '*:r');
+loglog(Dlambda, errorPostL2, '*-b');
+loglog(Dlambda, errorProjPostL2, '*:b');
 % 
 % figure(2);
 % hold off;

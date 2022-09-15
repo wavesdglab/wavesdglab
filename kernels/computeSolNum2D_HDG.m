@@ -1,4 +1,4 @@
-function [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau)
+function [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau, prec)
 
 global k
 
@@ -130,9 +130,6 @@ for tri=1:mesh.numTri
         [xQ, yQ] = locToGloLIN(uLinQ, V1, V2);
         Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
         
-        % Solution function
-        [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-        
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
@@ -145,6 +142,7 @@ for tri=1:mesh.numTri
         
         % Elemental matrices
         matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
+        matIel = sparse(1:size(matMel,1),1:size(matMel,2),1);
         
         % Exterior normal
         nx = normal(fac,1);
@@ -167,36 +165,67 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
         if (triNeigh > 0)
             
-            matGIel(:,idLocP) = tau * matMel;
-            matGIel(:,idLocU) = nx  * matMel;
-            matGIel(:,idLocV) = ny  * matMel;
-            matGGel = -tau * matMel;
+            if(prec == 0)
+                matGIel(:,idLocP) = tau * matMel;
+                matGIel(:,idLocU) = nx  * matMel;
+                matGIel(:,idLocV) = ny  * matMel;
+                matGGel = -tau * matMel;
+            else
+                matGIel(:,idLocP) = tau * matIel;
+                matGIel(:,idLocU) = nx  * matIel;
+                matGIel(:,idLocV) = ny  * matIel;
+                matGGel = -tau * matIel;
+            end
             
         else
             
+            % Solution function
+            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
             rhsPel = shapeOrQ' * weightsLinQ * solQ * Jdxdu;
             rhsUel = shapeOrQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
             rhsVel = shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            switch tagToBC(mesh.tagEdg(edgGlo))
-                case 'DIR'
-                    matGGel = matMel;
-                    rhsGel = rhsPel;
-                case 'NEU'
-                    matGIel(:,idLocP) = tau * matMel;
-                    matGIel(:,idLocU) = nx  * matMel;
-                    matGIel(:,idLocV) = ny  * matMel;
-                    matGGel = -tau * matMel;
-                    rhsGel = nx*rhsUel + ny*rhsVel;
-                case 'ABC'
-                    matGIel(:,idLocP) = -tau * matMel;
-                    matGIel(:,idLocU) = -nx  * matMel;
-                    matGIel(:,idLocV) = -ny  * matMel;
-                    matGGel = (1+tau) * matMel;
-                    rhsGel  = rhsPel - nx*rhsUel - ny*rhsVel;
-                otherwise
-                    warning('Error - Bad BC.');
+            if(prec == 0)
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGGel = matMel;
+                        rhsGel = rhsPel;
+                    case 'NEU'
+                        matGIel(:,idLocP) = tau * matMel;
+                        matGIel(:,idLocU) = nx  * matMel;
+                        matGIel(:,idLocV) = ny  * matMel;
+                        matGGel = -tau * matMel;
+                        rhsGel = nx*rhsUel + ny*rhsVel;
+                    case 'ABC'
+                        matGIel(:,idLocP) = -tau * matMel;
+                        matGIel(:,idLocU) = -nx  * matMel;
+                        matGIel(:,idLocV) = -ny  * matMel;
+                        matGGel = (1+tau) * matMel;
+                        rhsGel  = rhsPel - nx*rhsUel - ny*rhsVel;
+                    otherwise
+                        warning('Error - Bad BC.');
+                end
+            else
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGGel = matIel;
+                        rhsGel = matMel\rhsPel;
+                    case 'NEU'
+                        matGIel(:,idLocP) = tau * matIel;
+                        matGIel(:,idLocU) = nx  * matIel;
+                        matGIel(:,idLocV) = ny  * matIel;
+                        matGGel = -tau * matIel;
+                        rhsGel = matMel\(nx*rhsUel + ny*rhsVel);
+                    case 'ABC'
+                        matGIel(:,idLocP) = -tau * matIel;
+                        matGIel(:,idLocU) = -nx  * matIel;
+                        matGIel(:,idLocV) = -ny  * matIel;
+                        matGGel = (1+tau) * matIel;
+                        rhsGel  = matMel\(rhsPel - nx*rhsUel - ny*rhsVel);
+                    otherwise
+                        warning('Error - Bad BC.');
+                end
             end
         end
         
@@ -259,18 +288,14 @@ matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 % Solve system
 % -------------------------------------------------------------------------
 
-% rhsG  = matGG\rhsG;
-% matGI = matGG\matGI;
-% matGG = matGG\matGG;
-
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
 solG = matS\rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
-% matPhy = matII - matIG*(matGG\matGI);
-% rhsPhy = rhsI - matIG*(matGG\rhsG);
+matPhy = matII - matIG*(matGG\matGI);
+rhsPhy = rhsI - matIG*(matGG\rhsG);
 
 sysA.matII = matII;
 sysA.matIG = matIG;
@@ -285,8 +310,8 @@ sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
 sysA.matS = matS;
 sysA.rhsS = rhsS;
-% sysA.matPhy = matPhy;
-% sysA.rhsPhy = rhsPhy;
+sysA.matPhy = matPhy;
+sysA.rhsPhy = rhsPhy;
 
 end
 
