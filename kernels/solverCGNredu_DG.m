@@ -11,11 +11,9 @@ rrini = r'*r;
 zzini = z'*z;
 zzold = zzini;
 
-% resVec       = zeros(iMax/iOut+1,1);
 resRedVec    = zeros(iMax/iOut+1,1);
 resPhyVec    = zeros(iMax/iOut+1,1);
 errorVec     = zeros(iMax/iOut+1,1);
-%errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
 solG = sys.precR*x;
@@ -23,7 +21,6 @@ solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
 %[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
 resPhyIni = resPhy'*resPhy;
-% resVec(1)       = 1;
 resRedVec(1)    = 1;
 resPhyVec(1)    = 1;
 errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);

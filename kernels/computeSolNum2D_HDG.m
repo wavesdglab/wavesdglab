@@ -150,7 +150,6 @@ for tri=1:mesh.numTri
         
         % Elemental matrices
         matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
-        matLLel = shapeInQ' * weightsLinQ * shapeInQ * Jdxdu;
         matLel = shapeOrQ' * weightsLinQ * shapeInQ * Jdxdu;
         matIel = sparse(1:size(matMel,1),1:size(matMel,2),1);
         
@@ -197,10 +196,10 @@ for tri=1:mesh.numTri
                 matGIel(:,idLocV) = ny  * matMel;
                 matGGel = -tau * matMel;
             elseif (prec == 10)
-                matGIel(:,idLocP) = tau * matLel';
-                matGIel(:,idLocU) = nx  * matLel';
-                matGIel(:,idLocV) = ny  * matLel';
-                matGGel = -tau * matLLel;
+                matGIel(:,idLocP) = tau * matLel'/(-tau) / Jdxdu;
+                matGIel(:,idLocU) = nx  * matLel'/(-tau) / Jdxdu;
+                matGIel(:,idLocV) = ny  * matLel'/(-tau) / Jdxdu;
+                matGGel = matIel;
             end
             
         else
@@ -278,20 +277,20 @@ for tri=1:mesh.numTri
                 rhsVel = shapeInQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
-                        matGGel = matLLel;
-                        rhsGel = rhsPel;
+                        matGGel = matIel;
+                        rhsGel = rhsPel / Jdxdu;
                     case 'NEU'
-                        matGIel(:,idLocP) = tau * matLel';
-                        matGIel(:,idLocU) = nx  * matLel';
-                        matGIel(:,idLocV) = ny  * matLel';
-                        matGGel = -tau * matLLel;
-                        rhsGel = nx*rhsUel + ny*rhsVel;
+                        matGIel(:,idLocP) = tau * matLel' / (-tau) / Jdxdu;
+                        matGIel(:,idLocU) = nx  * matLel' / (-tau) / Jdxdu;
+                        matGIel(:,idLocV) = ny  * matLel' / (-tau) / Jdxdu;
+                        matGGel = matIel;
+                        rhsGel = (nx*rhsUel + ny*rhsVel) / (-tau) / Jdxdu;
                     case 'ABC'
-                        matGIel(:,idLocP) = -tau * matLel';
-                        matGIel(:,idLocU) = -nx  * matLel';
-                        matGIel(:,idLocV) = -ny  * matLel';
-                        matGGel = (1+tau) * matLLel;
-                        rhsGel  = rhsPel - nx*rhsUel - ny*rhsVel;
+                        matGIel(:,idLocP) = -tau * matLel' / (1+tau) / Jdxdu;
+                        matGIel(:,idLocU) = -nx  * matLel' / (1+tau) / Jdxdu;
+                        matGIel(:,idLocV) = -ny  * matLel' / (1+tau) / Jdxdu;
+                        matGGel = matIel;
+                        rhsGel  = (rhsPel - nx*rhsUel - ny*rhsVel) / (1+tau) / Jdxdu;
                     otherwise
                         warning('Error - Bad BC.');
                 end
@@ -354,6 +353,10 @@ matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
 matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
 matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
+
+rhsG = matGG\rhsG;
+matGI = matGG\matGI;
+matGG = matGG\matGG;
 
 % -------------------------------------------------------------------------
 % Solve system
