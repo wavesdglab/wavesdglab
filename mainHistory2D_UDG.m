@@ -5,12 +5,12 @@ headers2D;
 global k;
 
 tau = 1;
-prec = 2;
+prec = 10;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 tol = 1e-100; iMax = 1000; iOut = 50;
-benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
+benchmark = 'open'; degree = 3; k = 5*pi; h = 1/4;
 run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 
 % BENCH FREE SPACE
@@ -65,21 +65,22 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau, prec);
-[errorL2] = computeNormError2D_DG(mesh, dofm, solA);
+[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
-[errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
+%[solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
+%[errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
 
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
-[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
+%[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
+%[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
 
-[solPpost, ~] = computeSolProjL2_2D_DG(mesh, dofmPost);
-[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+%[solPpost, ~] = computeSolProjL2_2D_DG(mesh, dofmPost);
+%[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
 
-disp(['    L2-Error (numSol)   ' num2str(errorL2, '%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2, '%1.2e')]);
-disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
-disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
+disp(['    L2-Norm (errSol)   ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
+disp(['    L2-Norm (numSol)   ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
+%disp(['    L2-Error (projSol)  ' num2str(errorProjL2, '%1.2e')]);
+%disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
+%disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
 disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,14 +122,14 @@ disp('---------------------------------------------------------');
 
 disp(['--- Solver Richardson']);
 alpha = 1;
-[resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
+[resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
 
 iterVec = (0:iOut:iMax)';
-errorRef = errorL2*ones(size(error));
-errorRefPost = errorPostL2*ones(size(error));
+errorRef = normErr*ones(size(error));
+%errorRefPost = errorPostL2*ones(size(error));
 
-rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
-rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
 name = sprintf('output/historyRich_UDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
@@ -162,22 +163,22 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure;
+figure(4);
 hold off
 semilogy(iterVec,resPhyVec   ,'-o','DisplayName','Relative residual (Phy)');
 hold on
 semilogy(iterVec,resRedVec   ,'-x','DisplayName','Relative residual (Red)');
 semilogy(iterVec,error       ,'-o','DisplayName','Relative L2-error');
-semilogy(iterVec,errorPost   ,'-x','DisplayName','Relative L2-error with PostPro');
+%semilogy(iterVec,errorPost   ,'-x','DisplayName','Relative L2-error with PostPro');
 semilogy(iterVec,errorRef    ,'k--','DisplayName','Relative L2-error (Ref)');
-semilogy(iterVec,errorRefPost,'k--','DisplayName','Relative L2-error with PostPro (Ref)');
+%semilogy(iterVec,errorRefPost,'k--','DisplayName','Relative L2-error with PostPro (Ref)');
 box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Value');
 title(['UDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
-%axis([0 1000 1e-7 1]);
+axis([0 1000 1e-10 1]);
 
 end
 

@@ -35,28 +35,28 @@ N = degree+1;
 % xlabel('$u$','Interpreter','latex','FontSize',16);
 % title('Lagrange functions');
 % box on
-% 
-% % Legendre functions
-% 
-% figure(3);
-% val = functionsLegendreDer(x,degree);
-% plot(x,val,'Linewidth',2);
-% %ylim([-1 1]);
-% legend('$L_0$','$L_1$','$L_2$','$L_3$','$L_4$','Interpreter','latex','FontSize',16);
-% xlabel('$u$','Interpreter','latex','FontSize',16);
-% title('Legendre functions');
-% box on
+
+% Legendre functions
+
+figure(3);
+val = functionsLegendre(x,degree);
+plot(x,val,'Linewidth',2);
+%ylim([-1 1]);
+legend('$L_0$','$L_1$','$L_2$','$L_3$','$L_4$','Interpreter','latex','FontSize',16);
+xlabel('$u$','Interpreter','latex','FontSize',16);
+title('Legendre functions');
+box on
 
 % Lobbato functions
 
-figure(6);
-val = functionsLobbato(x,degree);
-plot(x,val,'Linewidth',2);
-ylim([-1 1]);
-legend('$\phi_0$','$\phi_1$','$\phi_2$','$\phi_3$','$\phi_4$','Interpreter','latex','FontSize',16);
-xlabel('$u$','Interpreter','latex','FontSize',16);
-title('Lobbato functions');
-box on
+% figure(6);
+% val = functionsLobbato(x,degree);
+% plot(x,val,'Linewidth',2);
+% ylim([-1 1]);
+% legend('$\phi_0$','$\phi_1$','$\phi_2$','$\phi_3$','$\phi_4$','Interpreter','latex','FontSize',16);
+% xlabel('$u$','Interpreter','latex','FontSize',16);
+% title('Lobbato functions');
+% box on
 
 % % Bernstein functions
 % 

@@ -1,4 +1,4 @@
-function [resRedVec, resPhyVec, errorVec, errorPostVec, i, flag] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut)
+function [resRedVec, resPhyVec, errorVec, i, flag] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -15,19 +15,19 @@ zzold = zzini;
 resRedVec    = zeros(iMax/iOut+1,1);
 resPhyVec    = zeros(iMax/iOut+1,1);
 errorVec     = zeros(iMax/iOut+1,1);
-errorPostVec = zeros(iMax/iOut+1,1);
+%errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
 solG = sys.precR*x;
 solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
+%[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
 resPhyIni = resPhy'*resPhy;
 % resVec(1)       = 1;
 resRedVec(1)    = 1;
 resPhyVec(1)    = 1;
 errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
-errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+%errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
 %%%%%%%
 
 flag = 0;
@@ -46,14 +46,14 @@ while(i <= iMax)
     if(mod(i,iOut) == 0)
         solG = sys.precR*x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-        [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
+        %[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
         resPhy = sys.rhsPhy - sys.matPhy*solI;
         resPhyNew = resPhy'*resPhy;
         % resVec(i/iOut+1)       = sqrt(zznew/zzini);
         resRedVec(i/iOut+1)    = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1)    = sqrt(resPhyNew/resPhyIni);
         errorVec(i/iOut+1)     = computeNormError2D_DG(mesh, dofm, solI);
-        errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        %errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%

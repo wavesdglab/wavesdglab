@@ -11,5 +11,8 @@ val(:,2) = x;  % order 1
 for n=2:(N-1)
     val(:,n+1) = ((2*n-1)*x.*val(:,n) - (n-1)*val(:,n-1)) / n;  % order n
 end
+for n=1:N
+    val(:,n) = val(:,n) * sqrt(n-0.5);  % order n
+end
 
 end

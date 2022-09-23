@@ -280,6 +280,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set on the East.')
+        warning('Error - No valid BC has been set.')
 end
 end

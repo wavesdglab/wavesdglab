@@ -14,6 +14,7 @@ weightsLinQ = sparse(1:size(weightsLinQ,1), 1:size(weightsLinQ,1), weightsLinQ);
 weightsTriQ = sparse(1:size(weightsTriQ,1), 1:size(weightsTriQ,1), weightsTriQ);
 
 % Shape functions
+shapeIntQ = functionsShapeINT(uLinQ, dofm.degree);
 shapeLinQ = functionsShapeLIN(uLinQ, dofm.degree);
 shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
@@ -134,11 +135,19 @@ for tri=1:mesh.numTri
         end
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
         
+        orientation2 = ones(dofm.numDofPerLIN,1);
+        if(n1(fac) > n2(fac))
+            orientation2(1:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerLIN-1);
+        end
+        orientation2 = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation2);
+        
         % Shape function
+        shapeInQ = shapeIntQ * orientation2;
         shapeOrQ = shapeLinQ * orientation;
         
         % Elemental matrices
         matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
+        matLel = shapeOrQ' * weightsLinQ * shapeInQ * Jdxdu;
         matIel = sparse(1:size(matMel,1),1:size(matMel,2),1);
         
         % Exterior normal
@@ -155,26 +164,37 @@ for tri=1:mesh.numTri
         matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matMel;
         matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matMel;
         matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matMel;
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matMel;
         
         matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matMel;
         matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5/tau * nx * nx * matMel;
         matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5/tau * nx * ny * matMel;
-        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matMel;
         
         matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matMel;
         matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5/tau * nx * ny * matMel;
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5/tau * ny * ny * matMel;
-        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matMel;
+        
+        if (prec == 10)
+            matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matLel;
+            matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matLel;
+            matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matLel;
+        else
+            matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matMel;
+            matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matMel;
+            matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matMel;
+        end
         
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
         
-        if ((prec == 0) || (prec == 2))
+        if (prec == 0)
             matGGel(idLocG,idLocG) = matMel;
-        else
+        elseif (prec == 1)
             matGGel(idLocG,idLocG) = matIel;
+        elseif (prec == 2)
+            matGGel(idLocG,idLocG) = matMel;
+        elseif (prec == 10)
+            matGGel(idLocG,idLocG) = (shapeInQ' * weightsLinQ * shapeInQ * Jdxdu) / Jdxdu;
         end
         
         if (triNeigh > 0)
@@ -193,10 +213,14 @@ for tri=1:mesh.numTri
             idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
             matGIx(idLIN,:) = idIncG'*ones(1,size([idExtP idExtU idExtV],2));
             matGIy(idLIN,:) = ones(size(idIncG,2),1)*[idExtP idExtU idExtV];
-            if ((prec == 0) || (prec == 2))
+            if (prec == 0)
                 matGIv(idLIN,:) = [-tau*matMel nx*matMel ny*matMel];
-            else
+            elseif (prec == 1)
                 matGIv(idLIN,:) = [-tau*matIel nx*matIel ny*matIel];
+            elseif (prec == 2)
+                matGIv(idLIN,:) = [-tau*matMel nx*matMel ny*matMel];
+            elseif (prec == 10)
+                matGIv(idLIN,:) = [-tau*matLel' nx*matLel' ny*matLel'] / Jdxdu;
             end
             
         else
@@ -211,7 +235,7 @@ for tri=1:mesh.numTri
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             
-            if ((prec == 0) || (prec == 2))
+            if (prec == 0)
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
                         matGIel(idLocG,idLocP) = + tau * matMel;
@@ -231,7 +255,7 @@ for tri=1:mesh.numTri
                     otherwise
                         warning('Error - Bad BC.')
                 end
-            else
+            elseif (prec == 1)
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
                         matGIel(idLocG,idLocP) = + tau * matIel;
@@ -248,6 +272,49 @@ for tri=1:mesh.numTri
                         matGIel(idLocG,idLocU) = + nx  * matIel * (1-tau)/(1+tau);
                         matGIel(idLocG,idLocV) = + ny  * matIel * (1-tau)/(1+tau);
                         rhsGel(idLocG) = + matMel\(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    otherwise
+                        warning('Error - Bad BC.')
+                end
+            elseif (prec == 2)
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGIel(idLocG,idLocP) = + tau * matMel;
+                        matGIel(idLocG,idLocU) = + nx  * matMel;
+                        matGIel(idLocG,idLocV) = + ny  * matMel;
+                        rhsGel(idLocG) = + 2*tau*rhsPel;
+                    case 'NEU'
+                        matGIel(idLocG,idLocP) = - tau * matMel;
+                        matGIel(idLocG,idLocU) = - nx  * matMel;
+                        matGIel(idLocG,idLocV) = - ny  * matMel;
+                        rhsGel(idLocG) = - 2*(nx*rhsUel + ny*rhsVel);
+                    case 'ABC'
+                        matGIel(idLocG,idLocP) = + tau * matMel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocU) = + nx  * matMel * (1-tau)/(1+tau);
+                        matGIel(idLocG,idLocV) = + ny  * matMel * (1-tau)/(1+tau);
+                        rhsGel(idLocG) = + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    otherwise
+                        warning('Error - Bad BC.')
+                end
+            elseif (prec == 10)
+                rhsPel = shapeInQ' * weightsLinQ * solQ * Jdxdu;
+                rhsUel = shapeInQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
+                rhsVel = shapeInQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
+                switch tagToBC(mesh.tagEdg(edgGlo))
+                    case 'DIR'
+                        matGIel(idLocG,idLocP) = + tau * matLel' / Jdxdu;
+                        matGIel(idLocG,idLocU) = + nx  * matLel' / Jdxdu;
+                        matGIel(idLocG,idLocV) = + ny  * matLel' / Jdxdu;
+                        rhsGel(idLocG) = + 2*tau*rhsPel / Jdxdu;
+                    case 'NEU'
+                        matGIel(idLocG,idLocP) = - tau * matLel' / Jdxdu;
+                        matGIel(idLocG,idLocU) = - nx  * matLel' / Jdxdu;
+                        matGIel(idLocG,idLocV) = - ny  * matLel' / Jdxdu;
+                        rhsGel(idLocG) = - 2*(nx*rhsUel + ny*rhsVel) / Jdxdu;
+                    case 'ABC'
+                        matGIel(idLocG,idLocP) = + tau * matLel' * (1-tau)/(1+tau) / Jdxdu;
+                        matGIel(idLocG,idLocU) = + nx  * matLel' * (1-tau)/(1+tau) / Jdxdu;
+                        matGIel(idLocG,idLocV) = + ny  * matLel' * (1-tau)/(1+tau) / Jdxdu;
+                        rhsGel(idLocG) = + (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau) / Jdxdu;
                     otherwise
                         warning('Error - Bad BC.')
                 end

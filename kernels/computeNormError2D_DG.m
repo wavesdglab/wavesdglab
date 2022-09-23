@@ -1,4 +1,4 @@
-function [errorL2, errorH1, normL2, normH1] = computeNormError2D_DG(mesh, dofm, vecSol, vecRef)
+function [normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, vecSol, vecRef)
 
 % Quadrature
 degreeQ = 4*dofm.degree;
@@ -6,12 +6,11 @@ degreeQ = 4*dofm.degree;
 
 % Shape functions (f, dfdu, dfdv)
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-%[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
 
-normL2sol2 = 0;
-normL2der2 = 0;
-errorL2sol2 = 0;
-errorL2der2 = 0;
+normSolU2 = 0;
+normSolV2 = 0;
+normErrU2 = 0;
+normErrV2 = 0;
 for tri=1:mesh.numTri
     
     % Mapping
@@ -21,7 +20,6 @@ for tri=1:mesh.numTri
     V3 = mesh.coord(ver(3),:);
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
-    %Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     
     % Orientation
@@ -39,39 +37,42 @@ for tri=1:mesh.numTri
     
     % Shape functions (f, dfdx, dfdy) with orientation
     shapeOrQ = shapeQ * orientation;
-    %shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    %shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
+    
+    dofU  = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     
     % Approximate solution (and derivatives)
-    solQ   = shapeOrQ * vecSol(dofm.locToGloTRI(tri,:));
-    %solDxQ = shapeDxQ * vecSol(dofm.locToGloTRI(tri,:));
-    %solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
+    solQ   = shapeOrQ * vecSol(dofU);
+    solVxQ = shapeOrQ * vecSol(dofVx);
+    solVyQ = shapeOrQ * vecSol(dofVy);
     
     % Reference solution (and derivatives)
     if (exist('vecRef','var'))
-        refQ   = shapeOrQ * vecRef(dofm.locToGloTRI(tri,:));
-        %refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
-        %refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));
+        refQ   = shapeOrQ * vecRef(dofU);
+        refVxQ = shapeOrQ * vecRef(dofVx);
+        refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        %[refQ, refDxQ, refDyQ] = mySol(xQ, yQ);
-        [refQ, ~, ~] = mySol(xQ, yQ);
+        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     end
     
     % Error fields
     errQ   = solQ(:)   - refQ(:);
-    %errDxQ = solDxQ(:) - refDxQ(:);
-    %errDyQ = solDyQ(:) - refDyQ(:);
+    errVxQ = solVxQ(:) - refVxQ(:);
+    errVyQ = solVyQ(:) - refVyQ(:);
     
     % Error values
-    normL2sol2 = normL2sol2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-    %normL2der2 = normL2der2 + weights(:)' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
-    errorL2sol2 = errorL2sol2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-    %errorL2der2 = errorL2der2 + weights(:)' * (errDxQ .* conj(errDxQ) + errDyQ .* conj(errDyQ)) * detJdxdu;
+    normSolU2 = normSolU2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
+    normSolV2 = normSolV2 + weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+    normErrU2 = normErrU2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
+    normErrV2 = normErrV2 + weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
 end
 
-normL2 = sqrt(normL2sol2);
-normH1 = sqrt(normL2sol2 + normL2der2);
-errorL2 = sqrt(errorL2sol2)/normL2;
-errorH1 = sqrt(errorL2sol2 + errorL2der2)/normH1;
+normSolU = sqrt(normSolU2);
+normErrU = sqrt(normErrU2)/normSolU;
+normSolV = sqrt(normSolV2);
+normErrV = sqrt(normErrV2)/normSolV2;
+normSol = sqrt(normSolU2 + normSolV2);
+normErr = sqrt(normErrU2 + normErrV2)/normSol;
 
 end
