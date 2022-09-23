@@ -171,7 +171,7 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
         
-        if (prec == 0)
+        if ((prec == 0) || (prec == 2))
             matGGel(idLocG,idLocG) = matMel;
         else
             matGGel(idLocG,idLocG) = matIel;
@@ -193,7 +193,7 @@ for tri=1:mesh.numTri
             idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
             matGIx(idLIN,:) = idIncG'*ones(1,size([idExtP idExtU idExtV],2));
             matGIy(idLIN,:) = ones(size(idIncG,2),1)*[idExtP idExtU idExtV];
-            if (prec == 0)
+            if ((prec == 0) || (prec == 2))
                 matGIv(idLIN,:) = [-tau*matMel nx*matMel ny*matMel];
             else
                 matGIv(idLIN,:) = [-tau*matIel nx*matIel ny*matIel];
@@ -211,7 +211,7 @@ for tri=1:mesh.numTri
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             
-            if (prec == 0)
+            if ((prec == 0) || (prec == 2))
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
                         matGIel(idLocG,idLocP) = + tau * matMel;
@@ -335,7 +335,19 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
+
+sysA.precL = sparse(1:size(matGG,1),1:size(matGG,1),1);
+sysA.precR = sparse(1:size(matGG,1),1:size(matGG,1),1);
+if (prec == 2)
+    [eigenvecGG,eigenvalGG] = eigs(matGG,size(matGG,1));
+    sysA.precL = sqrt(eigenvalGG)\eigenvecGG';
+    sysA.precR = eigenvecGG/sqrt(eigenvalGG);
+end
+matS = sysA.precL*matS*sysA.precR;
+rhsS = sysA.precL*rhsS;
 solG = matS\rhsS;
+solG = sysA.precR*solG;
+
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
@@ -373,6 +385,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set on the East.')
+        warning('Error - No valid BC has been set.')
 end
 end

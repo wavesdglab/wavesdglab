@@ -39,6 +39,7 @@ matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerTRI);
 matGGx = zeros(numDofLIN,dofm.numDofPerLIN);
 matGGy = zeros(numDofLIN,dofm.numDofPerLIN);
 matGGv = zeros(numDofLIN,dofm.numDofPerLIN);
+matMMv = zeros(numDofLIN,dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
 
 condLoc = zeros(mesh.numTri,1);
@@ -165,7 +166,7 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
         if (triNeigh > 0)
             
-            if(prec == 0)
+            if((prec == 0) || (prec == 2))
                 matGIel(:,idLocP) = tau * matMel;
                 matGIel(:,idLocU) = nx  * matMel;
                 matGIel(:,idLocV) = ny  * matMel;
@@ -186,7 +187,7 @@ for tri=1:mesh.numTri
             rhsVel = shapeOrQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            if(prec == 0)
+            if((prec == 0) || (prec == 2))
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
                         matGGel = matMel;
@@ -252,6 +253,7 @@ for tri=1:mesh.numTri
         matGGx(dofGloG,:) = dofGloG'*ones(1,size(dofGloG,2));
         matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
         matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
+        matMMv(dofGloG,:) = matMel;
         
         % matIG(dofGloI,dofGloG) = matIGel(:,dofLocG);
         % matGI(dofGloG,dofGloI) = matGIel(dofLocG,:);
@@ -282,6 +284,7 @@ matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
 matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
 matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
 matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
+matMM    = sparse(matGGx, matGGy, matMMv, numDofLIN, numDofLIN);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 
 % -------------------------------------------------------------------------
@@ -290,7 +293,19 @@ matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
+
+sysA.precL = sparse(1:size(matGG,1),1:size(matGG,1),1);
+sysA.precR = sparse(1:size(matGG,1),1:size(matGG,1),1);
+if (prec == 2)
+    [eigenvecGG,eigenvalGG] = eigs(matGG,size(matGG,1));
+    sysA.precL = sqrt(eigenvalGG)\eigenvecGG';
+    sysA.precR = eigenvecGG/sqrt(eigenvalGG);
+end
+matS = sysA.precL*matS*sysA.precR;
+rhsS = sysA.precL*rhsS;
 solG = matS\rhsS;
+solG = sysA.precR*solG;
+
 solI = matIIinv*(rhsI-matIG*solG);
 solA = [ solI ; solG ];
 
@@ -302,6 +317,7 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
+
 
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;

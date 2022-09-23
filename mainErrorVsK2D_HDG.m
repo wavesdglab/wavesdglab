@@ -3,40 +3,38 @@ clear all;
 
 headers2D;
 
+p = 3;
+tau = 1;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% C = h^(2*p)*k^(2*(p+1));
+% hList = (C./kList.^(2*(p+1))).^(1/(2*p));
 
 % BENCH FREE SPACE
-p = 3;
-k = 10*pi;
+k = 15*pi;
 h = 1/16;
-%C = h^(2*p)*k^(2*(p+1));
-C = h^(2*p)*k^(2*p);
-% benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1;
-% run(benchmark,degree,C,kList,hList,tau);
-benchmark = 'open'; degree = 3; kList = 2.^(2:0.5:6)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1i;
+C = h*k;
+kList = 2.^(2:0.5:5)*pi;
+hList = C./kList;
+benchmark = 'open'; degree = p;
 run(benchmark,degree,C,kList,hList,tau);
 
-% % BENCH CAVITY
-% p = 3;
-% k = (5+1/8)*sqrt(2)*pi;
-% h = 1/8;
-% %C = h^(2*p)*k^(2*(p+1));
-% C = h^(2*p)*k^(2*p);
-% benchmark = 'cavity'; degree = 3; kList = (4:0.25:7)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1;
-% run(benchmark,degree,C,kList,hList,tau);
-% benchmark = 'cavity'; degree = 3; kList = (4:0.25:7)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1i;
-% run(benchmark,degree,C,kList,hList,tau);
-% 
-% % BENCH WAVEGUIDE
-% p = 3;
-% k = 6*pi;
-% h = 1/8;
-% %C = h^(2*p)*k^(2*(p+1));
-% C = h^(2*p)*k^(2*p);
-% benchmark = 'waveguide'; degree = 3; kList = 2.^(2:0.5:5)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1;
-% run(benchmark,degree,C,kList,hList,tau);
-% benchmark = 'waveguide'; degree = 3; kList = 2.^(2:0.5:5)*pi; hList = (C./kList.^(2*p)).^(1/(2*p)); tau = 1i;
-% run(benchmark,degree,C,kList,hList,tau);
+% BENCH CAVITY
+k = (5+1/8)*sqrt(2)*pi;
+h = 1/8;
+C = h*k;
+kList = (4:0.2:7)*pi;
+hList = C./kList;
+benchmark = 'cavity'; degree = p;
+run(benchmark,degree,C,kList,hList,tau);
+
+% BENCH WAVEGUIDE
+k = 6*pi;
+h = 1/8;
+kList = 2.^(1:0.5:4)*pi;
+hList = C./kList;
+benchmark = 'waveguide'; degree = p;
+run(benchmark,degree,C,kList,hList,tau);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -62,7 +60,7 @@ for i = 1:size(kList,2)
     mesh = buildMeshConnectivity(mesh);
     dofm = buildDofManager2D_DG(mesh, degree);
     Ndof(i) = dofm.numDofTRI;
-    [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau);
+    [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau, 0);
     [errorL2(i)] = computeNormError2D_DG(mesh, dofm, solA);
     [solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
     [errorProjL2(i)] = computeNormError2D_DG(mesh, dofm, solP);

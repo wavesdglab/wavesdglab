@@ -5,14 +5,18 @@ headers2D;
 global k;
 
 tau = 1;
-prec = 1;
+prec = 2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% BENCH FREE SPACE
 tol = 1e-100; iMax = 1000; iOut = 50;
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut)
+run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+
+% BENCH FREE SPACE
+% tol = 1e-100; iMax = 1000; iOut = 50;
+% benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut)
 % benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16/2;
 % run(benchmark,degree,h,tau,prec,tol,iMax,iOut)
 % benchmark = 'open'; degree = 3; k = 15*pi*2; h = 1/16/2;
@@ -80,8 +84,8 @@ disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-writeField_DG(dofm, mesh, solP, "output/mySol.pos", "mySol");
-system('gmsh output/mySol.pos');
+% writeField_DG(dofm, mesh, solP, "output/mySol.pos", "mySol");
+% system('gmsh output/mySol.pos');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -114,24 +118,10 @@ system('gmsh output/mySol.pos');
 % writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% disp(['--- Solver Richardson']);
-% alpha = 0.5;
-% [resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = errorL2*ones(size(error));
-% errorRefPost = errorPostL2*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
-% name = sprintf('output/historyRich_UDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-disp(['--- Solver CGN']);
-[resRedVec, resPhyVec, error, errorPost] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVec, resPhyVec, error, errorPost] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
 
 iterVec = (0:iOut:iMax)';
 errorRef = errorL2*ones(size(error));
@@ -139,8 +129,22 @@ errorRefPost = errorPostL2*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
-name = sprintf('output/historyCGN_UDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+name = sprintf('output/historyRich_UDG_%s_P%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% disp(['--- Solver CGN']);
+% [resRedVec, resPhyVec, error, errorPost] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
+% 
+% iterVec = (0:iOut:iMax)';
+% errorRef = errorL2*ones(size(error));
+% errorRefPost = errorPostL2*ones(size(error));
+% 
+% rezu1 = ["iter" "resRed" "resPhy" "error" "errorPost" "errorRef" "errorRefPost"];
+% rezu2 = [iterVec resRedVec, resPhyVec, error, errorPost, errorRef, errorRefPost];
+% name = sprintf('output/historyCGN_UDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

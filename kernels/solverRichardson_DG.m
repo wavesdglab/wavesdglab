@@ -13,7 +13,7 @@ errorVec     = zeros(iMax/iOut+1,1);
 errorPostVec = zeros(iMax/iOut+1,1);
 
 %%%%%
-solG = x;
+solG = sys.precR*x;
 solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
 [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
@@ -35,7 +35,7 @@ while(i <= iMax)
     
     %%%%%%%
     if(mod(i,iOut)==0)
-        solG = x;
+        solG = sys.precR*x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
         [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
         resPhy = sys.rhsPhy - sys.matPhy*solI;
