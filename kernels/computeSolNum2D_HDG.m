@@ -196,10 +196,10 @@ for tri=1:mesh.numTri
                 matGIel(:,idLocV) = ny  * matMel;
                 matGGel = -tau * matMel;
             elseif (prec == 10)
-                matGIel(:,idLocP) = tau * matLel'/(-tau) / Jdxdu;
-                matGIel(:,idLocU) = nx  * matLel'/(-tau) / Jdxdu;
-                matGIel(:,idLocV) = ny  * matLel'/(-tau) / Jdxdu;
-                matGGel = matIel;
+                matGIel(:,idLocP) = -0.5 * tau * matLel'/tau/Jdxdu;
+                matGIel(:,idLocU) = -0.5 * nx  * matLel'/tau/Jdxdu;
+                matGIel(:,idLocV) = -0.5 * ny  * matLel'/tau/Jdxdu;
+                matGGel = 0.5 * matIel;
             end
             
         else
@@ -272,25 +272,25 @@ for tri=1:mesh.numTri
                         warning('Error - Bad BC.');
                 end
             elseif (prec == 10)
-                rhsPel = shapeInQ' * weightsLinQ * solQ * Jdxdu;
-                rhsUel = shapeInQ' * weightsLinQ * solDxQ * Jdxdu / (1i*k);
-                rhsVel = shapeInQ' * weightsLinQ * solDyQ * Jdxdu / (1i*k);
+                rhsPel = shapeInQ' * weightsLinQ * solQ;
+                rhsUel = shapeInQ' * weightsLinQ * solDxQ / (1i*k);
+                rhsVel = shapeInQ' * weightsLinQ * solDyQ / (1i*k);
                 switch tagToBC(mesh.tagEdg(edgGlo))
                     case 'DIR'
                         matGGel = matIel;
-                        rhsGel = rhsPel / Jdxdu;
+                        rhsGel = rhsPel;
                     case 'NEU'
-                        matGIel(:,idLocP) = tau * matLel' / (-tau) / Jdxdu;
-                        matGIel(:,idLocU) = nx  * matLel' / (-tau) / Jdxdu;
-                        matGIel(:,idLocV) = ny  * matLel' / (-tau) / Jdxdu;
+                        matGIel(:,idLocP) = -tau * matLel' / tau / Jdxdu;
+                        matGIel(:,idLocU) = -nx  * matLel' / tau / Jdxdu;
+                        matGIel(:,idLocV) = -ny  * matLel' / tau / Jdxdu;
                         matGGel = matIel;
-                        rhsGel = (nx*rhsUel + ny*rhsVel) / (-tau) / Jdxdu;
+                        rhsGel = -(nx*rhsUel + ny*rhsVel) / tau;
                     case 'ABC'
                         matGIel(:,idLocP) = -tau * matLel' / (1+tau) / Jdxdu;
                         matGIel(:,idLocU) = -nx  * matLel' / (1+tau) / Jdxdu;
                         matGIel(:,idLocV) = -ny  * matLel' / (1+tau) / Jdxdu;
                         matGGel = matIel;
-                        rhsGel  = (rhsPel - nx*rhsUel - ny*rhsVel) / (1+tau) / Jdxdu;
+                        rhsGel  = (rhsPel - nx*rhsUel - ny*rhsVel) / (1+tau);
                     otherwise
                         warning('Error - Bad BC.');
                 end
@@ -353,10 +353,6 @@ matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
 matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
 matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
-
-rhsG = matGG\rhsG;
-matGI = matGG\matGI;
-matGG = matGG\matGG;
 
 % -------------------------------------------------------------------------
 % Solve system
