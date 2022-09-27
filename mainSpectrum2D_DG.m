@@ -11,27 +11,27 @@ theta = 1;
 
 % BENCH FREE SPACE
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/34;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 
 % BENCH CAVITY
 benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 
 % BENCH WAVEGUIDE
 benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/17;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
-run(benchmark,degree,h,tau,prec);
+run(benchmark,degree,h,tau,theta);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
