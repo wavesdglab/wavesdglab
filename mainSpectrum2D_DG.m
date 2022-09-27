@@ -1,4 +1,4 @@
-% close all;
+%close all;
 clear all;
 
 headers2D;
@@ -11,27 +11,27 @@ theta = 1;
 
 % BENCH FREE SPACE
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
-run(benchmark,degree,h,tau,theta)
-% benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16/2;
-% run(benchmark,degree,h,tau,theta)
-% benchmark = 'open'; degree = 3; k = 15*pi*2; h = 1/16/2;
-% run(benchmark,degree,h,tau,theta)
+run(benchmark,degree,h,tau,prec);
+benchmark = 'open'; degree = 3; k = 15*pi; h = 1/34;
+run(benchmark,degree,h,tau,prec);
+benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
+run(benchmark,degree,h,tau,prec);
 
 % BENCH CAVITY
-benchmark = 'cavity'; degree = 3; k = (5+1/8)*sqrt(2)*pi; h = 1/8;
-run(benchmark,degree,h,tau,theta)
-% benchmark = 'cavity'; degree = 3; k = (5+1/8)*sqrt(2)*pi; h = 1/8/2;
-% run(benchmark,degree,h,tau,theta)
-% benchmark = 'cavity'; degree = 3; k = (10+1/8)*sqrt(2)*pi; h = 1/8/2;
-% run(benchmark,degree,h,tau,theta)
+benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
+run(benchmark,degree,h,tau,prec);
+benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/15;
+run(benchmark,degree,h,tau,prec);
+benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
+run(benchmark,degree,h,tau,prec);
 
 % BENCH WAVEGUIDE
 benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8;
-run(benchmark,degree,h,tau,theta)
-% benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8/2;
-% run(benchmark,degree,h,tau,theta)
-% benchmark = 'waveguide'; degree = 3; k = 6*pi*2; h = 1/8/2;
-% run(benchmark,degree,h,tau,theta)
+run(benchmark,degree,h,tau,prec);
+benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/17;
+run(benchmark,degree,h,tau,prec);
+benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
+run(benchmark,degree,h,tau,prec);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -44,7 +44,9 @@ dofm = buildDofManager2D_DG(mesh, degree);
 
 Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 
-disp(['=========================================================']);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['---------------------------------------------------------']);
 disp(['Method DG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
@@ -52,25 +54,18 @@ disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
-disp(['    theta               ' num2str(theta)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
-[errorL2] = computeNormError2D_DG(mesh, dofm, solA);
+[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
-[errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
+[solP] = computeSolProjL2_2D_DG(mesh, dofm);
+[normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
 
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
-[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
-
-[solPpost, ~] = computeSolProjL2_2D_DG(mesh, dofmPost);
-[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
-
-disp(['    L2-Error (numSol)   ' num2str(errorL2, '%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2, '%1.2e')]);
-disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
-disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
+disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
+disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
+disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e') '  ' num2str(normProjErrU, '%1.2e') '  ' num2str(normProjErrV, '%1.2e')]);
+disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -79,28 +74,36 @@ disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp('---------------------------------------------------------');
-disp(['    Size                ' num2str(size(sysA.matA,1))]);
-disp(['    nnz(S)              ' num2str(nnz(sysA.matA))]);
+sizeA = size(sysA.matA,1);
+disp(['    Size                ' num2str(sizeA)]);
+nnzA = nnz(sysA.matA);
+disp(['    nnz(S)              ' num2str(nnzA)]);
+condA = condest(sysA.matA);
+disp(['    Condest(A)          ' num2str(condA, '%1.2e')]);
+disp(['---------------------------------------------------------']);
 
-%[eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
-%eigenvalA             = diag(eigenvalA);
+rezu1 = ["degree" "k" "h" "real(tau)" "imag(tau)" "normErr" "normProjErr" "normSol" "sizeA" "nnzA" "condA"];
+rezu2 = [degree, k, h, real(tau), imag(tau), normErr, normProjErr, normSol, sizeA, nnzA, condA];
+name = sprintf('output/statsDG_%s.csv', benchmark);
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
-%disp(['    Min e.v. (Iter)     ' num2str(min(abs(eigenvalA)))]);
-%disp(['    Max e.v. (Iter)     ' num2str(max(abs(eigenvalA)))]);
-%disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
-%disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
-disp(['    Condest(A)          ' num2str(condest(sysA.matA), '%1.2e')]);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp('---------------------------------------------------------');
-
+% [eigenvecA,eigenvalA] = eigs(sysA.matA,size(sysA.matA,1));
+% eigenvalA             = diag(eigenvalA);
+% 
+% disp(['    Min e.v. (Iter)     ' num2str(min(abs(eigenvalA)))]);
+% disp(['    Max e.v. (Iter)     ' num2str(max(abs(eigenvalA)))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecA))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecA))]);
+% 
 % figure(2);
 % hold off
 % scatter(real(eigenvalS),imag(eigenvalS),'DisplayName','Eigenvalues');
 % %plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
 % grid on; box on;
 % title(['Benchmark "' benchmark '" — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
-
+% 
 % rezu1 = ["real", "imag"];
 % rezu2 = [real(eigenvalA), imag(eigenvalA)];
 % name = sprintf('output/spectrumHDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau,theta), imag(tau,theta));

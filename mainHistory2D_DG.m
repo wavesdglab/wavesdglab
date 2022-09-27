@@ -12,23 +12,23 @@ theta = 1;
 % BENCH FREE SPACE
 tol = 1e-100; iMax = 1000; iOut = 50;
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/16;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 
 % BENCH CAVITY
 tol = 1e-100; iMax = 2000; iOut = 100;
 benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 
 % BENCH WAVEGUIDE
 tol = 1e-100; iMax = 4000; iOut = 200;
 benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/8;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -52,7 +52,6 @@ disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
-disp(['    theta               ' num2str(theta)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
