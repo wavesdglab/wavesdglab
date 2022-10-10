@@ -1,4 +1,4 @@
-function [resVec, errorVec, i, flag] = solverCGN_DG(mesh, dofm, sys, tol, iMax, iOut)
+function [resVec, errorVec, iter, flag] = solverCGN_DG(mesh, dofm, sys, tol, iMax, iOut)
 
 A = sys.matA;
 b = sys.rhsA;
@@ -20,32 +20,41 @@ errorVec(1) = computeNormError2D_DG(mesh, dofm, x);
 %%%%%%%
 
 flag = 0;
-i = 1;
-while(i <= iMax)
+iter = iMax;
+for i=1:iMax
     
-    Ap = A*p;
-    alpha = zzold/(Ap'*Ap);
-    x = x + alpha*p;
-    r = r - alpha*Ap;
-    z = A'*r;
-    rrnew = r'*r;
-    zznew = z'*z;
-    
-    %%%%%%%
     if(mod(i,iOut) == 0)
-        resVec(i/iOut+1)   = sqrt(rrnew/rrini);
-        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
-        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+        [x,flag] = pcg(A'*A,A'*b,tol,i);
+        r = b - A*x;
+        resVec(i/iOut+1) = sqrt(r'*r/rrini);
+        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
+        fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
-    %%%%%%%
     
-    if(sqrt(rrnew/rrini) < tol)
-        flag = 1;
-        return;
-    end
-    p = z + (zznew/zzold)*p;
-    zzold = zznew;
-    i = i+1;
+%     Ap = A*p;
+%     alpha = zzold/(Ap'*Ap);
+%     x = x + alpha*p;
+%     r = r - alpha*Ap;
+%     z = A'*r;
+%     rrnew = r'*r;
+%     zznew = z'*z;
+%     relRes = sqrt(rrnew/rrini);
+%     
+%     %%%%%%%
+%     if(mod(i,iOut) == 0)
+%         resVec(i/iOut+1) = relRes;
+%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
+%         fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+%     end
+%     %%%%%%%
+%     
+%     p = z + (zznew/zzold)*p;
+%     zzold = zznew;
+%     
+%     if (relRes <= tol)
+%         iter = i;
+%         flag = 1;
+%         break;
+%     end
 end
-
 end

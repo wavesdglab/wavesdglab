@@ -8,11 +8,11 @@ MATL = [flag,relRes,iter(2)]
 x = zeros(size(A,2),1);
 r = b - A*x;
 
-sn = zeros(iMax,1);
-cs = zeros(iMax,1);
-H = zeros(iMax+1,iMax);
+H = zeros(iMax+1,iMax+1);
 Q = zeros(size(A,2),iMax+1);
 Q(:,1) = r/norm(r);
+sn = zeros(iMax,1);
+cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
 beta(1) = norm(r);
 

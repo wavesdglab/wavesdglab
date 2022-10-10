@@ -7,7 +7,7 @@ global k;
 degree = 3;
 tau = 1;
 theta = 1;
-tol = 1e-100;
+tol = 1e-15;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -74,16 +74,16 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver CGN']);
-% [resVec, error] = solverCGN_DG(mesh, dofm, sysA, tol, iMax, iOut);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error));
-% 
-% rezu1 = ["iter" "resVec" "error" "errorRef"];
-% rezu2 = [iterVec resVec, error, errorRef];
-% name = sprintf('output/historyCGN_DG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver CGN']);
+[resVec, error] = solverCGN_DG(mesh, dofm, sysA, tol, iMax, iOut);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resVec" "error" "errorRef"];
+rezu2 = [iterVec resVec, error, errorRef];
+name = sprintf('output/historyCGN_DG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -100,7 +100,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% figure(3);
+% figure;
 % hold off
 % semilogy(iterVec,resVec  ,'-o','DisplayName','Relative residual');
 % hold on
