@@ -385,7 +385,6 @@ sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
 
-
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 

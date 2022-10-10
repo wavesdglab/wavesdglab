@@ -1,95 +1,102 @@
-function [resRedVec, resPhyVec, errorVec, i, flag] = solverGMRESredu_DG(mesh, dofm, sys, tol, iMax, iOut)
+function [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sys, tol, iMax, iOut)
 
 A = sys.matS;
 b = sys.rhsS;
 x = zeros(size(A,2),1);
 r = b - A*x;
 
-sn = zeros(iMax,1);
-cs = zeros(iMax,1);
-e1 = zeros(iMax+1,1);
-e1(1) = 1;
-r_norm = norm(r);
 H = zeros(iMax+1,iMax+1);
 Q = zeros(size(A,2),iMax+1);
-Q(:,1) = r / r_norm;
-beta = r_norm * e1;
+Q(:,1) = r/norm(r);
+sn = zeros(iMax,1);
+cs = zeros(iMax,1);
+beta = zeros(iMax+1,1);
+beta(1) = norm(r);
 
-resRedVec    = zeros(iMax/iOut+1,1);
-resPhyVec    = zeros(iMax/iOut+1,1);
-errorVec     = zeros(iMax/iOut+1,1);
+resRedVec = zeros(iMax/iOut+1,1);
+resPhyVec = zeros(iMax/iOut+1,1);
+errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
 solG = sys.precR*x;
 solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-%[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
 resPhy = sys.rhsPhy - sys.matPhy*solI;
 resPhyIni = resPhy'*resPhy;
-resRedVec(1)    = 1;
-resPhyVec(1)    = 1;
-errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
-%errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+resRedVec(1) = 1;
+resPhyVec(1) = 1;
+errorVec(1) = computeNormError2D_DG(mesh, dofm, solI);
 %%%%%%%
 
 flag = 0;
-i = 1;
-while(i <= iMax)
+iter = iMax;
+for i=1:iMax
+    
+%     [x,flag,relRes] = gmres(A,b,1,tol,i);
+%     if(mod(i,iOut) == 0)
+%         solG = sys.precR*x;
+%         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
+%         resPhy = sys.rhsPhy - sys.matPhy*solI;
+%         resPhyNew = resPhy'*resPhy;
+%         resRedVec(i/iOut+1) = relRes;
+%         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
+%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
+%         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
+%     end
+%     if (relres <= tol)
+%         iter = i;
+%         flag = 1;
+%         break;
+%     end
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
     Q(:,i+1) = A*Q(:,i);
     for j = 1:i
-        H(j,i) = Q(:,i+1)' * Q(:,j);
-        Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
+        H(j,i) = Q(:,j)' * Q(:,i+1);
+        Q(:,i+1) = Q(:,i+1) - H(j,i)' * Q(:,j);
     end
     H(i+1,i) = norm(Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
     
-    % Apply for ith column
+    % Apply previous Givens matrix to ith column
     for j = 1:i-1
-        tmp      =  cs(j) * H(j,i) + sn(j) * H(j+1,i);
-        H(j+1,i) = -sn(j) * H(j,i) + cs(j) * H(j+1,i);
-        H(j,i)   = tmp;
+        matGivens = [ cs(j)' sn(j)' ; -sn(j) cs(j) ];
+        H(j:j+1,i) = matGivens * H(j:j+1,i);
     end
     
-    % Update the next sin cos values for rotation
-    tmp = sqrt(H(i,i)^2 + H(i+1,i)^2);
-    cs(i) = H(i,i)/tmp;
-    sn(i) = H(i+1,i)/tmp;
+    % Compute the new Givens matrix
+    tmp = sqrt(abs(H(i,i))^2 + H(i+1,i)^2);
+    cs(i) = H(i,i)/tmp;    % complex
+    sn(i) = H(i+1,i)/tmp;  % real
+    matGivens = [ cs(i)' sn(i)' ; -sn(i) cs(i) ];
     
-    % Eliminate H(j+1,j)
-    H(i,i) = cs(i) * H(i,i) + sn(i) * H(i+1,i);
-    H(i+1,i) = 0;
+    % Apply new Givens matrix to ith column of H and residual vector
+    H(i:i+1,i)  = matGivens * H(i:i+1,i);
+    beta(i:i+1) = matGivens * beta(i:i+1);
     
     % Update the residual vector
-    beta(i+1) = -sn(i) * beta(i);
-    beta(i)   = cs(i) * beta(i);
-    error     = abs(beta(i+1)) / norm(b);
+    relRes = abs(beta(i+1)) / norm(beta(1));
     
     %%%%%%%
     if(mod(i,iOut) == 0)
-        
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
         
         solG = sys.precR*x;
         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-        %[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solI);
         resPhy = sys.rhsPhy - sys.matPhy*solI;
         resPhyNew = resPhy'*resPhy;
-        resRedVec(i/iOut+1)    = error;
-        resPhyVec(i/iOut+1)    = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1)     = computeNormError2D_DG(mesh, dofm, solI);
-        %errorPostVec(i/iOut+1) = computeNormError2D_DG(mesh, dofmPost, solApost);
+        resRedVec(i/iOut+1) = relRes;
+        resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
+        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
-    if (error <= tol)
+    if (relRes <= tol)
+        iter = i;
         flag = 1;
         break;
     end
-    
-    i = i+1;
 end
 
 end

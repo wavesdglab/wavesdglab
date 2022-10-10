@@ -1,40 +1,25 @@
-function [resVec, errorVec, iter, flag] = solverGMRES_DG(mesh, dofm, sys, tol, iMax, iOut)
+function [x,flag,relRes,iter] = solverGMRES(A,b,tol,iMax)
 
-A = sys.matA;
-b = sys.rhsA;
+[x,flag,relRes,iter] = gmres(A,b,[],tol,iMax);
+MATL = [flag,relRes,iter(2)]
+
+% ==========
+
 x = zeros(size(A,2),1);
 r = b - A*x;
 
-H = zeros(iMax+1,iMax+1);
-Q = zeros(size(A,2),iMax+1);
-Q(:,1) = r/norm(r);
 sn = zeros(iMax,1);
 cs = zeros(iMax,1);
+H = zeros(iMax+1,iMax);
+Q = zeros(size(A,2),iMax+1);
+Q(:,1) = r/norm(r);
 beta = zeros(iMax+1,1);
 beta(1) = norm(r);
 
-resVec   = zeros(iMax/iOut+1,1);
-errorVec = zeros(iMax/iOut+1,1);
-
-%%%%%%%
-resVec(1)   = 1;
-errorVec(1) = computeNormError2D_DG(mesh, dofm, x);
-%%%%%%%
-
 flag = 0;
 iter = iMax;
-for i=1:iMax
-    
-%     [x,flag,relres] = gmres(A,b,1,tol,i);
-%     if(mod(i,iOut) == 0)
-%         resVec(i/iOut+1)   = relres;
-%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
-%         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
-%     end
-%     if (relres <= tol)
-%         flag = 1;
-%         break;
-%     end
+relRes = 1;
+for i = 1:iMax
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
     Q(:,i+1) = A*Q(:,i);
@@ -64,21 +49,17 @@ for i=1:iMax
     % Update the residual vector
     relRes = abs(beta(i+1)) / norm(beta(1));
     
-    %%%%%%%
-    if(mod(i,iOut) == 0)
-        y = H(1:i,1:i) \ beta(1:i);
-        x = Q(:,1:i) * y;
-        resVec(i/iOut+1) = relRes;
-        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
-        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
-    end
-    %%%%%%%
+    % Update the solution
+    y = H(1:i,1:i) \ beta(1:i);
+    x = Q(:,1:i) * y;
     
-    if (error <= tol)
+    if (relRes <= tol)
         iter = i;
         flag = 1;
         break;
     end
 end
+
+MINE = [flag,relRes,iter]
 
 end

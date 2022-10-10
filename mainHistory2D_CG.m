@@ -66,7 +66,7 @@ errorRef = errorL2*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyCGN_CG_%s_P%i_k%g_h%g.csv', benchmark, degree, k, h);
+name = sprintf('output/historyCGN_CG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +82,7 @@ errorRef = errorL2*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyGMRES_CG_%s_P%i_k%g_h%g.csv', benchmark, degree, k, h);
+name = sprintf('output/historyGMRES_CG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
