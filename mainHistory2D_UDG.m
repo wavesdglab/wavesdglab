@@ -46,15 +46,15 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['---------------------------------------------------------']);
-% disp(['Method CHDG (' benchmark ')']);
-% disp(['---------------------------------------------------------']);
-% disp(['    k                   ' num2str(k)]);
-% disp(['    h                   ' num2str(h)]);
-% disp(['    degree              ' num2str(degree)]);
-% disp(['    Dlambda             ' num2str(Dlambda)]);
-% disp(['    tau                 ' num2str(tau)]);
-% disp(['---------------------------------------------------------']);
+disp(['---------------------------------------------------------']);
+disp(['Method CHDG (' benchmark ')']);
+disp(['---------------------------------------------------------']);
+disp(['    k                   ' num2str(k)]);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
+disp(['    tau                 ' num2str(tau)]);
+disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau, prec);
 [normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);

@@ -25,7 +25,7 @@ for i = 1:iMax
     Q(:,i+1) = A*Q(:,i);
     for j = 1:i
         H(j,i) = Q(:,j)' * Q(:,i+1);
-        Q(:,i+1) = Q(:,i+1) - H(j,i)' * Q(:,j);
+        Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
     H(i+1,i) = norm(Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);

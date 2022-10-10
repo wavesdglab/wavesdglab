@@ -31,8 +31,8 @@ flag = 0;
 iter = iMax;
 for i=1:iMax
     
-%     [x,flag,relRes] = gmres(A,b,1,tol,i);
 %     if(mod(i,iOut) == 0)
+%         [x,flag,relRes] = gmres(A,b,[],tol,i);
 %         solG = sys.precR*x;
 %         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
 %         resPhy = sys.rhsPhy - sys.matPhy*solI;
@@ -42,17 +42,12 @@ for i=1:iMax
 %         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
 %         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
 %     end
-%     if (relres <= tol)
-%         iter = i;
-%         flag = 1;
-%         break;
-%     end
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
     Q(:,i+1) = A*Q(:,i);
     for j = 1:i
         H(j,i) = Q(:,j)' * Q(:,i+1);
-        Q(:,i+1) = Q(:,i+1) - H(j,i)' * Q(:,j);
+        Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
     H(i+1,i) = norm(Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
