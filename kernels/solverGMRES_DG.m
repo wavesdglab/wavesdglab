@@ -70,7 +70,7 @@ for i=1:iMax
     end
     %%%%%%%
     
-    if (error <= tol)
+    if (relRes <= tol)
         iter = i;
         flag = 1;
         break;
