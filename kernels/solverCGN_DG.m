@@ -27,8 +27,8 @@ for i=1:iMax
         [x,flag] = pcg(A'*A,A'*b,tol,i);
         r = b - A*x;
         resVec(i/iOut+1) = sqrt(r'*r/rrini);
-        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
-        fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
+        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
+        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
     end
     
 %     Ap = A*p;
