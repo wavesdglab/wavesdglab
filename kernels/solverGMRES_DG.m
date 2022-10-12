@@ -25,56 +25,56 @@ flag = 0;
 iter = iMax;
 for i=1:iMax
     
-    if(mod(i,iOut) == 0)
-        [x,flag,relres] = gmres(A,b,[],tol,i);
-        resVec(i/iOut+1) = relres;
-        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
-        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
-    end
-    
-%     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-%     Q(:,i+1) = A*Q(:,i);
-%     for j = 1:i
-%         H(j,i) = Q(:,j)' * Q(:,i+1);
-%         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
-%     end
-%     H(i+1,i) = norm(Q(:,i+1));
-%     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
-%     
-%     % Apply the previous Givens matrix to ith column
-%     for j = 1:i-1
-%         matGivens = [ cs(j)' sn(j)' ; -sn(j) cs(j) ];
-%         H(j:j+1,i) = matGivens * H(j:j+1,i);
-%     end
-%     
-%     % Compute the new Givens matrix
-%     tmp = sqrt(abs(H(i,i))^2 + H(i+1,i)^2);
-%     cs(i) = H(i,i)/tmp;    % complex
-%     sn(i) = H(i+1,i)/tmp;  % real
-%     matGivens = [ cs(i)' sn(i)' ; -sn(i) cs(i) ];
-%     
-%     % Apply the new Givens matrix to ith column of H and residual vector
-%     H(i:i+1,i)  = matGivens * H(i:i+1,i);
-%     beta(i:i+1) = matGivens * beta(i:i+1);
-%     
-%     % Update the residual vector
-%     relRes = abs(beta(i+1)) / norm(beta(1));
-%     
-%     %%%%%%%
 %     if(mod(i,iOut) == 0)
-%         y = H(1:i,1:i) \ beta(1:i);
-%         x = Q(:,1:i) * y;
-%         resVec(i/iOut+1) = relRes;
+%         [x,flag,relres] = gmres(A,b,[],tol,i);
+%         resVec(i/iOut+1) = relres;
 %         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
 %         fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
 %     end
-%     %%%%%%%
-%     
-%     if (relRes <= tol)
-%         iter = i;
-%         flag = 1;
-%         break;
-%     end
+    
+    % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
+    Q(:,i+1) = A*Q(:,i);
+    for j = 1:i
+        H(j,i) = Q(:,j)' * Q(:,i+1);
+        Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
+    end
+    H(i+1,i) = norm(Q(:,i+1));
+    Q(:,i+1) = Q(:,i+1) / H(i+1,i);
+    
+    % Apply the previous Givens matrix to ith column
+    for j = 1:i-1
+        matGivens = [ cs(j)' sn(j)' ; -sn(j) cs(j) ];
+        H(j:j+1,i) = matGivens * H(j:j+1,i);
+    end
+    
+    % Compute the new Givens matrix
+    tmp = sqrt(abs(H(i,i))^2 + H(i+1,i)^2);
+    cs(i) = H(i,i)/tmp;    % complex
+    sn(i) = H(i+1,i)/tmp;  % real
+    matGivens = [ cs(i)' sn(i)' ; -sn(i) cs(i) ];
+    
+    % Apply the new Givens matrix to ith column of H and residual vector
+    H(i:i+1,i)  = matGivens * H(i:i+1,i);
+    beta(i:i+1) = matGivens * beta(i:i+1);
+    
+    % Update the residual vector
+    relRes = abs(beta(i+1)) / norm(beta(1));
+    
+    %%%%%%%
+    if(mod(i,iOut) == 0)
+        y = H(1:i,1:i) \ beta(1:i);
+        x = Q(:,1:i) * y;
+        resVec(i/iOut+1) = relRes;
+        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, x);
+        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+    end
+    %%%%%%%
+    
+    if (relRes <= tol)
+        iter = i;
+        flag = 1;
+        break;
+    end
 end
 
 end

@@ -74,17 +74,17 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver Richardson']);
-% alpha = 1;
-% [resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-% name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
+name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
