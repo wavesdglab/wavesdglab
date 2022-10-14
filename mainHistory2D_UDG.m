@@ -96,7 +96,7 @@ errorRef = normErr*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyQMR_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+name = sprintf('output/historyCGN_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

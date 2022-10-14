@@ -13,26 +13,26 @@ degree = 3;
 % BENCH FREE SPACE
 benchmark = 'open'; k = 15*pi; h = 1/16;
 run(benchmark,degree,h,tau,theta);
-% benchmark = 'open'; degree = 3; k = 15*pi; h = 1/34;
-% run(benchmark,degree,h,tau,theta);
-% benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
-% run(benchmark,degree,h,tau,theta);
+benchmark = 'open'; degree = 3; k = 15*pi; h = 1/34;
+run(benchmark,degree,h,tau,theta);
+benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
+run(benchmark,degree,h,tau,theta);
 
 % BENCH CAVITY
 benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
 run(benchmark,degree,h,tau,theta);
-% benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/15;
-% run(benchmark,degree,h,tau,theta);
-% benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-% run(benchmark,degree,h,tau,theta);
+benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/15;
+run(benchmark,degree,h,tau,theta);
+benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
+run(benchmark,degree,h,tau,theta);
 
 % BENCH WAVEGUIDE
 benchmark = 'waveguide'; k = 6*pi; h = 1/8;
 run(benchmark,degree,h,tau,theta);
-% benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/17;
-% run(benchmark,degree,h,tau,theta);
-% benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
-% run(benchmark,degree,h,tau,theta);
+benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/17;
+run(benchmark,degree,h,tau,theta);
+benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
+run(benchmark,degree,h,tau,theta);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -58,15 +58,15 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
-% [normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
-% 
-% [solP] = computeSolProjL2_2D_DG(mesh, dofm);
-% [normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
-% 
-% disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
-% disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
-% disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e') '  ' num2str(normProjErrU, '%1.2e') '  ' num2str(normProjErrV, '%1.2e')]);
-% disp(['---------------------------------------------------------']);
+[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
+
+[solP] = computeSolProjL2_2D_DG(mesh, dofm);
+[normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
+
+disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
+disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
+disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e') '  ' num2str(normProjErrU, '%1.2e') '  ' num2str(normProjErrV, '%1.2e')]);
+disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -79,14 +79,14 @@ sizeA = size(sysA.matA,1);
 disp(['    Size                ' num2str(sizeA)]);
 nnzA = nnz(sysA.matA);
 disp(['    nnz(S)              ' num2str(nnzA)]);
-% condA = condest(sysA.matA);
-% disp(['    Condest(A)          ' num2str(condA, '%1.2e')]);
-% disp(['---------------------------------------------------------']);
-% 
-% rezu1 = ["degree" "k" "h" "real(tau)" "imag(tau)" "normErr" "normProjErr" "normSol" "sizeA" "nnzA" "condA"];
-% rezu2 = [degree, k, h, real(tau), imag(tau), normErr, normProjErr, normSol, sizeA, nnzA, condA];
-% name = sprintf('output/statsDG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
-% writematrix([rezu1 ; rezu2],name,'Delimiter','semi');
+condA = condest(sysA.matA);
+disp(['    Condest(A)          ' num2str(condA, '%1.2e')]);
+disp(['---------------------------------------------------------']);
+
+rezu1 = ["degree" "k" "h" "real(tau)" "imag(tau)" "normErr" "normProjErr" "normSol" "sizeA" "nnzA" "condA"];
+rezu2 = [degree, k, h, real(tau), imag(tau), normErr, normProjErr, normSol, sizeA, nnzA, condA];
+name = sprintf('output/statsDG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
+writematrix([rezu1 ; rezu2],name,'Delimiter','semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
