@@ -34,16 +34,16 @@ global k
 % mesh = benchmark2D('open',h);
 
 % BENCH WAVEGUIDE
-% k = 6*pi;
-% h = 1/8;
-% degree = 3;
-% mesh = benchmark2D('waveguide',h);
+k = 6*pi;
+h = 1/8;
+degree = 3;
+mesh = benchmark2D('waveguide',h);
 
 % BENCH CAVITY
-k = 5.125*sqrt(2)*pi;
-h = 1/20;
-degree = 3;
-mesh = benchmark2D('cavity',h);
+% k = 5.125*sqrt(2)*pi;
+% h = 1/20;
+% degree = 3;
+% mesh = benchmark2D('cavity',h);
 
 % Define parameters
 tol = 1e-4;
@@ -67,30 +67,42 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau);
+[solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau, 1);
 [errorL2] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP, sysP] = computeSolProjL2_2D(mesh, dofm);
+[solP] = computeSolProjL2_2D_DG(mesh, dofm);
 [errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
 
-[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
-[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
+%[solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
+%[errorPostL2] = computeNormError2D_DG(mesh, dofmPost, solApost);
 
-[solPpost, sysPpost] = computeSolProjL2_2D(mesh, dofmPost);
-[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
+%[solPpost] = computeSolProjL2_2D(mesh, dofmPost);
+%[errorProjPostL2] = computeNormError2D_DG(mesh, dofmPost, solPpost);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2) ' ' num2str(errorPostL2) ' ' num2str(errorProjPostL2)]);
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2, '%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2, '%1.2e')]);
-disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
-disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
+%disp(['    L2-Error (numPost)  ' num2str(errorPostL2, '%1.2e')]);
+%disp(['    L2-Error (projPost) ' num2str(errorProjPostL2, '%1.2e')]);
 disp('---------------------------------------------------------');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% writeFieldDG(dofm, mesh, solP, "mySol.pos", "mySol");
-% system('gmsh mySol.pos');
+writeField_DG(dofm, mesh, solP, "mySol.pos", "mySol");
+system('gmsh mySol.pos');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+alpha = 1;
+[resRedVec, resPhyVec, error, i, flag, solI] = solverRichardson_DG(mesh, dofm, sysA, 1e-9, 2000, 100, alpha);
+[solP] = computeSolProjL2_2D_DG(mesh, dofm);
+[errorProjL2] = computeNormError2D_DG(mesh, dofm, solP);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+writeField_DG(dofm, mesh, solI, "mySol2.pos", "mySol2");
+system('gmsh mySol2.pos');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -50,7 +50,7 @@ disp(['---------------------------------------------------------']);
 [solA, sysA] = computeSolNum2D_CG(mesh, dofm);
 [errorL2, errorH1] = computeNormError2D_CG(mesh, dofm, solA);
 
-[solP, sysP] = computeSolProjL2_2D(mesh, dofm);
+[solP, sysP] = computeSolProjL2_2D_CG(mesh, dofm);
 [errorProjL2, errorProjH1] = computeNormError2D_CG(mesh, dofm, solP);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
@@ -161,7 +161,7 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-writeFieldCG(dofm, mesh, solA, "solution.pos", "solution");
+writeField_CG(dofm, mesh, solA, "solution.pos", "solution");
 system('gmsh solution.pos');
 
 % end

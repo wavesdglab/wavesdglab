@@ -79,7 +79,6 @@ sizeS = size(sysA.matS,1);
 disp(['    Size(S)             ' num2str(sizeS)]);
 nnzS = nnz(sysA.matS);
 disp(['    nnz(S)              ' num2str(nnzS)]);
-spy(sysA.matS)
 condS = condest(sysA.matS);
 disp(['    Condest(S)          ' num2str(condS, '%1.2e')]);
 condLocMin = min(condLoc);

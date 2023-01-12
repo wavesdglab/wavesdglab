@@ -1,4 +1,4 @@
-function [resRedVec, resPhyVec, errorVec, i, flag] = solverRichardson_DG(mesh, dofm, sys, tol, iMax, iOut, alpha)
+function [resRedVec, resPhyVec, errorVec, i, flag, solI] = solverRichardson_DG(mesh, dofm, sys, tol, iMax, iOut, alpha)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -24,6 +24,7 @@ errorVec(1)     = computeNormError2D_DG(mesh, dofm, solI);
 %errorPostVec(1) = computeNormError2D_DG(mesh, dofmPost, solApost);
 %%%%%
 
+solI = 0;
 flag = 0;
 i = 1;
 while(i <= iMax)
@@ -50,10 +51,15 @@ while(i <= iMax)
     
     if(sqrt(rrnew/rrini) < tol)
         flag = 1;
+        solG = sys.precR*x;
+        solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
         return;
     end
     
     i = i+1;
 end
+
+solG = sys.precR*x;
+solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
 
 end

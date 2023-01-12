@@ -7,16 +7,16 @@ global k;
 degree = 3;
 tau = 1;
 prec = 10;
-tol = 1e-15;
+tol = 1e-100;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% BENCH FREE SPACE
-iMax = 1000; iOut = 50;
-benchmark = 'open'; k = 15*pi; h = 1/16;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
-benchmark = 'open'; k = 30*pi; h = 1/34;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+% % BENCH FREE SPACE
+% iMax = 1000; iOut = 50;
+% benchmark = 'open'; k = 15*pi; h = 1/16;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+% benchmark = 'open'; k = 30*pi; h = 1/34;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 
 % BENCH CAVITY
 iMax = 2000; iOut = 100;
@@ -25,12 +25,12 @@ run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
 run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 
-% BENCH WAVEGUIDE
-iMax = 4000; iOut = 200;
-benchmark = 'waveguide'; k = 6*pi; h = 1/8;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
-benchmark = 'waveguide'; k = 12*pi; h = 1/17;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+% % BENCH WAVEGUIDE
+% iMax = 4000; iOut = 200;
+% benchmark = 'waveguide'; k = 6*pi; h = 1/8;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+% benchmark = 'waveguide'; k = 12*pi; h = 1/17;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -74,17 +74,17 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver Richardson']);
-% alpha = 1;
-% [resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-% name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
+name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -101,16 +101,16 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver GMRES']);
-% [resRedVec, resPhyVec, error] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-% name = sprintf('output/historyGMRES_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver GMRES']);
+[resRedVec, resPhyVec, error] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
+name = sprintf('output/historyGMRES_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

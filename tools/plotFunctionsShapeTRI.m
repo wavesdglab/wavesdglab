@@ -1,5 +1,5 @@
-close all;
-clear all;
+%close all;
+%clear all;
 
 headers2D()
 
@@ -23,7 +23,7 @@ N = 3 + 3*(degree-1) + (degree-1)*(degree-2)/2;
 subplotX = ceil(N/3);
 subplotY = 3;
 
-figure(1);
+figure(3);
 title('Shape Functions');
 for n=1:size(val,2)
     C = reshape(val(:,n),size(x,2),size(y,2));
@@ -35,26 +35,26 @@ for n=1:size(val,2)
     box off;
 end
 
-figure(2);
-title('Shape Functions (derivative DX)');
-for n=1:size(val,2)
-    C = reshape(valDX(:,n),size(x,2),size(y,2));
-    subplot(subplotX,subplotY,n);
-    %h = pcolor(X,Y,C); set(h,'EdgeColor','none');
-    %h = surf(X,Y,C); set(h,'EdgeColor','none');
-    h = contourf(X,Y,C);
-    colorbar;
-    box off;
-end
-
-figure(3);
-title('Shape Functions (derivative DY)');
-for n=1:size(val,2)
-    C = reshape(valDY(:,n),size(x,2),size(y,2));
-    subplot(subplotX,subplotY,n);
-    %h = pcolor(X,Y,C); set(h,'EdgeColor','none');
-    %h = surf(X,Y,C); set(h,'EdgeColor','none');
-    h = contourf(X,Y,C);
-    colorbar;
-    box off;
-end
+% figure(2);
+% title('Shape Functions (derivative DX)');
+% for n=1:size(val,2)
+%     C = reshape(valDX(:,n),size(x,2),size(y,2));
+%     subplot(subplotX,subplotY,n);
+%     %h = pcolor(X,Y,C); set(h,'EdgeColor','none');
+%     %h = surf(X,Y,C); set(h,'EdgeColor','none');
+%     h = contourf(X,Y,C);
+%     colorbar;
+%     box off;
+% end
+% 
+% figure(3);
+% title('Shape Functions (derivative DY)');
+% for n=1:size(val,2)
+%     C = reshape(valDY(:,n),size(x,2),size(y,2));
+%     subplot(subplotX,subplotY,n);
+%     %h = pcolor(X,Y,C); set(h,'EdgeColor','none');
+%     %h = surf(X,Y,C); set(h,'EdgeColor','none');
+%     h = contourf(X,Y,C);
+%     colorbar;
+%     box off;
+% end

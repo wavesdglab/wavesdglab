@@ -21,6 +21,12 @@ val(:,n) = l3; n=n+1;
 val(:,n) = l1; n=n+1;
 
 % Edge modes
+% kernel1 = functionsLobbato(l3-l2,degree-1);
+% kernel2 = functionsLobbato(l1-l3,degree-1);
+% kernel3 = functionsLobbato(l2-l1,degree-1);
+% kernel1 = functionsBernstein(l3-l2,degree-1);
+% kernel2 = functionsBernstein(l1-l3,degree-1);
+% kernel3 = functionsBernstein(l2-l1,degree-1);
 kernel1 = functionsJacobi(l3-l2,1,1,degree-1);
 kernel2 = functionsJacobi(l1-l3,1,1,degree-1);
 kernel3 = functionsJacobi(l2-l1,1,1,degree-1);
