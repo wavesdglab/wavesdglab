@@ -1,8 +1,6 @@
 %close all;
 clear all;
 
-headers2D;
-
 global k;
 benchmark = 'open';
 degree = 1;

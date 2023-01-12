@@ -1,4 +1,4 @@
-function headers1D()
+function path1D()
 
 addpath(genpath('benchmarks1D/'));
 addpath(genpath('kernels/'));

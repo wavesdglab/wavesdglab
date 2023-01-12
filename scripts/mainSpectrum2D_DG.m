@@ -1,7 +1,6 @@
 %close all;
 clear all;
 
-headers2D;
 global k
 
 tau = 1;

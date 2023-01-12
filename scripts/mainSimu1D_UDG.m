@@ -1,8 +1,6 @@
 clear all;
 close all;
 
-headers1D;
-
 global k BCLeft BCRight
 
 % Define parameters
@@ -14,38 +12,51 @@ h = 1/nume;
 tau = 1i; % 1i
 resTol = 1e-4;
 BCLeft = 'DIR';
-BCRight = 'DIR';
+BCRight = 'ABC';
+TYPE = 'UDG-1'; % UDG-1 UDG-1b UDG-2
 
 % Build mesh and dofManager
 mesh = buildMesh1D(0, 1, numv);
 dofm = buildDofManager1D_DG(mesh, degree);
 
 disp(['=============================================']);
-disp(['HDG - ' BCLeft '/' BCRight ' - degree ' num2str(degree) ' - k ' num2str(k) ' - nume ' num2str(nume) ' - tau ' num2str(tau)]);
+disp([TYPE ' - ' BCLeft '/' BCRight ' - degree ' num2str(degree) ' - k ' num2str(k) ' - nume ' num2str(nume) ' - tau ' num2str(tau)]);
 
 % =========================================================================
 % Compute solutions
 % =========================================================================
 
 % Compute numerical solution (full and reduced systems)
-[solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] = ...
-    computeSolNum1D_HDG(mesh, dofm, @mySolP, @mySolU, @mySouP, @mySouU, tau);
+switch TYPE
+    case 'UDG-1'
+        [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] = ...
+            computeSolNum1D_UDG1(mesh, dofm, @mySolP, @mySolU, @mySouP, @mySouU, tau);
+    case 'UDG-1b'
+        [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] = ...
+            computeSolNum1D_UDG1b(mesh, dofm, @mySolP, @mySolU, @mySouP, @mySouU, tau);
+    case 'UDG-2'
+        [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] = ...
+            computeSolNum1D_UDG2(mesh, dofm, @mySol, @mySolDer, @mySou, tau);
+    otherwise
+        warning('Error - No valid TYPE of equation.')
+end
+
 
 % Compute L2-projection solution
-vecProjL2 = computeSolProjL2_1D_DG(mesh, dofm, @mySolP);
+vecProjL2 = computeSolProjL2_1D_DG(mesh, dofm, @mySol);
 
 % Vizu solution
-%postProVizu1D_DG(mesh, dofm, @mySolP, @mySolU, solRedu);
+%postProVizu1D_DG(mesh, dofm, @mySol, @mySolU, solRedu);
 
 % =========================================================================
 % Compute error
 % =========================================================================
 
-normL2sol        = computeNormSol1D_DG(mesh, @mySolP);
-normL2errSolNumP = computeNormError1D_DG(mesh, dofm, @mySolP, solRedu);
-normL2errProjL2P = computeNormError1D_DG(mesh, dofm, @mySolP, vecProjL2);
-errSolNum = normL2errSolNumP / normL2sol;
-errProjL2 = normL2errProjL2P / normL2sol;
+normL2sol       = computeNormSol1D_DG(mesh, @mySol);
+normL2errSolNum = computeNormError1D_DG(mesh, dofm, @mySol, solRedu);
+normL2errProjL2 = computeNormError1D_DG(mesh, dofm, @mySol, vecProjL2);
+errSolNum = normL2errSolNum / normL2sol;
+errProjL2 = normL2errProjL2 / normL2sol;
 disp(['---------------------------------------------']);
 disp(['    L2-Error           ' num2str(errSolNum)]);
 disp(['    L2-Error (BestAp)  ' num2str(errProjL2)]);
@@ -56,24 +67,24 @@ disp(['    L2-Error (BestAp)  ' num2str(errProjL2)]);
 
 [vecSolIterA,~,~,iterA,resvecA] = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
 [vecSolIterS,~,~,iterS,resvecS] = gmres(matS,rhsS,size(matS,1),resTol,size(matS,1));
-vecSolIterA = vecSolIterA(1:2*dofm.numDof);
+vecSolIterA = vecSolIterA(1:size(matA,2));
 vecSolIterS = matIIinv*(rhsI-matIG*vecSolIterS);
-normL2errSolIterA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-normL2errSolIterS = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterS);
+normL2errSolIterA = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterA);
+normL2errSolIterS = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterS);
 
-[vecSolIterA,~,~,iterBiCGStabA,~] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-[vecSolIterS,~,~,iterBiCGStabS,~] = bicgstab(matS,rhsS,resTol,100*size(matS,1));
-vecSolIterA = vecSolIterA(1:2*dofm.numDof);
+[vecSolIterA,~,~,iterBiCGStabA,~] = bicgstab(matA,rhsA,resTol,10*size(matA,1));
+[vecSolIterS,~,~,iterBiCGStabS,~] = bicgstab(matS,rhsS,resTol,10*size(matS,1));
+vecSolIterA = vecSolIterA(1:size(matA,2));
 vecSolIterS = matIIinv*(rhsI-matIG*vecSolIterS);
-normL2errSolBiCGStabA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-normL2errSolBiCGStabS = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterS);
+normL2errSolBiCGStabA = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterA);
+normL2errSolBiCGStabS = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterS);
 
-[vecSolIterA,~,~,iterCGNA,~] = conjgradn(matA,rhsA,resTol,100*size(matA,1));
-[vecSolIterS,~,~,iterCGNS,~] = conjgradn(matS,rhsS,resTol,100*size(matS,1));
-vecSolIterA = vecSolIterA(1:2*dofm.numDof);
+[vecSolIterA,~,~,iterCGNA,~] = conjgradn(matA,rhsA,resTol,size(matA,1));
+[vecSolIterS,~,~,iterCGNS,~] = conjgradn(matS,rhsS,resTol,size(matS,1));
+vecSolIterA = vecSolIterA(1:size(matA,2));
 vecSolIterS = matIIinv*(rhsI-matIG*vecSolIterS);
-normL2errSolCGNA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-normL2errSolCGNS = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterS);
+normL2errSolCGNA = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterA);
+normL2errSolCGNS = computeNormError1D_DG(mesh, dofm, @mySol, vecSolIterS);
 
 [vecSolIterA,~,~,iterJacobiA,~] = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
 [vecSolIterS,~,~,iterJacobiS,~] = jacobi(matS,rhsS,resTol,10*size(matS,1),0.5);
@@ -130,7 +141,7 @@ disp(['    IterRelax          ' num2str(iterJacobiS)]);
 disp(['    Final L2-Error     ' num2str(normL2errSolJacobiS / normL2sol)]);
 disp(['=============================================']);
 
-disp(['\text{HDG}(\tau=1) & full & ' ...
+disp(['\text{UDG} & full & ' ...
     num2str(errSolNum,'%.1e') ' & ' ...
     num2str(errProjL2,'%.1e') ' & ' ...
     num2str(size(matA,1)) ' & ' ...
@@ -146,7 +157,7 @@ disp(['\text{HDG}(\tau=1) & full & ' ...
     num2str(iterJacobiA) ' & ' ...
     num2str(normL2errSolJacobiA / normL2sol,'%.1e') ' \\'
     ]);
-disp(['\text{HDG}(\tau=1) & red & ' ...
+disp(['\text{UDG} & red & ' ...
     num2str(errSolNum,'%.1e') ' & ' ...
     num2str(errProjL2,'%.1e') ' & ' ...
     num2str(size(matS,1)) ' & ' ...
@@ -167,42 +178,44 @@ disp(['\text{HDG}(\tau=1) & red & ' ...
 % Vizu
 % =========================================================================
 
-% figure;
-% hold off
-% semilogy(resvecA/resvecA(1),'-o','DisplayName','Residual HDG A');
-% hold on
-% semilogy(resvecS/resvecS(1),'-x','DisplayName','Residual HDG S');
-% title('Residual history');
-% legend();
+% min(eigenvalAA) 2.4449e-05
+% min(eigenvalSS) 2.4429e-04
+
+% Eigenvalues and numerical range
 
 % figure;
 % hold off
-% scatter(real(singvalA),imag(singvalA),'DisplayName','SingVal HDG A');
+% scatter(real(eigenvalA),imag(eigenvalA),'b','DisplayName','EigenVal A');
 % hold on
-% scatter(real(singvalS),imag(singvalS),'x','DisplayName','SingVal HDG S');
-% grid on;
-% title('Singular values');
-% legend();
-
-% figure;
-% hold off
-% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','EigenVal HDG A');
-% hold on
-% scatter(real(eigenvalS),imag(eigenvalS),'x','DisplayName','EigenVal HDG S');
-% grid on;
-% title('Eigenvalues');
-% legend();
-
-% figure(5);
-% hold off
-% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','DIR-DIR');
-% grid on;
-% title('Eigenvalues HDG A');
+% scatter(real(eigenvalS),imag(eigenvalS),'rx','DisplayName','EigenVal S');
+% plot(fovals(matA,100),'-b','DisplayName','Numerical range A');
+% plot(fovals(matS,100),'--r','DisplayName','Numerical range S');
+% grid on; box on;
+% title([TYPE ' (tau=' num2str(tau) ') - Eigenvalues : ' BCLeft ' + ' BCRight]);
 % legend();
 % 
-% figure(6);
+% figure;
 % hold off
-% scatter(real(eigenvalS),imag(eigenvalS),'DisplayName','DIR-DIR');
-% grid on;
-% title('Eigenvalues HDG S');
+% scatter(real(eigenvalAA),imag(eigenvalAA),'b','DisplayName','EigenVal AA');
+% hold on
+% scatter(real(eigenvalSS),imag(eigenvalSS),'rx','DisplayName','EigenVal SS');
+% plot(fovals(matA'*matA,100),'-b','DisplayName','Numerical range AA');
+% hold on
+% plot(fovals(matS'*matS,100),'--r','DisplayName','Numerical range SS');
+% grid on; box on;
+% title([TYPE ' (tau=' num2str(tau) ') - Eigenvalues : ' BCLeft ' + ' BCRight]);
+% legend();
+
+% vecSolIterS = matIIinv*(rhsI-matIG*eigenvecS);
+% for i=1:size(matS,1)
+%     postProVizuFieldsDG(mesh, dofm, vecSolIterS(:,i));
+%     title(eigenvalS(i));
+% end
+
+% figure;
+% hold off
+% semilogy(resvecA/resvecA(1),'-o','DisplayName','Residual UDG A');
+% hold on
+% semilogy(resvecS/resvecS(1),'-x','DisplayName','Residual UDG S');
+% title('Residual history');
 % legend();

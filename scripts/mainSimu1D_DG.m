@@ -1,8 +1,6 @@
 clear all;
 close all;
 
-headers1D;
-
 global k BCLeft BCRight
 
 % Define parameters

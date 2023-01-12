@@ -1,7 +1,6 @@
 %close all;
 clear all;
 
-headers2D;
 global k;
 
 degree = 3;
@@ -11,7 +10,7 @@ tol = 1e-100;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % BENCH FREE SPACE
+% BENCH FREE SPACE
 % iMax = 1000; iOut = 50;
 % benchmark = 'open'; k = 15*pi; h = 1/16;
 % run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
@@ -22,10 +21,10 @@ tol = 1e-100;
 iMax = 2000; iOut = 100;
 benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
 run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
-benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
+% benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
+% run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
 
-% % BENCH WAVEGUIDE
+% BENCH WAVEGUIDE
 % iMax = 4000; iOut = 200;
 % benchmark = 'waveguide'; k = 6*pi; h = 1/8;
 % run(benchmark,degree,h,tau,prec,tol,iMax,iOut);
@@ -47,7 +46,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method CHDG (' benchmark ')']);
+disp(['Method HDG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -56,7 +55,7 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau, prec);
+[solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau, prec);
 [normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
 
 % [solP] = computeSolProjL2_2D_DG(mesh, dofm);
@@ -74,20 +73,6 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- Solver Richardson']);
-alpha = 1;
-[resRedVec, resPhyVec, error] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha);
-
-iterVec = (0:iOut:iMax)';
-errorRef = normErr*ones(size(error));
-
-rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 disp(['--- Solver CGN']);
 [resRedVec, resPhyVec, error] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
 
@@ -96,7 +81,7 @@ errorRef = normErr*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyCGN_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+name = sprintf('output/historyCGN_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,7 +94,7 @@ errorRef = normErr*ones(size(error));
 
 rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-name = sprintf('output/historyGMRES_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+name = sprintf('output/historyGMRES_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,7 +111,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 % legend('Location','southwest');
 % xlabel('Iteration');
 % ylabel('Value');
-% title(['UDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
-% axis([0 iMax 1e-10 1]);
+% title(['HDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
+% axis([0 1000 1e-10 1]);
 
 end

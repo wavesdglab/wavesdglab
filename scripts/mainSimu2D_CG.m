@@ -1,7 +1,6 @@
 %close all;
 clear all;
 
-headers2D();
 global k
 
 % hPower = [-1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5];
