@@ -1,20 +1,50 @@
-function [solFull, matA, rhsA, matP] ...
-    = computeSolNum1D_DG(mesh, dofm, mySolP, mySolU, mySouP, mySouU, tau, PREC)
+function [solA, sysA] = computeSolNum1D_DG(mesh, dofm, tau, PREC)
 
 global k BCLeft BCRight
 
-% Build matrix of the system
+% -------------------------------------------------------------------------
+% Quadrature and shape functions
+% -------------------------------------------------------------------------
 
-[matM, matK, matD] = buildMatrixGlo1D_DG(mesh, dofm);
+Q = 16;
+[nodes, weights] = quadratureGaussLIN(Q);
+shapeFunc = functionsShape1D(nodes,dofm.degree);
+
+% -------------------------------------------------------------------------
+% Volume terms
+% -------------------------------------------------------------------------
+
+[matElemM, ~, matElemD] = buildMatrixElem1D(dofm.degree);
+
+matM = sparse(dofm.numDof, dofm.numDof);
+matD = sparse(dofm.numDof, dofm.numDof);
+rhsP = zeros(dofm.numDof,1);
+rhsU = zeros(dofm.numDof,1);
+
+for e=1:mesh.numE
+    coord1 = mesh.coordV(mesh.listE(e,1));
+    coord2 = mesh.coordV(mesh.listE(e,2));
+    length = abs(coord2 - coord1);
+    
+    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    
+    matLocM = matElemM * length/2;
+    matLocD = matElemD;
+    
+    glo = dofm.locToGlo(e,:);
+    matM(glo,glo) = matM(glo,glo) + matLocM;
+    matD(glo,glo) = matD(glo,glo) + matLocD;
+    rhsP(glo) = rhsP(glo) + (shapeFunc .* souP).' * weights * (length/2);
+    rhsU(glo) = rhsU(glo) + (shapeFunc .* souU).' * weights * (length/2);
+end
+
 matA = [ -1i*k*matM -matD' ; -matD' -1i*k*matM ];
-
-% Build RHS vector of the system
-
-rhsP = buildVectorGloRhs1D_DG(mesh, dofm, mySouP);
-rhsU = buildVectorGloRhs1D_DG(mesh, dofm, mySouU);
 rhsA = [ rhsP ; rhsU ];
 
-% Build interfaces and boundary conditions
+% -------------------------------------------------------------------------
+% Surface terms
+% -------------------------------------------------------------------------
 
 for e=1:mesh.numE
     
@@ -116,6 +146,10 @@ for e=1:mesh.numE
     
 end
 
+% -------------------------------------------------------------------------
+% Solve system
+% -------------------------------------------------------------------------
+
 % Preconditioning
 
 switch PREC
@@ -139,9 +173,12 @@ matA = matA/matP;
 %matA = matP\(matA/matP);
 %rhsA = matP\rhsA;
 
+sysA.matA = matA;
+sysA.rhsA = rhsA;
+
 % Compute solution
 
-solFull = matA\rhsA;
-solFull = matP\solFull;
+solA = sysA.matA\sysA.rhsA;
+solA = matP\solA;
 
 end

@@ -10,7 +10,6 @@ for e=1:mesh.numE
     
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2-coord1);
     coordGlo = linspace(coord1,coord2,numVizuPntPerE);
     
     val = zeros(1,numVizuPntPerE);
@@ -24,12 +23,10 @@ end
 
 hold off
 plot(vizuCoord,real(vizuVal),'b','LineWidth',2,'DisplayName','Real part');
-title(nameTitle);
 hold on
 plot(vizuCoord,imag(vizuVal),'r','LineWidth',2,'DisplayName','Imaginary part');
-
+title(nameTitle);
 lgd = legend;
 lgd.FontSize = 14;
-
 
 end

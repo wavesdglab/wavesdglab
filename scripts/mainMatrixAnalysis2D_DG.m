@@ -57,20 +57,15 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
-[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
+[normErr, ~, ~, normSol] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP] = computeSolProjL2_2D_DG(mesh, dofm);
-[normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+normProjErr = computeNormError2D_DG(mesh, dofm, solP);
 
-disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
-disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
-disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e') '  ' num2str(normProjErrU, '%1.2e') '  ' num2str(normProjErrV, '%1.2e')]);
+disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e')]);
+disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e')]);
+disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e')]);
 disp(['---------------------------------------------------------']);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% writeField_DG(dofm, mesh, solP, "mySol.pos", "mySol");
-% system('gmsh mySol.pos');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

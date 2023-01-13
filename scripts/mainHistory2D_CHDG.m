@@ -55,8 +55,8 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_UDG(mesh, dofm, tau, prec);
-[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
+[solA, sysA] = computeSolNum2D_CHDG(mesh, dofm, tau, prec);
+normErr = computeNormError2D_DG(mesh, dofm, solA);
 
 % [solP] = computeSolProjL2_2D_DG(mesh, dofm);
 % [normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
@@ -125,7 +125,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 % legend('Location','southwest');
 % xlabel('Iteration');
 % ylabel('Value');
-% title(['UDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
+% title(['CHDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
 % axis([0 iMax 1e-10 1]);
 
 end

@@ -1,11 +1,11 @@
 function [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] ...
-    = computeSolNum1D_UDG1(mesh, dofm, mySolP, mySolU, mySouP, mySouU, tau)
+    = computeSolNum1D_UDG1(mesh, dofm, tau)
 
 global k BCLeft BCRight
 
 % Build matrix of the system
 
-[matElemM, matElemK, matElemD] = buildMatrixElem1D(dofm.degree);
+[matElemM, ~, matElemD] = buildMatrixElem1D(dofm.degree);
 matII = sparse(2*dofm.numDof, 2*dofm.numDof);
 matIIinv = sparse(2*dofm.numDof, 2*dofm.numDof);
 for e=1:mesh.numE
@@ -49,9 +49,25 @@ end
 
 % Build RHS vector of the system
 
-rhsP = buildVectorGloRhs1D_DG(mesh, dofm, mySouP);
-rhsU = buildVectorGloRhs1D_DG(mesh, dofm, mySouU);
-rhsI = [ rhsP ; rhsU ];
+Q = 16;
+[nodes, weights] = quadratureGaussLIN(Q);
+shapeFunc = functionsShape1D(nodes,dofm.degree);
+
+rhsP = zeros(dofm.numDof,1);
+rhsU = zeros(dofm.numDof,1);
+for e=1:mesh.numE
+    
+    coord1 = mesh.coordV(mesh.listE(e,1));
+    coord2 = mesh.coordV(mesh.listE(e,2));
+    length = abs(coord2 - coord1);
+    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    
+    glo = dofm.locToGlo(e,:);
+    rhsP(glo) = rhsP(glo) + (shapeFunc .* souP).' * weights * (length/2);
+    rhsU(glo) = rhsU(glo) + (shapeFunc .* souU).' * weights * (length/2);
+end
+rhsA = [ rhsP ; rhsU ];
 
 % Build characteristic variables
 

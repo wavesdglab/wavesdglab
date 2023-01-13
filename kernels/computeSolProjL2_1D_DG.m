@@ -2,7 +2,17 @@ function vecSolProjL2 = computeSolProjL2_1D_DG(mesh, dofm, mySol)
 
 % Build matrix of the system
 
-[matM, matK, matD] = buildMatrixGlo1D_DG(mesh, dofm);
+matElemM = buildMatrixElem1D(dofm.degree);
+matM = sparse(dofm.numDof, dofm.numDof);
+
+for e=1:mesh.numE
+    coord1 = mesh.coordV(mesh.listE(e,1));
+    coord2 = mesh.coordV(mesh.listE(e,2));
+    length = abs(coord2 - coord1);
+    matLocM = matElemM * length/2;
+    glo = dofm.locToGlo(e,:);
+    matM(glo,glo) = matM(glo,glo) + matLocM;
+end
 
 % Build RHS vector
 

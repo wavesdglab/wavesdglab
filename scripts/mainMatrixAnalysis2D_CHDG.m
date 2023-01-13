@@ -35,7 +35,7 @@ run(benchmark,degree,h,tau,prec);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [sysA] = run(benchmark,degree,h,tau,prec)
+function run(benchmark,degree,h,tau,prec)
 global k;
 
 mesh = benchmark2D(benchmark,h);
@@ -47,7 +47,7 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
-disp(['Method HDG (' benchmark ')']);
+disp(['Method CHDG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -56,21 +56,16 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau, prec);
-[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
+[solA, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, prec);
+[normErr, ~, ~, normSol] = computeNormError2D_DG(mesh, dofm, solA);
 
-[solP] = computeSolProjL2_2D_DG(mesh, dofm);
-[normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+normProjErr = computeNormError2D_DG(mesh, dofm, solP);
 
-disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e') '  ' num2str(normSolU, '%1.2e') '  ' num2str(normSolV, '%1.2e')]);
-disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e') '  ' num2str(normErrU, '%1.2e') '  ' num2str(normErrV, '%1.2e')]);
-disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e') '  ' num2str(normProjErrU, '%1.2e') '  ' num2str(normProjErrV, '%1.2e')]);
+disp(['    L2-Norm Sol       ' num2str(normSol, '%1.2e')]);
+disp(['    L2-Norm ErrorSol  ' num2str(normErr, '%1.2e')]);
+disp(['    L2-Norm ErrorProj ' num2str(normProjErr, '%1.2e')]);
 disp('---------------------------------------------------------');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% writeField_DG(dofm, mesh, solP, "mySol.pos", "mySol");
-% system('gmsh mySol.pos');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -88,32 +83,43 @@ disp(['---------------------------------------------------------']);
 
 rezu1 = ["degree" "k" "h" "real(tau)" "imag(tau)" "sizeS" "nnzS" "normErr" "normProjErr" "normSol" "condS" "condLocMin" "condLocMax"];
 rezu2 = [degree, k, h, real(tau), imag(tau), sizeS, nnzS, normErr, normProjErr, normSol, condS, condLocMin, condLocMax];
-name = sprintf('output/statsHDG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
+name = sprintf('output/statsCHDG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
 writematrix([rezu1 ; rezu2],name,'Delimiter','semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['---------------------------------------------------------']);
-% disp(['Reduced matrix:']);
+% alpha = 1;
+% matI = sparse(1:size(sysA.matS,1),1:size(sysA.matS,2),1);
+% matIter = (1-alpha)*matI + alpha*(matI-sysA.matS);
 % 
-% [eigenvecS,eigenvalS] = eigs(sysA.matS,size(sysA.matS,1));
-% eigenvalS             = diag(eigenvalS);
+% % precL = inv(sysA.matGG);
+% % precR = sparse(1:size(sysA.matGG,1),1:size(sysA.matGG,1),1);
+% % precL = eigenvalGG\eigenvecGG';
+% % precR = eigenvecGG;
+% % matIter = precL*sysA.matS*precR;
 % 
-% disp(['    Min e.v. (Iter)     ' num2str(min(abs(eigenvalS)))]);
-% disp(['    Max e.v. (Iter)     ' num2str(max(abs(eigenvalS)))]);
-% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecS))]);
-% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecS))]);
+% % [eigenvecIter,eigenvalIter] = eigs(matIter,size(sysA.matS,1));
+% % eigenvalIter                = diag(eigenvalIter);
 % 
-% figure(2);
+% eigenvalIter = eigs(matIter,size(sysA.matS,1));
+% 
+% rezu1 = ["real", "imag"];
+% rezu2 = [real(eigenvalIter), imag(eigenvalIter)];
+% name = sprintf('output/spectrumIter_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
+% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+% 
+% disp(['    Min e.v. (Iter)     ' num2str(min(abs(eigenvalIter)))]);
+% disp(['    Max e.v. (Iter)     ' num2str(max(abs(eigenvalIter)))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rank(eigenvecIter))]);
+% disp(['    Cond(eigenvectors)  ' num2str(cond(eigenvecIter))]);
+% disp('---------------------------------------------------------');
+
+% figure(1);
 % hold off
-% scatter(real(eigenvalS),imag(eigenvalS),'DisplayName','Eigenvalues');
+% scatter(real(eigenvalIter),imag(eigenvalIter),'DisplayName','Eigenvalues');
+% hold on
 % %plot(fovals(sysA.matS,100),'-b','DisplayName','Numerical range');
 % grid on; box on;
 % title(['Benchmark "' benchmark '" — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
-% 
-% rezu1 = ["real", "imag"];
-% rezu2 = [real(eigenvalS), imag(eigenvalS)];
-% name = sprintf('output/spectrumHDG_%s_P%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 end

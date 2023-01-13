@@ -1,10 +1,11 @@
-function errorL2sol = computeNormError1D_DG(mesh, dofm, mySol, vecSol)
+function [normErr, normSol] = computeNormError1D_DG(mesh, dofm, mySol, vecSol)
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
 
-errorL2sol2 = 0;
+normSol2 = 0;
+normErr2 = 0;
 for e=1:mesh.numE
     
     coord1 = mesh.coordV(mesh.listE(e,1));
@@ -13,21 +14,23 @@ for e=1:mesh.numE
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
     % Building the approximate solution
-    solNum = zeros(1,Q);
+    numQ = zeros(1,Q);
     for n=1:dofm.numDofPerE
-        solNum = solNum + vecSol(dofm.locToGlo(e,n)) * (shapeFunc(:,n))';
+        numQ = numQ + vecSol(dofm.locToGlo(e,n)) * (shapeFunc(:,n))';
     end
     
     % Building the reference solution
-    solRef = mySol(coordGlo);
+    refQ = mySol(coordGlo);
     
     % Building the error
-    errNum = solNum(:) - solRef(:);
+    errQ = numQ(:) - refQ(:);
     
     % Compute the errors
-    errorL2sol2 = errorL2sol2 + weights(:)' * (errNum .* conj(errNum)) * (length/2) ;
+    normSol2  = normSol2  + weights(:)' * (refQ.*conj(refQ)) * (length/2) ;
+    normErr2 = normErr2 + weights(:)' * (errQ.*conj(errQ)) * (length/2) ;
 end
 
-errorL2sol = sqrt(errorL2sol2);
+normSol = sqrt(normSol2);
+normErr = sqrt(normErr2)/normSol;
 
 end

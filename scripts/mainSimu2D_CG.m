@@ -1,4 +1,4 @@
-close all;
+%close all;
 clear all;
 
 global k
@@ -25,10 +25,12 @@ dofm = buildDofManager2D_CG(mesh, degree);
 
 Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% =========================================================================
+% Compute solution and error
+% =========================================================================
 
 disp(['---------------------------------------------------------']);
-disp(['Method CG']);
+disp(['Method CG - Benchmark "' benchmark '"']);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
@@ -36,11 +38,9 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution/error
 [solA, sysA] = computeSolNum2D_CG(mesh, dofm);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 
-% Compute projection solution/error
 solP = computeSolProjL2_2D_CG(mesh, dofm);
 errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
 
@@ -50,17 +50,19 @@ disp(['---------------------------------------------------------']);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% =========================================================================
+% Write and vizu solution
+% =========================================================================
 
-% Write and show solution
 writeField(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 writeField(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
 system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% =========================================================================
+% Compute eigenvalues/eigenvectors
+% =========================================================================
 
-% % Compute eigenvalues/eigenvectors 
 % mat = sysA.matA;
 % [eigenvec,eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
@@ -82,9 +84,10 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% =========================================================================
 % Compute iterative solution
+% =========================================================================
+
 solver = 'CGN';
 switch solver
     case 'CGN'
