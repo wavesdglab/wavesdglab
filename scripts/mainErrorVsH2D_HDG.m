@@ -43,11 +43,11 @@ for i = 1:size(hList,2)
     Ndof(i) = dofm.numDofTRI;
     [solA, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau, 0);
     [errorL2(i)] = computeNormError2D_DG(mesh, dofm, solA);
-    [solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
+    solP = computeSolProjL2_2D_DG(mesh, dofm);
     [errorProjL2(i)] = computeNormError2D_DG(mesh, dofm, solP);
     [solApost, dofmPost] = computeSolPostPro2D_DG(mesh, dofm, solA);
     [errorPostL2(i)] = computeNormError2D_DG(mesh, dofmPost, solApost);
-    [solPpost, ~] = computeSolProjL2_2D_DG(mesh, dofmPost);
+    solPpost = computeSolProjL2_2D_DG(mesh, dofmPost);
     [errorProjPostL2(i)] = computeNormError2D_DG(mesh, dofmPost, solPpost);
     fprintf('   Errors:  %i  %i \n', errorL2(i), errorPostL2(i));
     condGlo(i) = condest(sysA.matS);

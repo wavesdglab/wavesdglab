@@ -1,4 +1,4 @@
-function [solA, sysA, condLoc] = computeSolNum2D_UDG(mesh, dofm, tau, prec)
+function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, prec)
 
 global k
 

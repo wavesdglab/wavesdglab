@@ -1,8 +1,6 @@
 close all;
 clear all;
 
-headers1D()
-
 x = -1:0.01:1;
 degree = 10;
 

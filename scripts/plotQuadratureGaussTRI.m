@@ -1,8 +1,6 @@
 %close all;
 clear all;
 
-headers2D()
-
 degree = 20;
 [x, y, weights] = quadratureGaussTRI(degree);
 

@@ -1,8 +1,6 @@
 %close all;
 %clear all;
 
-headers2D()
-
 degree = 4;
 
 x = -1:0.01:1;

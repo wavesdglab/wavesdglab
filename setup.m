@@ -1,7 +1,9 @@
-function path2D()
+function setup()
 
+addpath(genpath('benchmarks1D/'));
 addpath(genpath('benchmarks2D/'));
 addpath(genpath('kernels/'));
+addpath(genpath('scripts/'));
 addpath(genpath('tools/'));
 
 path1 = getenv('PATH');
