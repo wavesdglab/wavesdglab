@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum1D_DG(mesh, dofm, tau, PREC)
+function [solA, sysA] = computeSolNum1D_DG(mesh, dofm, theta, tau, PREC)
 
 global k BCLeft BCRight
 
@@ -46,6 +46,9 @@ rhsA = [ rhsP ; rhsU ];
 % Surface terms
 % -------------------------------------------------------------------------
 
+[solPL, ~, solUL] = mySol1D(0);
+[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
+
 for e=1:mesh.numE
     
     % Left
@@ -55,37 +58,37 @@ for e=1:mesh.numE
     if(e > 1)
         idExtP = dofm.locToGlo(e-1,2);
         idExtU = dofm.locToGlo(e-1,2) + dofm.numDof;
-        matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau;
+        matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau * theta;
         matA(idIntP,idIntU) = matA(idIntP,idIntU) - 0.5;
-        matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau;
+        matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau * theta;
         matA(idIntP,idExtU) = matA(idIntP,idExtU) - 0.5;
         matA(idIntU,idIntP) = matA(idIntU,idIntP) - 0.5;
-        matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau;
+        matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau * theta;
         matA(idIntU,idExtP) = matA(idIntU,idExtP) - 0.5;
-        matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau;
+        matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau * theta;
     else
         switch BCLeft
             case 'PER'
                 idExtP = dofm.locToGlo(mesh.numE,2);
                 idExtU = dofm.locToGlo(mesh.numE,2) + dofm.numDof;
-                matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau;
+                matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau * theta;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) - 0.5;
-                matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau;
+                matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau * theta;
                 matA(idIntP,idExtU) = matA(idIntP,idExtU) - 0.5;
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) - 0.5;
-                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau;
+                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau * theta;
                 matA(idIntU,idExtP) = matA(idIntU,idExtP) - 0.5;
-                matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau;
+                matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau * theta;
             case 'DIR'
-                matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau;
+                matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau * theta;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) - 1;
-                rhsA(idIntP) = rhsA(idIntP) + mySolP(0)*tau;
-                rhsA(idIntU) = rhsA(idIntU) + mySolP(0);
-            case 'DIRu'
+                rhsA(idIntP) = rhsA(idIntP) + solPL*tau * theta;
+                rhsA(idIntU) = rhsA(idIntU) + solPL;
+            case 'NEU'
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) - 1;
-                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 1/tau;
-                rhsA(idIntP) = rhsA(idIntP) + mySolU(0);
-                rhsA(idIntU) = rhsA(idIntU) + mySolU(0)/tau;
+                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 1/tau * theta;
+                rhsA(idIntP) = rhsA(idIntP) + solUL;
+                rhsA(idIntU) = rhsA(idIntU) + solUL/tau * theta;
             case 'ABC'
                 matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) - 0.5;
@@ -103,37 +106,37 @@ for e=1:mesh.numE
     if(e < mesh.numE)
         idExtP = dofm.locToGlo(e+1,1);
         idExtU = dofm.locToGlo(e+1,1) + dofm.numDof;
-        matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau;
+        matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau * theta;
         matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5;
-        matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau;
+        matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau * theta;
         matA(idIntP,idExtU) = matA(idIntP,idExtU) + 0.5;
         matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5;
-        matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau;
+        matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau * theta;
         matA(idIntU,idExtP) = matA(idIntU,idExtP) + 0.5;
-        matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau;
+        matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau * theta;
     else
         switch BCRight
             case 'PER'
                 idExtP = dofm.locToGlo(1,1);
                 idExtU = dofm.locToGlo(1,1) + dofm.numDof;
-                matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau;
+                matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5*tau * theta;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5;
-                matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau;
+                matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5*tau * theta;
                 matA(idIntP,idExtU) = matA(idIntP,idExtU) + 0.5;
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5;
-                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau;
+                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5/tau * theta;
                 matA(idIntU,idExtP) = matA(idIntU,idExtP) + 0.5;
-                matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau;
+                matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5/tau * theta;
             case 'DIR'
-                matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau;
+                matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau * theta;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) + 1;
-                rhsA(idIntP) = rhsA(idIntP) + mySolP(mesh.coordV(mesh.numV))*tau;
-                rhsA(idIntU) = rhsA(idIntU) - mySolP(mesh.coordV(mesh.numV));
-            case 'DIRu'
+                rhsA(idIntP) = rhsA(idIntP) + solPR*tau * theta;
+                rhsA(idIntU) = rhsA(idIntU) - solPR;
+            case 'NEU'
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) + 1;
-                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 1/tau;
-                rhsA(idIntP) = rhsA(idIntP) - mySolU(mesh.coordV(mesh.numV));
-                rhsA(idIntU) = rhsA(idIntU) + mySolU(mesh.coordV(mesh.numV))/tau;
+                matA(idIntU,idIntU) = matA(idIntU,idIntU) + 1/tau * theta;
+                rhsA(idIntP) = rhsA(idIntP) - solUR;
+                rhsA(idIntU) = rhsA(idIntU) + solUR/tau * theta;
             case 'ABC'
                 matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5;

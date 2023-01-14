@@ -1,5 +1,6 @@
-function [normErr, normSol] = computeNormError1D_DG(mesh, dofm, mySol, vecSol)
+function [normErr, normSol] = computeNormError1D_DG(mesh, dofm, vecSol)
 
+% Quadrature and shape functions
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
 shapeFunc = functionsShape1D(nodes,dofm.degree);
@@ -20,7 +21,7 @@ for e=1:mesh.numE
     end
     
     % Building the reference solution
-    refQ = mySol(coordGlo);
+    refQ = mySol1D(coordGlo);
     
     % Building the error
     errQ = numQ(:) - refQ(:);

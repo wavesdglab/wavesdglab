@@ -1,5 +1,4 @@
-function [solFull, matA, rhsA, matP] ...
-    = computeSolNum1D_DGcent(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum1D_DGcent(mesh, dofm, PREC)
 
 global k BCLeft BCRight
 
@@ -47,6 +46,9 @@ rhsA = [ rhsP ; rhsU ];
 % Surface terms
 % -------------------------------------------------------------------------
 
+[solPL, ~, solUL] = mySol1D(0);
+[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
+
 for e=1:mesh.numE
     
     % Left
@@ -71,10 +73,10 @@ for e=1:mesh.numE
                 matA(idIntU,idExtP) = matA(idIntU,idExtP) - 0.5;
             case 'DIR'
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) - 1;
-                rhsA(idIntU) = rhsA(idIntU) + mySolP(0);
+                rhsA(idIntU) = rhsA(idIntU) + solPL;
             case 'NEU'
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) - 1;
-                rhsA(idIntP) = rhsA(idIntP) + mySolU(0);
+                rhsA(idIntP) = rhsA(idIntP) + solUL;
             case 'ABC'
                 matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) - 0.5;
@@ -107,10 +109,10 @@ for e=1:mesh.numE
                 matA(idIntU,idExtP) = matA(idIntU,idExtP) + 0.5;
             case 'DIR'
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) + 1;
-                rhsA(idIntU) = rhsA(idIntU) - mySolP(mesh.coordV(mesh.numV));
+                rhsA(idIntU) = rhsA(idIntU) - solPR;
             case 'NEU'
                 matA(idIntU,idIntP) = matA(idIntU,idIntP) + 1;
-                rhsA(idIntP) = rhsA(idIntP) - mySolU(mesh.coordV(mesh.numV));
+                rhsA(idIntP) = rhsA(idIntP) - solUR;
             case 'ABC'
                 matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5;
                 matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5;
