@@ -183,7 +183,7 @@ matA = matA/matP;
 %rhsA = matP\rhsA;
 
 % Compute solution
-solA = sysA.matA\sysA.rhsA;
+solA = matA\rhsA;
 solA = matP\solA;
 
 % Save system

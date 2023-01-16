@@ -1,7 +1,6 @@
-close all;
-clear all;
-
 % This script plots the basis functions for 5 different bases
+
+function plotFunctionsBasisLIN()
 
 x = -1:0.01:1;
 nodes = [-1 -0.5 0 0.5 1];
@@ -66,3 +65,5 @@ legend('$B_0$','$B_1$','$B_2$','$B_3$','$B_4$','Interpreter','latex','FontSize',
 xlabel('$u$','Interpreter','latex','FontSize',16);
 title('Bernstein functions');
 box on
+
+end

@@ -1,5 +1,4 @@
-%close all;
-%clear all;
+function plotFunctionsShapeTRI()
 
 degree = 4;
 
@@ -56,3 +55,5 @@ end
 %     colorbar;
 %     box off;
 % end
+
+end

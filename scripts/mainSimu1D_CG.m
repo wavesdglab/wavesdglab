@@ -1,5 +1,5 @@
 clear all;
-close all;
+%close all;
 
 global k BCLeft BCRight
 
@@ -45,7 +45,7 @@ disp(['---------------------------------------------------------']);
 % Vizu solution
 % -------------------------------------------------------------------------
 
-% plotSol1D_CG(mesh, dofm, solA, 'Numerical solution');
+plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Iterative solution and spectrum

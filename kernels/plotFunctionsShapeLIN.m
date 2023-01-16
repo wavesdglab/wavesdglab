@@ -1,5 +1,4 @@
-close all;
-clear all;
+function plotFunctionsShapeLIN()
 
 x = -1:0.01:1;
 degree = 10;
@@ -45,3 +44,5 @@ for i=1:degree+1
 end
 L2norm = sqrt(L2norm);
 L2norm'
+
+end

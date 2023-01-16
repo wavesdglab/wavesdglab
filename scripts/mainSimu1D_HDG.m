@@ -1,19 +1,19 @@
 clear all;
-close all;
+%close all;
 
 global k BCLeft BCRight
 
 % Define parameters
 degree = 3;
 k = 40;
-nume = 100;
+nume = 200;
 numv = nume+1;
 h = 1/nume;
 tau = 1; % 1i
 resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecMass2 PrecDiag
 BCLeft = 'DIR';
-BCRight = 'DIR';
+BCRight = 'ABC';
 
 % Build mesh and dofManager
 mesh = buildMesh1D(0, 1, numv);
@@ -32,8 +32,8 @@ disp(['    nume                ' num2str(nume)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] = computeSolNum1D_HDG(mesh, dofm, tau);
-errorL2 = computeNormError1D_DG(mesh, dofm, solFull);
+[solA, sysA] = computeSolNum1D_HDG(mesh, dofm, tau);
+errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_1D_DG(mesh, dofm);
 errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);
@@ -41,6 +41,12 @@ errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.6e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.6e')]);
 disp(['---------------------------------------------------------']);
+
+% -------------------------------------------------------------------------
+% Vizu solution
+% -------------------------------------------------------------------------
+
+plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Iterative solution and spectrum

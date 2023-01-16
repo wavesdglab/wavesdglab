@@ -1,12 +1,12 @@
 clear all;
-close all;
+%close all;
 
 global k BCLeft BCRight
 
 % Define parameters
 degree = 3;
 k = 40;
-nume = 100;
+nume = 200;
 numv = nume+1;
 h = 1/nume;
 theta = 1;
@@ -14,7 +14,7 @@ tau = 1; % 1i
 resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecMass2 PrecDiag
 BCLeft = 'DIR';
-BCRight = 'DIR';
+BCRight = 'ABC';
 
 % Build mesh and dofManager
 mesh = buildMesh1D(0, 1, numv);
@@ -44,6 +44,12 @@ errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.6e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.6e')]);
 disp(['---------------------------------------------------------']);
+
+% -------------------------------------------------------------------------
+% Vizu solution
+% -------------------------------------------------------------------------
+
+plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Compute spectrum

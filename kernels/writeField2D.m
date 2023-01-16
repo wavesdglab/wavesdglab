@@ -1,4 +1,4 @@
-function writeField(dofm, mesh, field, nameFile, nameField)
+function writeField2D(dofm, mesh, field, nameFile, nameField)
 
 % Open file
 

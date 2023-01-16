@@ -1,23 +1,23 @@
-% global mesh.numVerBnd   % Number of nodes on the boundary
-% global mesh.numVerInt   % Number of nodes inside the domain
-% global mesh.listVerBnd  % List of nodes on the boundary     [matrix mesh.numVerBnd x 1]
-% global mesh.listVerInt  % List of nodes inside the domain   [matrix mesh.numVerInt x 1]
+% mesh.numVerBnd   % Number of nodes on the boundary
+% mesh.numVerInt   % Number of nodes inside the domain
+% mesh.listVerBnd  % List of nodes on the boundary     [matrix mesh.numVerBnd x 1]
+% mesh.listVerInt  % List of nodes inside the domain   [matrix mesh.numVerInt x 1]
 
-% global mesh.numEdg      % Number of edges
-% global mesh.numEdgBnd   % Number of edges on the boundary
-% global mesh.numEdgInt   % Number of edges inside the domain
-% global mesh.mapEdgToVer % List of edges                     [matrix mesh.numEdg    x 2]
-% global mesh.listEdgBnd  % List of edges on the boundary     [matrix mesh.numEdgBnd    ]
-% global mesh.listEdgInt  % List of edges inside the domain   [matrix mesh.numEdgInt    ]
-% global mesh.tagEdg      % Physical tag for edges            [matrix mesh.numEdg       ]
-% global mesh.tagEdgBnd   % Physical tag for edges on the boundary
+% mesh.numEdg      % Number of edges
+% mesh.numEdgBnd   % Number of edges on the boundary
+% mesh.numEdgInt   % Number of edges inside the domain
+% mesh.mapEdgToVer % List of edges                     [matrix mesh.numEdg    x 2]
+% mesh.listEdgBnd  % List of edges on the boundary     [matrix mesh.numEdgBnd    ]
+% mesh.listEdgInt  % List of edges inside the domain   [matrix mesh.numEdgInt    ]
+% mesh.tagEdg      % Physical tag for edges            [matrix mesh.numEdg       ]
+% mesh.tagEdgBnd   % Physical tag for edges on the boundary
 
-% global mesh.mapTriToEdg % Connectivity Triangle-to-Edge     [matrix mesh.numTri    x 3]
+% mesh.mapTriToEdg % Connectivity Triangle-to-Edge     [matrix mesh.numTri    x 3]
 
-% global mesh.mapTriToTri % Connectivity Triangle-to-Triangle
-% global mesh.mapTriToFac % Connectivity Triangle-to-Face (LocalEdge)
-% global mesh.mapEdgToTri % Connectivity Edge-to-Triangle
-% global mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
+% mesh.mapTriToTri % Connectivity Triangle-to-Triangle
+% mesh.mapTriToFac % Connectivity Triangle-to-Face (LocalEdge)
+% mesh.mapEdgToTri % Connectivity Edge-to-Triangle
+% mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
 
 function mesh = buildMeshConnectivity(mesh)
 

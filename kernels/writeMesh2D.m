@@ -1,4 +1,4 @@
-function writeMesh(mesh, nameFile)
+function writeMesh2D(mesh, nameFile)
 
 % Open file
 
