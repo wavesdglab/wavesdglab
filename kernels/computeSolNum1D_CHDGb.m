@@ -1,57 +1,61 @@
-function [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] ...
-    = computeSolNum1D_UDG1b(mesh, dofm, tau)
+function [solA, sysA] = computeSolNum1D_CHDGb(mesh, dofm, tau)
 
 global k BCLeft BCRight
 
-% Build matrix of the system
-
-[matElemM, matElemK, matElemD] = buildMatrixElem1D(dofm.degree);
-matII = sparse(2*dofm.numDof, 2*dofm.numDof);
-matIIinv = sparse(2*dofm.numDof, 2*dofm.numDof);
-for e=1:mesh.numE
-    coord1 = mesh.coordV(mesh.listE(e,1));
-    coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2 - coord1);
-    matLocM = matElemM * length/2;
-    matLocD = matElemD;
-    
-    matIIloc = [ -1i*k*matLocM -matLocD' ; -matLocD' -1i*k*matLocM ];
-    
-    idGloP = dofm.locToGlo(e,:);
-    idGloU = dofm.locToGlo(e,:) + dofm.numDof;
-    matII([idGloP idGloU],[idGloP idGloU]) = matIIloc;
-    matIIinv([idGloP idGloU],[idGloP idGloU]) = inv(matIIloc);
-end
-
-% Build RHS vector of the system
+% -------------------------------------------------------------------------
+% Quadrature and shape functions
+% -------------------------------------------------------------------------
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+matMelem = shapeQ' * (weights .* shapeQ);
+matDelem = shapeQ' * (weights .* shapeDerQ);
 
-rhsP = zeros(dofm.numDof,1);
-rhsU = zeros(dofm.numDof,1);
+% -------------------------------------------------------------------------
+% Build local systems
+% -------------------------------------------------------------------------
+
+matII = sparse(2*dofm.numDof, 2*dofm.numDof);
+matIIinv = sparse(2*dofm.numDof, 2*dofm.numDof);
+rhsI = zeros(2*dofm.numDof,1);
 for e=1:mesh.numE
     
+    % Mapping
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
     length = abs(coord2 - coord1);
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
-    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
     
-    glo = dofm.locToGlo(e,:);
-    rhsP(glo) = rhsP(glo) + (shapeFunc .* souP).' * weights * (length/2);
-    rhsU(glo) = rhsU(glo) + (shapeFunc .* souU).' * weights * (length/2);
+    % Local RHS vector
+    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    rhsPloc = (shapeQ .* souP).' * weights * (length/2);
+    rhsUloc = (shapeQ .* souU).' * weights * (length/2);
+    
+    % Local matrix
+    matMloc = matMelem * length/2;
+    matDloc = matDelem;
+    matIIloc = [ -1i*k*matMloc -matDloc' ; -matDloc' -1i*k*matMloc ];
+    
+    % Assembling
+    glo = [dofm.locToGlo(e,:) dofm.locToGlo(e,:)+dofm.numDof];
+    matII(glo,glo) = matIIloc;
+    matIIinv(glo,glo) = inv(matIIloc);
+    rhsI(glo) = rhsI(glo) + [rhsPloc ; rhsUloc];
 end
-rhsA = [ rhsP ; rhsU ];
 
+% -------------------------------------------------------------------------
 % Build characteristic variables
+% -------------------------------------------------------------------------
+
+[solPL, ~, solUL] = mySol1D(0);
+[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
 
 matGG = sparse(1:2*mesh.numV, 1:2*mesh.numV, 1);
 matGI = sparse(2*mesh.numV, 2*dofm.numDof);
 matIG = sparse(2*dofm.numDof, 2*mesh.numV);
 rhsG = zeros(2*mesh.numV, 1);
-
 for e=1:mesh.numE
     
     % Left
@@ -107,11 +111,11 @@ for v=1:mesh.numV
             case 'DIR'
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = -1;
-                rhsG(idChar) = 2*tau*mySolP(0);
+                rhsG(idChar) = 2*tau*solPL;
             case 'NEU'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = +1;
-                rhsG(idChar) = 2*mySolU(0);
+                rhsG(idChar) = 2*solUL;
             case 'ABC'
                 % (nothing to do)
             otherwise
@@ -138,11 +142,11 @@ for v=1:mesh.numV
             case 'DIR'
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = +1;
-                rhsG(idChar) = 2*tau*mySolP(mesh.coordV(mesh.numV));
+                rhsG(idChar) = 2*tau*solPR;
             case 'NEU'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = -1;
-                rhsG(idChar) = -2*mySolU(mesh.coordV(mesh.numV));
+                rhsG(idChar) = -2*solUR;
             case 'ABC'
                 % (nothing to do)
             otherwise
@@ -152,19 +156,40 @@ for v=1:mesh.numV
     
 end
 
+% -------------------------------------------------------------------------
 % Build and solve full system
+% -------------------------------------------------------------------------
 
+% Build full system
 matA = [ matII matIG ; matGI matGG ];
 rhsA = [ rhsI ; rhsG ];
-solA = matA\rhsA;
-solFull = solA(1:2*dofm.numDof);
 
-% Build and solve reduced system
-
+% Build reduced system
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
+
+% Build physical system
+matPhy = matII - matIG*(matGG\matGI);
+rhsPhy = rhsI - matIG*(matGG\rhsG);
+
+% Compute solution
 solG = matS\rhsS;
-solI = matIIinv*(rhsI-matIG*solG);
-solRedu = solI;
+solA = matIIinv*(rhsI-matIG*solG);
+
+% Save system
+sysA.matII = matII;
+sysA.matIG = matIG;
+sysA.matGI = matGI;
+sysA.matGG = matGG;
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = inv(matGG);
+sysA.rhsI = rhsI;
+sysA.rhsG = rhsG;
+sysA.matA = matA;
+sysA.rhsA = rhsA;
+sysA.matS = matS;
+sysA.rhsS = rhsS;
+sysA.matPhy = matPhy;
+sysA.rhsPhy = rhsPhy;
 
 end

@@ -1,5 +1,4 @@
-function [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] ...
-    = computeSolNum1D_HDG(mesh, dofm, tau)
+function [solA, sysA] = computeSolNum1D_HDG(mesh, dofm, tau)
 
 global k BCLeft BCRight
 
@@ -15,28 +14,31 @@ matMelem = shapeQ' * (weights .* shapeQ);
 matDelem = shapeQ' * (weights .* shapeDerQ);
 
 % -------------------------------------------------------------------------
-% Volume terms
+% Build local systems
 % -------------------------------------------------------------------------
 
 matII = sparse(2*dofm.numDof, 2*dofm.numDof);
 matIIinv = sparse(2*dofm.numDof, 2*dofm.numDof);
-
-rhsP = zeros(dofm.numDof,1);
-rhsU = zeros(dofm.numDof,1);
-
+rhsI = zeros(2*dofm.numDof,1);
 for e=1:mesh.numE
+    
+    % Mapping
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
     length = abs(coord2 - coord1);
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
+    % Local RHS vector
+    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    rhsPloc = (shapeQ .* souP).' * weights * (length/2);
+    rhsUloc = (shapeQ .* souU).' * weights * (length/2);
     
+    % Local matrix
     matMloc = matMelem * length/2;
     matDloc = matDelem;
-    
     matIIloc = [ -1i*k*matMloc -matDloc' ; -matDloc' -1i*k*matMloc ];
     
-    % Left
+    % Left local BC
     idIntP = 1;
     idIntU = 1+dofm.numDofPerE;
     matIIloc(idIntP,idIntP) = matIIloc(idIntP,idIntP) + tau;
@@ -45,7 +47,7 @@ for e=1:mesh.numE
         matIIloc(idIntP,idIntP) = matIIloc(idIntP,idIntP) - tau + 1;
     end
     
-    % Right
+    % Right local BC
     idIntP = 2;
     idIntU = 2+dofm.numDofPerE;
     matIIloc(idIntP,idIntP) = matIIloc(idIntP,idIntP) + tau;
@@ -54,31 +56,24 @@ for e=1:mesh.numE
         matIIloc(idIntP,idIntP) = matIIloc(idIntP,idIntP) - tau + 1;
     end
     
-    idGloP = dofm.locToGlo(e,:);
-    idGloU = dofm.locToGlo(e,:) + dofm.numDof;
-    matII([idGloP idGloU],[idGloP idGloU]) = matIIloc;
-    matIIinv([idGloP idGloU],[idGloP idGloU]) = inv(matIIloc);
-    
-    % Source term
-    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
-    
     % Assembling
-    glo = dofm.locToGlo(e,:);
-    rhsP(glo) = rhsP(glo) + (shapeQ .* souP).' * weights * (length/2);
-    rhsU(glo) = rhsU(glo) + (shapeQ .* souU).' * weights * (length/2);
+    glo = [dofm.locToGlo(e,:) dofm.locToGlo(e,:)+dofm.numDof]';
+    matII(glo,glo) = matIIloc;
+    matIIinv(glo,glo) = inv(matIIloc);
+    rhsI(glo) = rhsI(glo) + [rhsPloc ; rhsUloc];
 end
-rhsI = [ rhsP ; rhsU ];
 
+% -------------------------------------------------------------------------
 % Build coupling variables (Pstar)
+% -------------------------------------------------------------------------
+
+[solPL, ~, solUL] = mySol1D(0);
+[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
 
 matGG = sparse(mesh.numV, mesh.numV);
 matGI = sparse(mesh.numV, 2*dofm.numDof);
 matIG = sparse(2*dofm.numDof, mesh.numV);
 rhsG = zeros(mesh.numV, 1);
-
-[solPL, ~, solUL] = mySol1D(0);
-[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
-
 for e=1:mesh.numE
     
     % Left
@@ -151,19 +146,40 @@ for e=1:mesh.numE
     
 end
 
+% -------------------------------------------------------------------------
 % Build and solve full system
+% -------------------------------------------------------------------------
 
+% Build full system
 matA = [ matII matIG ; matGI matGG ];
 rhsA = [ rhsI ; rhsG ];
-solA = matA\rhsA;
-solFull = solA(1:2*dofm.numDof);
 
-% Build and solve reduced system
-
+% Build reduced system
 matS = matGG - matGI*(matIIinv*matIG);
 rhsS = rhsG - matGI*(matIIinv*rhsI);
+
+% Build physical system
+matPhy = matII - matIG*(matGG\matGI);
+rhsPhy = rhsI - matIG*(matGG\rhsG);
+
+% Compute solution
 solG = matS\rhsS;
-solI = matIIinv*(rhsI-matIG*solG);
-solRedu = solI;
+solA = matIIinv*(rhsI-matIG*solG);
+
+% Save system
+sysA.matII = matII;
+sysA.matIG = matIG;
+sysA.matGI = matGI;
+sysA.matGG = matGG;
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = inv(matGG);
+sysA.rhsI = rhsI;
+sysA.rhsG = rhsG;
+sysA.matA = matA;
+sysA.rhsA = rhsA;
+sysA.matS = matS;
+sysA.rhsS = rhsS;
+sysA.matPhy = matPhy;
+sysA.rhsPhy = rhsPhy;
 
 end

@@ -30,14 +30,14 @@ for e=1:mesh.numE
     length = abs(coord2 - coord1);
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
-    % Source terms
+    % Local RHS vector
     [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
-    
-    % Local matrices and RHS vector
-    matMloc = matMelem * length/2;
-    matDloc = matDelem;
     rhsPloc = (shapeQ .* souP).' * weights * (length/2);
     rhsUloc = (shapeQ .* souU).' * weights * (length/2);
+    
+    % Local matrices
+    matMloc = matMelem * length/2;
+    matDloc = matDelem;
     
     % Assembling
     glo = dofm.locToGlo(e,:);
@@ -162,7 +162,6 @@ end
 % -------------------------------------------------------------------------
 
 % Preconditioning
-
 switch PREC
     case 'PrecMass'
         matP = [matM zeros(size(matM,1)) ; zeros(size(matM,1)) matM];
@@ -173,7 +172,6 @@ switch PREC
     otherwise
         matP = 1;
 end
-
 matA = matA/matP;
 
 %matA = matP\matA;
@@ -184,12 +182,12 @@ matA = matA/matP;
 %matA = matP\(matA/matP);
 %rhsA = matP\rhsA;
 
-sysA.matA = matA;
-sysA.rhsA = rhsA;
-
 % Compute solution
-
 solA = sysA.matA\sysA.rhsA;
 solA = matP\solA;
+
+% Save system
+sysA.matA = matA;
+sysA.rhsA = rhsA;
 
 end

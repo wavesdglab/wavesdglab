@@ -32,9 +32,9 @@ disp(['    nume                ' num2str(nume)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] =  computeSolNum1D_UDG1(mesh, dofm, tau);
-%[solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] =  computeSolNum1D_UDG1b(mesh, dofm, tau);
-errorL2 = computeNormError1D_DG(mesh, dofm, solFull);
+[solA, sysA] =  computeSolNum1D_CHDG(mesh, dofm, tau);
+%[solA, sysA] =  computeSolNum1D_CHDGb(mesh, dofm, tau);
+errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_1D_DG(mesh, dofm);
 errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);

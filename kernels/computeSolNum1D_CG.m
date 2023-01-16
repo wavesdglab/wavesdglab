@@ -125,7 +125,6 @@ end
 % -------------------------------------------------------------------------
 
 % Preconditionning
-
 matA = matA/matP;
 
 %matA = matP\matA;
@@ -136,11 +135,9 @@ matA = matA/matP;
 %matA = matP\(matA/matP);
 %rhsA = matP\rhsA;
 
-% Reduced system
-
+% Save system
 dofG = 1:dofm.numDofGam;
 dofI = (1:dofm.numDofInt) + dofm.numDofGam;
-
 sysA.matII = matA(dofI,dofI);
 sysA.matIIinv = inv(sysA.matII);
 sysA.matIG = matA(dofI,dofG);
@@ -154,7 +151,6 @@ sysA.rhsA = rhsA;
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Compute solution
-
 solG = sysA.matS\sysA.rhsS;
 solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
