@@ -8,63 +8,47 @@ global k BCLeft BCRight
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+matMelem = shapeQ' * (weights .* shapeQ);
+matKelem = shapeDerQ' * (weights .* shapeDerQ);
 
 % -------------------------------------------------------------------------
 % Volume terms
 % -------------------------------------------------------------------------
 
-[matElemM, matElemK] = buildMatrixElem1D(dofm.degree);
-
-matMgg = sparse(dofm.numDofGam, dofm.numDofGam);
-matMgi = sparse(dofm.numDofGam, dofm.numDofInt);
-matMig = sparse(dofm.numDofInt, dofm.numDofGam);
-matMii = sparse(dofm.numDofInt, dofm.numDofInt);
-
-matKgg = sparse(dofm.numDofGam, dofm.numDofGam);
-matKgi = sparse(dofm.numDofGam, dofm.numDofInt);
-matKig = sparse(dofm.numDofInt, dofm.numDofGam);
-matKii = sparse(dofm.numDofInt, dofm.numDofInt);
-
+matM = sparse(dofm.numDof, dofm.numDof);
+matK = sparse(dofm.numDof, dofm.numDof);
 rhsA = zeros(dofm.numDof,1);
 
 for e=1:mesh.numE
-    coord1 = mesh.coordV(mesh.listE(e,1));
-    coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2 - coord1);
     
-    matLocM = matElemM * length/2;
-    matLocK = matElemK * 2/length;
-    
-    glo = dofm.locToGlo(e,:);
-    gloG = glo(1:2);
-    gloI = glo(3:end)-dofm.numDofGam;
-    
-    matMgg(gloG,gloG) = matMgg(gloG,gloG) + matLocM(1:2,1:2);
-    matMgi(gloG,gloI) = matMgi(gloG,gloI) + matLocM(1:2,3:end);
-    matMig(gloI,gloG) = matMig(gloI,gloG) + matLocM(3:end,1:2);
-    matMii(gloI,gloI) = matMii(gloI,gloI) + matLocM(3:end,3:end);
-    
-    matKgg(gloG,gloG) = matKgg(gloG,gloG) + matLocK(1:2,1:2);
-    matKgi(gloG,gloI) = matKgi(gloG,gloI) + matLocK(1:2,3:end);
-    matKig(gloI,gloG) = matKig(gloI,gloG) + matLocK(3:end,1:2);
-    matKii(gloI,gloI) = matKii(gloI,gloI) + matLocK(3:end,3:end);
-    
+    % Mapping
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
     length = abs(coord2 - coord1);
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    
+    % Source term
     [~, ~, ~, rhsVol, ~, ~] = mySol1D(coordGlo);
     
+    % Local matrices and RHS vector
+    matMloc = matMelem * length/2;
+    matKloc = matKelem * 2/length;
+    rhsAloc = (shapeQ .* rhsVol).' * weights * (length/2);
+    
+    % Assembling
     glo = dofm.locToGlo(e,:);
-    rhsA(glo) = rhsA(glo) + (shapeFunc .* rhsVol).' * weights * (length/2);
+    matM(glo,glo) = matM(glo,glo) + matMloc;
+    matK(glo,glo) = matK(glo,glo) + matKloc;
+    rhsA(glo) = rhsA(glo) + rhsAloc;
 end
 
-matM = [ matMgg matMgi ; matMig matMii ];
-matK = [ matKgg matKgi ; matKig matKii ];
 matA = matK - k^2 * matM;
 
+% -------------------------------------------------------------------------
 % Preconditionning
+% -------------------------------------------------------------------------
 
 switch PREC
     case 'PrecMass'

@@ -8,13 +8,14 @@ global k BCLeft BCRight
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+matMelem = shapeQ' * (weights .* shapeQ);
+matDelem = shapeQ' * (weights .* shapeDerQ);
 
 % -------------------------------------------------------------------------
 % Volume terms
 % -------------------------------------------------------------------------
-
-[matElemM, ~, matElemD] = buildMatrixElem1D(dofm.degree);
 
 matM = sparse(dofm.numDof, dofm.numDof);
 matD = sparse(dofm.numDof, dofm.numDof);
@@ -22,21 +23,28 @@ rhsP = zeros(dofm.numDof,1);
 rhsU = zeros(dofm.numDof,1);
 
 for e=1:mesh.numE
+    
+    % Mapping
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
     length = abs(coord2 - coord1);
-    
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    
+    % Source terms
     [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
     
-    matLocM = matElemM * length/2;
-    matLocD = matElemD;
+    % Local matrices and RHS vector
+    matMloc = matMelem * length/2;
+    matDloc = matDelem;
+    rhsPloc = (shapeQ .* souP).' * weights * (length/2);
+    rhsUloc = (shapeQ .* souU).' * weights * (length/2);
     
+    % Assembling
     glo = dofm.locToGlo(e,:);
-    matM(glo,glo) = matM(glo,glo) + matLocM;
-    matD(glo,glo) = matD(glo,glo) + matLocD;
-    rhsP(glo) = rhsP(glo) + (shapeFunc .* souP).' * weights * (length/2);
-    rhsU(glo) = rhsU(glo) + (shapeFunc .* souU).' * weights * (length/2);
+    matM(glo,glo) = matM(glo,glo) + matMloc;
+    matD(glo,glo) = matD(glo,glo) + matDloc;
+    rhsP(glo) = rhsP(glo) + rhsPloc;
+    rhsU(glo) = rhsU(glo) + rhsUloc;
 end
 
 matA = [ -1i*k*matM -matD' ; -matD' -1i*k*matM ];

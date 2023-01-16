@@ -13,16 +13,16 @@ theta = 1;
 tau = 1; % 1i
 resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecMass2 PrecDiag
-BCLeft = 'PER';
-BCRight = 'PER';
+BCLeft = 'DIR';
+BCRight = 'DIR';
 
 % Build mesh and dofManager
 mesh = buildMesh1D(0, 1, numv);
 dofm = buildDofManager1D_DG(mesh, degree);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Compute solution and error
-% =========================================================================
+% -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
 disp(['Method DG - Benchmark ' BCLeft '/' BCRight ]);
@@ -41,13 +41,13 @@ errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 solP = computeSolProjL2_1D_DG(mesh, dofm);
 errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);
 
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.8e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.8e')]);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.6e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.6e')]);
 disp(['---------------------------------------------------------']);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Compute spectrum
-% =========================================================================
+% -------------------------------------------------------------------------
 
 % [vecSolIterA,~,~,iterA,resvecA] = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
 % vecSolIterA = matP\vecSolIterA;
@@ -100,9 +100,9 @@ disp(['---------------------------------------------------------']);
 %     num2str(normL2errSolJacobiA / normL2sol,'%.1e') ' \\'
 %     ]);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Vizu
-% =========================================================================
+% -------------------------------------------------------------------------
 
 % Eigenvalues and numerical range
 

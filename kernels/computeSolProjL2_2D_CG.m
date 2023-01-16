@@ -1,16 +1,14 @@
 function [solP, sysP] = computeSolProjL2_2D_CG(mesh, dofm)
 
-matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
-rhsP = zeros(dofm.numDofTRI, 1);
-
-% Quadrature
+% Quadrature and shape functions
 degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-
-% Shape functions
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
+% Build matrix and RHS vector
+matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
+rhsP = zeros(dofm.numDofTRI, 1);
 for tri=1:mesh.numTri
     
     % Mapping
@@ -22,8 +20,8 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     detJdxdu = abs(det(Jdxdu));
     
-    % RHS function
-    solQ = mySol(xQ, yQ);
+    % Reference solution
+    refQ = mySol(xQ, yQ);
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -41,15 +39,14 @@ for tri=1:mesh.numTri
     % Shape functions with orientation
     shapeOrQ = shapeQ * orientation;
     
-    % Elemental matrices
+    % Local matrix and RHS vector
     matPel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
-    rhsPel = shapeOrQ' * weights * solQ * detJdxdu;
+    rhsPel = shapeOrQ' * weights * refQ * detJdxdu;
     
-    % Matrix assembling
+    % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
     rhsP(dof) = rhsP(dof) + rhsPel;
-    
 end
 
 % Solution

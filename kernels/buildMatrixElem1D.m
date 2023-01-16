@@ -19,4 +19,8 @@ for i=1:N
     end
 end
 
+matM = valQ' * (weights .* valQ);
+matK = derQ' * (weights .* derQ);
+matD = valQ' * (weights .* derQ);
+
 end

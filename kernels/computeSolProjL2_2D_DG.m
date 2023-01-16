@@ -1,20 +1,18 @@
 function [sol] = computeSolProjL2_2D_DG(mesh, dofm)
 
-matPx = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
-matPy = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
-matPv = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
-rhsU  = zeros(dofm.numDofTRI, 1);
-rhsVx = zeros(dofm.numDofTRI, 1);
-rhsVy = zeros(dofm.numDofTRI, 1);
-
-% Quadrature
+% Quadrature and shape functions
 degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-
-% Shape functions
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
+% Build matrix and RHS vector
+matPx = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
+matPy = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
+matPv = zeros(mesh.numTri*dofm.numDofPerTRI, dofm.numDofPerTRI);
+rhsU  = zeros(dofm.numDofTRI,1);
+rhsVx = zeros(dofm.numDofTRI,1);
+rhsVy = zeros(dofm.numDofTRI,1);
 for tri=1:mesh.numTri
     
     % Mapping
@@ -26,7 +24,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     detJdxdu = abs(det(Jdxdu));
     
-    % RHS function
+    % Reference solution
     [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     
     % Orientation
@@ -45,13 +43,13 @@ for tri=1:mesh.numTri
     % Shape functions with orientation
     shapeOrQ = shapeQ * orientation;
     
-    % Elemental matrices
+    % Local matrix and RHS vector
     matPel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
     rhsUel = shapeOrQ' * weights * refQ * detJdxdu;
     rhsVxel = shapeOrQ' * weights * refVxQ * detJdxdu;
     rhsVyel = shapeOrQ' * weights * refVyQ * detJdxdu;
     
-    % Matrix assembling
+    % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matPx(dof,:) = dof'*ones(1,dofm.numDofPerTRI);
     matPy(dof,:) = ones(dofm.numDofPerTRI,1)*dof;

@@ -6,7 +6,7 @@ global k BCLeft BCRight
 % Setup benchmark and parameters
 degree = 3;
 k = 40;
-nume = 100;
+nume = 200;
 numv = nume+1;
 h = 1/nume;
 resTol = 1e-4;
@@ -19,9 +19,9 @@ BCRight = 'ABC';
 mesh = buildMesh1D(0, 1, numv);
 dofm = buildDofManager1D_CG(mesh, degree);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Compute solution and error
-% =========================================================================
+% -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
 disp(['Method CG - Benchmark ' BCLeft '/' BCRight ]);
@@ -37,19 +37,19 @@ errorL2 = computeNormError1D_CG(mesh, dofm, solA);
 solP = computeSolProjL2_1D_CG(mesh, dofm);
 errorProjL2 = computeNormError1D_CG(mesh, dofm, solP);
 
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.6e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.6e')]);
 disp(['---------------------------------------------------------']);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Vizu solution
-% =========================================================================
+% -------------------------------------------------------------------------
 
-plotSol1D_CG(mesh, dofm, solA, 'Numerical solution');
+% plotSol1D_CG(mesh, dofm, solA, 'Numerical solution');
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Iterative solution and spectrum
-% =========================================================================
+% -------------------------------------------------------------------------
 
 % [matM, matK, matD] = buildMatrixGlo1D_CG(mesh, dofm);
 % [vecSolIterA,~,~,iterA,resvecA] = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
@@ -162,9 +162,9 @@ plotSol1D_CG(mesh, dofm, solA, 'Numerical solution');
 %     num2str(normL2errSolJacobiS / normL2sol,'%.1e') ' \\'
 %     ]);
 
-% =========================================================================
+% -------------------------------------------------------------------------
 % Vizu
-% =========================================================================
+% -------------------------------------------------------------------------
 
 % Eigenvalues and numerical range
 

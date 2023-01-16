@@ -3,19 +3,42 @@ function [solFull, matA, rhsA, solRedu, matS, rhsS, matIIinv, matIG, rhsI] ...
 
 global k BCLeft BCRight
 
-% Build matrix of the system
+% -------------------------------------------------------------------------
+% Quadrature and shape functions
+% -------------------------------------------------------------------------
 
-[matElemM, ~, matElemD] = buildMatrixElem1D(dofm.degree);
-matII = sparse(2*dofm.numDof, 2*dofm.numDof);
+Q = 16;
+[nodes, weights] = quadratureGaussLIN(Q);
+shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+matMelem = shapeQ' * (weights .* shapeQ);
+matDelem = shapeQ' * (weights .* shapeDerQ);
+
+% -------------------------------------------------------------------------
+% Volume terms
+% -------------------------------------------------------------------------
+
+matII    = sparse(2*dofm.numDof, 2*dofm.numDof);
 matIIinv = sparse(2*dofm.numDof, 2*dofm.numDof);
+rhsI     = zeros(2*dofm.numDof,1);
 for e=1:mesh.numE
+    
+    % Mapping
     coord1 = mesh.coordV(mesh.listE(e,1));
     coord2 = mesh.coordV(mesh.listE(e,2));
     length = abs(coord2 - coord1);
-    matLocM = matElemM * length/2;
-    matLocD = matElemD;
+    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
-    matIIloc = [ -1i*k*matLocM -matLocD' ; -matLocD' -1i*k*matLocM ];
+    % Source term
+    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    
+    % Local matrices and RHS vectors
+    matMloc = matMelem * length/2;
+    matDloc = matDelem;
+    rhsPloc = (shapeQ .* souP).' * weights * (length/2);
+    rhsUloc = (shapeQ .* souU).' * weights * (length/2);
+    
+    matIIloc = [ -1i*k*matMloc -matDloc' ; -matDloc' -1i*k*matMloc ];
     
     % Left
     idIntP = 1;
@@ -41,35 +64,21 @@ for e=1:mesh.numE
         matIIloc(idIntU,idIntU) = matIIloc(idIntU,idIntU) - 0.5/tau + 0.5;
     end
     
-    idGloP = dofm.locToGlo(e,:);
-    idGloU = dofm.locToGlo(e,:) + dofm.numDof;
-    matII([idGloP idGloU],[idGloP idGloU]) = matIIloc;
-    matIIinv([idGloP idGloU],[idGloP idGloU]) = inv(matIIloc);
+    % Assembling
+    glo = [dofm.locToGlo(e,:) ; dofm.locToGlo(e,:)+dofm.numDof];
+    size(dofm.locToGlo(e,:))
+    size(dofm.locToGlo(e,:)+dofm.numDof)
+    matII(glo,glo) = matIIloc;
+    matIIinv(glo,glo) = inv(matIIloc);
+    size(glo)
+    size([rhsPloc ; rhsUloc])
+    rhsI(glo) = rhsI(glo) + [rhsPloc ; rhsUloc];
 end
-
-% Build RHS vector of the system
-
-Q = 16;
-[nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,dofm.degree);
-
-rhsP = zeros(dofm.numDof,1);
-rhsU = zeros(dofm.numDof,1);
-for e=1:mesh.numE
-    
-    coord1 = mesh.coordV(mesh.listE(e,1));
-    coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2 - coord1);
-    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
-    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
-    
-    glo = dofm.locToGlo(e,:);
-    rhsP(glo) = rhsP(glo) + (shapeFunc .* souP).' * weights * (length/2);
-    rhsU(glo) = rhsU(glo) + (shapeFunc .* souU).' * weights * (length/2);
-end
-rhsA = [ rhsP ; rhsU ];
 
 % Build characteristic variables
+
+[solPL, ~, solUL] = mySol1D(0);
+[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
 
 matGG = sparse(1:2*mesh.numE, 1:2*mesh.numE, 1);
 matGI = sparse(2*mesh.numE, 2*dofm.numDof);
@@ -95,11 +104,11 @@ for e=1:mesh.numE
             case 'DIR'
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = -1;
-                rhsG(idChar) = 2*tau*mySolP(0);
+                rhsG(idChar) = 2*tau*solPL;
             case 'DIRu'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = +1;
-                rhsG(idChar) = 2*mySolU(0);
+                rhsG(idChar) = 2*solUL;
             case 'ABC'
                 % (nothing to do)
             otherwise
@@ -124,11 +133,11 @@ for e=1:mesh.numE
             case 'DIR'
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = +1;
-                rhsG(idChar) = 2*tau*mySolP(mesh.coordV(mesh.numV));
+                rhsG(idChar) = 2*tau*solPR;
             case 'DIRu'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = -1;
-                rhsG(idChar) = -2*mySolU(mesh.coordV(mesh.numV));
+                rhsG(idChar) = -2*solUR;
             case 'ABC'
                 % (nothing to do)
             otherwise
