@@ -20,7 +20,7 @@ degree = 3;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
-mesh = buildMeshConnectivity(mesh);
+mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree);
 
 Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
@@ -54,9 +54,9 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
 system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
