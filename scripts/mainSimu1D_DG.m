@@ -6,9 +6,7 @@ global k BCLeft BCRight
 % Define parameters
 degree = 3;
 k = 40;
-nume = 200;
-numv = nume+1;
-h = 1/nume;
+numE = 200;
 theta = 1;
 tau = 1; % 1i
 resTol = 1e-4;
@@ -17,7 +15,7 @@ BCLeft = 'DIR';
 BCRight = 'ABC';
 
 % Build mesh and dofManager
-mesh = buildMesh1D(0, 1, numv);
+mesh = buildMesh1D(0, 1, numE);
 dofm = buildDofManager1D_DG(mesh, degree);
 
 % -------------------------------------------------------------------------
@@ -27,9 +25,10 @@ dofm = buildDofManager1D_DG(mesh, degree);
 disp(['---------------------------------------------------------']);
 disp(['Method DG - Benchmark ' BCLeft '/' BCRight ]);
 disp(['---------------------------------------------------------']);
-disp(['    degree              ' num2str(degree)]);
 disp(['    k                   ' num2str(k)]);
-disp(['    nume                ' num2str(nume)]);
+disp(['    h                   ' num2str(1/numE)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['    numE                ' num2str(numE)]);
 disp(['    theta               ' num2str(theta)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['    PREC                ' PREC]);

@@ -19,7 +19,7 @@
 % mesh.mapEdgToTri % Connectivity Edge-to-Triangle
 % mesh.mapEdgToFac % Connectivity Edge-to-Face (LocalEdge)
 
-function mesh = buildMeshConnectivity(mesh)
+function mesh = buildConnectivity2D(mesh)
 
 % -------------------------------------------------------------------------
 % List of boundary/interior edges + Connectivity

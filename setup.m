@@ -1,9 +1,8 @@
 function setup()
 
-addpath(genpath('benchmarks1D/'));
-addpath(genpath('benchmarks2D/'));
-addpath(genpath('kernels/'));
+addpath(genpath('benchmarks/'));
 addpath(genpath('scripts/'));
+addpath(genpath('sources/'));
 addpath(genpath('tools/'));
 
 path1 = getenv('PATH');

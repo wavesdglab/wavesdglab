@@ -6,9 +6,7 @@ global k BCLeft BCRight
 % Setup benchmark and parameters
 degree = 3;
 k = 40;
-nume = 200;
-numv = nume+1;
-h = 1/nume;
+numE = 200;
 resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecDiag PrecShiftLap
 alphaPrec = 1; % 1+1i
@@ -16,7 +14,7 @@ BCLeft = 'DIR';
 BCRight = 'ABC';
 
 % Build mesh and DOF manager
-mesh = buildMesh1D(0, 1, numv);
+mesh = buildMesh1D(0, 1, numE);
 dofm = buildDofManager1D_CG(mesh, degree);
 
 % -------------------------------------------------------------------------
@@ -27,8 +25,9 @@ disp(['---------------------------------------------------------']);
 disp(['Method CG - Benchmark ' BCLeft '/' BCRight ]);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
-disp(['    h                   ' num2str(h)]);
+disp(['    h                   ' num2str(1/numE)]);
 disp(['    degree              ' num2str(degree)]);
+disp(['    numE                ' num2str(numE)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum1D_CG(mesh, dofm, PREC, alphaPrec);

@@ -2,19 +2,25 @@ function dofm = buildDofManager1D_CG(mesh, degree)
 
 global BCLeft BCRight
 
-dofm.degree        = degree;
-dofm.numDofPerE    = degree+1;
-dofm.numDofPerEInt = degree-1;
+% Polynomial degree
+dofm.degree = degree;
 
-dofm.numDof    = mesh.numV + mesh.numE * dofm.numDofPerEInt;
-dofm.numDofGam = mesh.numV;
-dofm.numDofInt = mesh.numE * dofm.numDofPerEInt;
+% Number of DOF per element
+dofm.numDofPerE    = degree+1;  % All DOF
+dofm.numDofPerEInt = degree-1;  % Only interior DOF
+
+% Total number of DOF associated to vertices and edges on the mesh
+dofm.numDofGam = mesh.numV;                       % associated to vertices
+dofm.numDofInt = mesh.numE * dofm.numDofPerEInt;  % associated to edges
 
 if(strcmp(BCLeft,'PER') && strcmp(BCRight,'PER'))
-    dofm.numDof = dofm.numDof-1;
     dofm.numDofGam = dofm.numDofGam-1;
 end
 
+% Total number of DOF on the mesh
+dofm.numDof = dofm.numDofGam + dofm.numDofInt;
+
+% Mapping element-local to mesh-global index of DOF
 dofm.locToGlo = zeros(mesh.numE, dofm.numDofPerE);
 for e=1:mesh.numE
     dofm.locToGlo(e,1) = e;
