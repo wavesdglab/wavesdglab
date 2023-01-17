@@ -1,4 +1,4 @@
-function [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sys, tol, iMax, iOut)
+function [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -25,7 +25,7 @@ resRedIni = resRed'*resRed;
 resPhyIni = resPhy'*resPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeNormError2D_CG(mesh, dofm, solA);
+errorVec(1) = computeError(mesh, dofm, solA);
 %%%%%%%
 
 flag = 0;
@@ -63,7 +63,7 @@ for i=1:iMax
         resPhyNew = resPhy'*resPhy;
         resRedVec(i/iOut+1) = relRes;
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeNormError2D_CG(mesh, dofm, solA);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, solA);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%

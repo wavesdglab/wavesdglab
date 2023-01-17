@@ -1,4 +1,4 @@
-%close all;
+close all;
 clear all;
 
 global k
@@ -54,17 +54,17 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
 % mat = sysA.matA;
-% [eigenvec,eigenval] = eigs(mat,size(mat,1));
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -73,10 +73,11 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
-% % figure;
-% % hold off; scatter(real(eigenval),imag(eigenval));
-% % % hold on; plot(fovals(mat,100));
-% % grid on; box on;
+% % Plot spectrum
+% figure;
+% hold off; scatter(real(eigenval),imag(eigenval));
+% % hold on; plot(fovals(mat,100));
+% grid on; box on;
 % 
 % % Compute condition number
 % condestMat = condest(mat);
@@ -88,14 +89,14 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGN';
+solver = 'GMRES';
 switch solver
     case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sysA, tol, maxit, itout);
+        tol = 1e-10; maxit = 1000; itout = 50;
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
     case 'GMRES'
         tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout);
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
 end
 
 figure;

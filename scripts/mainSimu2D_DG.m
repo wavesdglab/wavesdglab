@@ -70,7 +70,7 @@ disp(['---------------------------------------------------------']);
 % -------------------------------------------------------------------------
 
 % mat = sysA.matA;
-% [eigenvec,eigenval] = eigs(mat,size(mat,1));
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -98,10 +98,10 @@ solver = 'CGN';
 switch solver
     case 'CGN'
         tol = 1e-10; maxit = 1000; itout = 10;
-        [resVec, errorVec, iter, flag] = solverCGN_DG(mesh, dofm, sysA, tol, maxit, itout);
+        [resVec, errorVec, iter, flag] = solverCGN_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
     case 'GMRES'
         tol = 1e-10; maxit = 50; itout = 1;
-        [resVec, errorVec, iter, flag] = solverGMRES_DG(mesh, dofm, sysA, tol, maxit, itout);
+        [resVec, errorVec, iter, flag] = solverGMRES_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 end
 
 figure;

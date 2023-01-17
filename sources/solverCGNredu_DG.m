@@ -1,14 +1,20 @@
-function [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut)
+% CGNR iteration with symmetric preconditioning
+
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
-x = zeros(size(A,2),1);
-r = b - A*x;
+P = sys.matP;
+Pinv = sys.matPinv;
 
-z = A'*r;
+x = zeros(size(A,2),1);
+r = b-A*x;
+s = Pinv*r;
+y = A'*s;
+z = Pinv*y;
 p = z;
 rrini = r'*r;
-zzini = z'*z;
+zzini = y'*z;
 zzold = zzini;
 
 resRedVec = zeros(iMax/iOut+1,1);
@@ -16,61 +22,61 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-solG = sys.precR*x;
-solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-resPhy = sys.rhsPhy - sys.matPhy*solI;
-resPhyIni = resPhy'*resPhy;
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeNormError2D_DG(mesh, dofm, solI);
+errorVec(1) = computeError(mesh, dofm, xPhy);
 %%%%%%%
 
 flag = 0;
-iter = iMax;
-for i=1:iMax
+i = 1;
+while(i <= iMax)
     
 %     if(mod(i,iOut) == 0)
 %         [x,flag] = pcg(A'*A,A'*b,tol,i);
-%         r = b - A*x;
-%         solG = sys.precR*x;
-%         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-%         resPhy = sys.rhsPhy - sys.matPhy*solI;
-%         resPhyNew = resPhy'*resPhy;
+%         r = b-A*x;
+%         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+%         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+%         resPhyNew = rPhy'*rPhy;
 %         resRedVec(i/iOut+1) = sqrt(r'*r/rrini);
 %         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
+%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, xPhy);
 %         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
 %     end
     
-    Ap = A*p;
-    alpha = zzold/(Ap'*Ap);
+    v = A*p;
+    w = Pinv*v;
+    alpha = zzold/(v'*w);
     x = x + alpha*p;
-    r = r - alpha*Ap;
-    z = A'*r;
+    r = r - alpha*v;
+    s = Pinv*r;
+    y = A'*s;
+    z = Pinv*y;
     rrnew = r'*r;
-    zznew = z'*z;
-    relRes = sqrt(rrnew/rrini);
+    zznew = y'*z;
+    p = z + (zznew/zzold)*p;
+    zzold = zznew;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
-        solG = sys.precR*x;
-        solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-        resPhy = sys.rhsPhy - sys.matPhy*solI;
-        resPhyNew = resPhy'*resPhy;
-        resRedVec(i/iOut+1) = relRes;
+        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+        rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+        resPhyNew = rPhy'*rPhy;
+        resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
-    p = z + (zznew/zzold)*p;
-    zzold = zznew;
-    
-    if (relRes <= tol)
-        iter = i;
+    if (sqrt(rrnew/rrini) <= tol)
         flag = 1;
         break;
     end
+    
+    i = i+1;
 end
+
 end

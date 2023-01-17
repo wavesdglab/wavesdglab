@@ -51,110 +51,59 @@ disp(['---------------------------------------------------------']);
 plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
-% Compute spectrum
+% Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% [vecSolIterA,~,~,iterA,resvecA] = gmres(matA,rhsA,size(matA,1),resTol,size(matA,1));
-% vecSolIterA = matP\vecSolIterA;
-% normL2errSolIterA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-% [eigenvecA,eigenvalA] = eigs(matA,size(matA,1));
-% eigenvalA = diag(eigenvalA);
-% singvalA = svds(matA,size(matA,1));
+% mat = sysA.matA;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% eigenval = diag(eigenval);
+% rankEigenVec = rank(eigenvec);
+% condEigenVec = cond(eigenvec);
 % 
-% [vecSolIterA,~,~,iterBiCGStabA,~] = bicgstab(matA,rhsA,resTol,100*size(matA,1));
-% vecSolIterA = matP\vecSolIterA;
-% normL2errSolBiCGStabA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
+% disp(['    Size                ' num2str(size(mat,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
+% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
-% [vecSolIterA,~,~,iterCGNA,~] = conjgradn(matA,rhsA,resTol,size(matA,1));
-% vecSolIterA = matP\vecSolIterA;
-% normL2errSolCGNA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-% 
-% [vecSolIterA,~,~,iterJacobiA,~] = jacobi(matA,rhsA,resTol,10*size(matA,1),0.5);
-% vecSolIterA = vecSolIterA(1:size(matA,2));
-% normL2errSolJacobiA = computeNormError1D_DG(mesh, dofm, @mySolP, vecSolIterA);
-% 
-% disp(['---------------------------------------------']);
-% disp(['A : Size               ' num2str(size(matA,1))]);
-% disp(['    Eank(eigenvectors) ' num2str(rank(eigenvecA))]);
-% disp(['    Cond(eigenvectors) ' num2str(cond(eigenvecA))]);
-% disp(['    Cond(A)            ' num2str(condest(matA))]);
-% disp(['    IterGmres          ' num2str(iterA(2))]);
-% disp(['    Final L2-Error     ' num2str(normL2errSolIterA / normL2sol)]);
-% disp(['    IterBiCGS          ' num2str(iterBiCGStabA)]);
-% disp(['    Final L2-Error     ' num2str(normL2errSolBiCGStabA / normL2sol)]);
-% disp(['    IterCGN            ' num2str(iterCGNA)]);
-% disp(['    Final L2-Error     ' num2str(normL2errSolCGNA / normL2sol)]);
-% disp(['    IterRelax          ' num2str(iterJacobiA)]);
-% disp(['    Final L2-Error     ' num2str(normL2errSolJacobiA / normL2sol)]);
-% disp(['=============================================']);
-% 
-% disp(['\text{DG} & & ' ...
-%     num2str(errSolNum,'%.1e') ' & ' ...
-%     num2str(errProjL2,'%.1e') ' & ' ...
-%     num2str(size(matA,1)) ' & ' ...
-%     num2str(rank(eigenvecA)) ' & ' ...
-%     num2str(cond(eigenvecA),'%.1e') ' & ' ...
-%     num2str(condest(matA),'%.1e') ' & ' ...
-%     num2str(iterA(2)) ' & ' ...
-%     num2str(normL2errSolIterA / normL2sol,'%.1e') ' & ' ...
-%     num2str(iterBiCGStabA) ' & ' ...
-%     num2str(normL2errSolBiCGStabA / normL2sol,'%.1e') ' & ' ...
-%     num2str(iterCGNA) ' & ' ...
-%     num2str(normL2errSolCGNA / normL2sol,'%.1e') ' & ' ...
-%     num2str(iterJacobiA) ' & ' ...
-%     num2str(normL2errSolJacobiA / normL2sol,'%.1e') ' \\'
-%     ]);
-
-% -------------------------------------------------------------------------
-% Vizu
-% -------------------------------------------------------------------------
-
-% Eigenvalues and numerical range
-
+% % Plot spectrum
 % figure;
-% hold off
-% scatter(real(eigenvalA),imag(eigenvalA),'b','DisplayName','Eigenvalues');
-% hold on
-% plot(fovals(matA,100),'-b','DisplayName','Numerical range');
+% hold off; scatter(real(eigenval),imag(eigenval));
+% % hold on; plot(fovals(mat,100));
+% hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
 % grid on; box on;
-% title([TYPE ' - Eigenvalues : ' BCLeft ' + ' BCRight]);
-% legend();
-%axis([-0.1 1.1 -1.5 1.2]);
-%axis([-0.05 0.5 -1.5 1.2]);
+% 
+% % Compute condition number
+% condestMat = condest(mat);
+% 
+% disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
+% disp(['---------------------------------------------------------']);
 
-% vecSolIterS = matIIinv*(rhsI-matIG*eigenvecS);
-% for i=1:size(matS,1)
-%     postProVizuFieldsDG(mesh, dofm, vecSolIterS(:,i));
-%     title(eigenvalS(i));
-% end
+% -------------------------------------------------------------------------
+% Compute iterative solution
+% -------------------------------------------------------------------------
 
-% figure(2);
-% hold on
-% semilogy(resvecA/resvecA(1),'-om','DisplayName','Residual DG A');
-% title('Residual history');
-% legend();
+solver = 'GMRES';
+switch solver
+    case 'CGN'
+        tol = 1e-10; maxit = 1000; itout = 10;
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+    case 'GMRES'
+        tol = 1e-10; maxit = numE; itout = 1;
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+end
 
-% figure(3);
-% hold off
-% scatter(real(singvalA),imag(singvalA),'DisplayName','SingVal DG A');
-% grid on;
-% title('Singular values');
-% legend();
-
-% figure(7);
-% hold on
-% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','EigenVal DG Upwind A');
-% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','EigenVal DG Center A');
-% grid on;
-% title('Eigenvalues');
-% axis([0 1 -1 1]);
-% legend();
-
-% figure(7);
-% hold on
-% scatter(real(eigenvalA),imag(eigenvalA),'DisplayName','ABC-ABC');
-% grid on;
-% title('Eigenvalues DG Upwind A');
-% legend();
-
+figure;
+hold off
+semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+hold on
+semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+box on;
+grid on;
+legend('Location','southwest');
+title(['CG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+xlabel('Iteration');
+ylabel('Value');
 

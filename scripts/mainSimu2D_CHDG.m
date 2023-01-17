@@ -9,16 +9,20 @@ switch benchmark
     case 'open'
         k = 15*pi;
         h = 1/16;
+        tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.1*sqrt(2)*pi;
-        h = 1/10;
+        h = 1/8;
+        tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
+        tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 3;
 tau = 1;
-prec = 1;
+BASIS = 0;
+PREC = 1;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -42,7 +46,7 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-[solA, sysA] = computeSolNum2D_CHDG(mesh, dofm, tau, prec);
+[solA, sysA] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC);
 errorL2 = computeNormError2D_DG(mesh, dofm, solA);
 
 % Compute projection solution/error
@@ -68,8 +72,8 @@ disp('---------------------------------------------------------');
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = sysA.matS;
-% [eigenvec,eigenval] = eigs(mat,size(mat,1));
+% mat = sysA.matPinv*sysA.matS;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -78,12 +82,13 @@ disp('---------------------------------------------------------');
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
-% % figure;
-% % hold off; scatter(real(eigenval),imag(eigenval));
-% % %hold on; plot(fovals(mat,100));
-% % grid on; box on;
-% % set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-% % print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+% figure;
+% hold off; scatter(real(eigenval),imag(eigenval));
+% %hold on; plot(fovals(mat,100));
+% hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+% grid on; box on;
+% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 % 
 % % Compute condition number
 % condestMat = condest(mat);
@@ -98,17 +103,26 @@ disp('---------------------------------------------------------');
 solver = 'CGN';
 switch solver
     case 'Rich'
-        tol = 1e-10; maxit = 1000; itout = 10; alpha = 1;
-        [resRedVec, resPhyVec, errorVec, iter, flag, solI] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha);
+        alpha = 1;
+        [resRedVec, resPhyVec, errorVec, iter, flag, solI] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
     case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, tol, maxit, itout);
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
     case 'GMRES'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout);
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 end
 
-figure;
+% figure(1);
+% semilogy(0:itout:maxit,errorVec,'DisplayName',[solver ' - Prec ' num2str(prec)]);
+% hold on
+% box on;
+% grid on;
+% legend('Location','southwest');
+% xlim([0 maxit]);
+% %ylim([1e-3 1]);
+% xlabel('Iteration');
+% ylabel('Value');
+
+figure(1);
 hold off
 semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
@@ -121,6 +135,6 @@ grid on;
 legend('Location','southwest');
 title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-ylim([1e-3 1]);
+%ylim([1e-3 1]);
 xlabel('Iteration');
 ylabel('Value');

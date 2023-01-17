@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum1D_CG(mesh, dofm, PREC, alphaPrec)
+function [solA, sysA] = computeSolNum1D_CG(mesh, dofm, PREC, shiftPrec)
 
 global k BCLeft BCRight
 
@@ -29,13 +29,13 @@ for e=1:mesh.numE
     length = abs(coord2 - coord1);
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
-    % Source term
+    % Local RHS vector
     [~, ~, ~, rhsVol, ~, ~] = mySol1D(coordGlo);
+    rhsAloc = (shapeQ .* rhsVol).' * weights * (length/2);
     
-    % Local matrices and RHS vector
+    % Local matrices
     matMloc = matMelem * length/2;
     matKloc = matKelem * 2/length;
-    rhsAloc = (shapeQ .* rhsVol).' * weights * (length/2);
     
     % Assembling
     glo = dofm.locToGlo(e,:);
@@ -56,7 +56,7 @@ switch PREC
     case 'PrecDiag'
         matP = matA/diag(diag(matA));
     case 'PrecShiftLap'
-        matP = matK - alphaPrec*k^2 * matM;
+        matP = matK - shiftPrec*k^2 * matM;
     otherwise
         matP = sparse(1:size(matA,1), 1:size(matA,2), 1);
 end
@@ -125,15 +125,15 @@ end
 % -------------------------------------------------------------------------
 
 % Preconditionning
-matA = matA/matP;
+%matA = matA/matP;
 
 %matA = matP\matA;
 %rhsA = matP\rhsA;
 %matP = 1;
 
-%matP = sqrt(matP);
-%matA = matP\(matA/matP);
-%rhsA = matP\rhsA;
+matP = sqrt(matP);
+matA = matP\(matA/matP);
+rhsA = matP\rhsA;
 
 % Save system
 dofG = 1:dofm.numDofGam;
