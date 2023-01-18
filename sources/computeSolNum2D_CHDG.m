@@ -131,7 +131,7 @@ for tri=1:mesh.numTri
         if (BASIS == 1)
             shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(Jdxdu);
         else
-            shapeAuxQ = shapePhyLinQ * orientation;
+            shapeAuxQ = shapePhyQ;
         end
         
         % Mass matrices (physical space)

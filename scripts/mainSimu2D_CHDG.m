@@ -10,10 +10,9 @@ switch benchmark
         k = 15*pi;
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
-        tol = 1e-10; maxit = 250; itout = 25;
     case 'cavity'
         k = 7.1*sqrt(2)*pi;
-        h = 1/8;
+        h = 1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi;
@@ -22,8 +21,8 @@ switch benchmark
 end
 degree = 3;
 tau = 1;
-BASIS = 0;
-PREC = 1;
+BASIS = 1;
+PREC = 0;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);

@@ -8,14 +8,15 @@ P = sys.matP;
 Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
-r = b-A*x;
 H = zeros(iMax+1,iMax+1);
 Q = zeros(size(A,2),iMax+1);
-Q(:,1) = r/norm(r);
 sn = zeros(iMax,1);
 cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
-beta(1) = norm(r);
+
+r = Pinv*(b-A*x);
+beta(1) = sqrt(r'*P*r);
+Q(:,1) = r/beta(1);
 
 resRedVec = zeros(iMax/iOut+1,1);
 resPhyVec = zeros(iMax/iOut+1,1);
@@ -46,12 +47,12 @@ while(i <= iMax)
 %     end
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    Q(:,i+1) = A*Q(:,i);
+    Q(:,i+1) = Pinv*A*Q(:,i);
     for j = 1:i
-        H(j,i) = Q(:,j)' * Q(:,i+1);
+        H(j,i) = Q(:,j)' * P * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
-    H(i+1,i) = norm(Q(:,i+1));
+    H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
     
     % Apply the previous Givens matrix to ith column
