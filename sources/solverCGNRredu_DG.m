@@ -1,15 +1,14 @@
-% CGNR iteration with symmetric preconditioning
+% CGNR with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
-P = sys.matP;
 Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 r = b-A*x;
-s = Pinv*r;
+s = Pinv*r;  % s=r for left-preconditioning
 y = A'*s;
 z = Pinv*y;
 p = z;
@@ -28,6 +27,7 @@ resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, xPhy);
+fprintf('[%i] %g %g\n', 0, resRedVec(1), errorVec(1));
 %%%%%%%
 
 flag = 0;
@@ -47,11 +47,11 @@ while(i <= iMax)
 %     end
     
     v = A*p;
-    w = Pinv*v;
+    w = Pinv*v;  % w=v for left-preconditioning
     alpha = zzold/(v'*w);
     x = x + alpha*p;
     r = r - alpha*v;
-    s = Pinv*r;
+    s = Pinv*r;  % s=r for left-preconditioning
     y = A'*s;
     z = Pinv*y;
     rrnew = r'*r;
@@ -75,8 +75,9 @@ while(i <= iMax)
         flag = 1;
         break;
     end
-    
     i = i+1;
 end
+
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 
 end

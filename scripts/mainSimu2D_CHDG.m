@@ -10,6 +10,7 @@ switch benchmark
         k = 15*pi;
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
+        tol = 1e-10; maxit = 250; itout = 25;
     case 'cavity'
         k = 7.1*sqrt(2)*pi;
         h = 1/8;
@@ -100,13 +101,13 @@ disp('---------------------------------------------------------');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGN';
+solver = 'GMRES';
 switch solver
     case 'Rich'
         alpha = 1;
         [resRedVec, resPhyVec, errorVec, iter, flag, solI] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-    case 'CGN'
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
     case 'GMRES'
         [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 end
@@ -122,7 +123,7 @@ end
 % xlabel('Iteration');
 % ylabel('Value');
 
-figure(1);
+figure(6);
 hold off
 semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
@@ -135,6 +136,6 @@ grid on;
 legend('Location','southwest');
 title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-%ylim([1e-3 1]);
+ylim([1e-5 1]);
 xlabel('Iteration');
 ylabel('Value');

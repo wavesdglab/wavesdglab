@@ -1,14 +1,13 @@
-% Richardson iteration with symmetric preconditioning
+% Richardson with symmetric preconditioning
 
 function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardson_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
-P = sys.matP;
 Pinv = sys.matPinv;
+
 x = zeros(size(A,2),1);
 r = b-A*x;
-
 rrini = r'*r;
 
 resRedVec = zeros(iMax/iOut+1,1); 
@@ -28,9 +27,11 @@ flag = 0;
 i = 1;
 while(i <= iMax)
     
-    xNew = Pinv * (P*x - A*x + b);
-    x = alpha*xNew + (1-alpha)*x;
-    r = b - A*x;
+    % xNew = Pinv * (P*x - A*x + b);
+    % x = alpha*xNew + (1-alpha)*x;
+    
+    x = alpha*Pinv*r + x;
+    r = b-A*x;
     rrnew = r'*r;
     
     %%%%%%%
@@ -47,10 +48,8 @@ while(i <= iMax)
     
     if(sqrt(rrnew/rrini) < tol)
         flag = 1;
-        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
         return;
     end
-    
     i = i+1;
 end
 

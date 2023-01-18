@@ -1,10 +1,14 @@
-function [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
+% GMRES with symmetric preconditioning
+
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverGMRESredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
-x = zeros(size(A,2),1);
-r = b - A*x;
+P = sys.matP;
+Pinv = sys.matPinv;
 
+x = zeros(size(A,2),1);
+r = b-A*x;
 H = zeros(iMax+1,iMax+1);
 Q = zeros(size(A,2),iMax+1);
 Q(:,1) = r/norm(r);
@@ -18,28 +22,26 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-solG = sys.precR*x;
-solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-resPhy = sys.rhsPhy - sys.matPhy*solI;
-resPhyIni = resPhy'*resPhy;
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, solI);
+errorVec(1) = computeError(mesh, dofm, xPhy);
 %%%%%%%
 
 flag = 0;
-iter = iMax;
-for i=1:iMax
+i = 1;
+while(i <= iMax)
     
 %     if(mod(i,iOut) == 0)
 %         [x,flag,relRes] = gmres(A,b,[],tol,i);
-%         solG = sys.precR*x;
-%         solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-%         resPhy = sys.rhsPhy - sys.matPhy*solI;
-%         resPhyNew = resPhy'*resPhy;
+%         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+%         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+%         resPhyNew = rPhy'*rPhy;
 %         resRedVec(i/iOut+1) = relRes;
 %         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, solI);
+%         errorVec(i/iOut+1) = computeNormError2D_DG(mesh, dofm, xPhy);
 %         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
 %     end
     
@@ -76,22 +78,23 @@ for i=1:iMax
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
         
-        solG = sys.precR*x;
-        solI = sys.matIIinv*(sys.rhsI-sys.matIG*solG);
-        resPhy = sys.rhsPhy - sys.matPhy*solI;
-        resPhyNew = resPhy'*resPhy;
+        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+        rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+        resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = relRes;
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeError(mesh, dofm, solI);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
     if (relRes <= tol)
-        iter = i;
         flag = 1;
         break;
     end
+    i = i+1;
 end
+
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 
 end
