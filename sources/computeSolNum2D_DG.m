@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta)
+function [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC)
 
 global k
 
@@ -244,7 +244,7 @@ for tri=1:mesh.numTri
                     rhsA(idIntV) = rhsA(idIntV) - gchar * 1/(1+tau) * ny;
                     
                 otherwise
-                    warning('Error - Bad BC.')
+                    error('BAD BOUNDARY CONDITION.');
             end
         end
     end
@@ -254,8 +254,21 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
+% Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
+
+% Preconditionning
+if (PREC == 1)
+    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+
+% Compute solution
 solA = matA\rhsA;
 
 end
@@ -272,6 +285,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set.')
+        error('BAD BOUNDARY TAG.')
 end
 end

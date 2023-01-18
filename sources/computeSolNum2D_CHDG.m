@@ -228,7 +228,7 @@ for tri=1:mesh.numTri
                     matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);
                     rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
                 otherwise
-                    warning('Error - Bad BC.')
+                    error('BAD BOUNDARY CONDITION.');
             end
             
             % Global ID for auxiliary unknowns and interior unknowns
@@ -288,21 +288,27 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 % Build and solve full system
 % -------------------------------------------------------------------------
 
-% Build full system
-matA = [ matII matIG ; matGI matGG ];
-rhsA = [ rhsI ; rhsG ];
+% Matrix partition
+sysA.matII = matII;
+sysA.matIG = matIG;
+sysA.matGI = matGI;
+sysA.matGG = matGG;
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = matGGinv;
+sysA.rhsI = rhsI;
+sysA.rhsG = rhsG;
 
-% Build reduced system
-matS = matGG - matGI*(matIIinv*matIG);
-rhsS = rhsG - matGI*(matIIinv*rhsI);
+% Full system
+sysA.matA = [ matII matIG ; matGI matGG ];
+sysA.rhsA = [ rhsI ; rhsG ];
 
-% Build physical system
-matPhy = matII - matIG*(matGGinv*matGI);
-rhsPhy = rhsI - matIG*(matGGinv*rhsG);
+% Reduced system
+sysA.matS = matGG - matGI*(matIIinv*matIG);
+sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 
-% Compute solution
-solG = matS\rhsS;
-solI = matIIinv*(rhsI-matIG*solG);
+% Physical system
+sysA.matPhy = matII - matIG*(matGGinv*matGI);
+sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditionning
 if (PREC == 1)
@@ -313,21 +319,9 @@ else
     sysA.matPinv = 1;
 end
 
-% Save system
-sysA.matII = matII;
-sysA.matIG = matIG;
-sysA.matGI = matGI;
-sysA.matGG = matGG;
-sysA.matIIinv = matIIinv;
-sysA.matGGinv = matGGinv;
-sysA.rhsI = rhsI;
-sysA.rhsG = rhsG;
-sysA.matA = matA;
-sysA.rhsA = rhsA;
-sysA.matS = matS;
-sysA.rhsS = rhsS;
-sysA.matPhy = matPhy;
-sysA.rhsPhy = rhsPhy;
+% Compute solution
+solG = sysA.matS\sysA.rhsS;
+solI = matIIinv*(rhsI-matIG*solG);
 
 end
 
@@ -343,6 +337,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set.')
+        error('BAD BOUNDARY TAG.')
 end
 end

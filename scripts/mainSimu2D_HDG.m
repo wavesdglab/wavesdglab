@@ -1,5 +1,5 @@
-%close all;
 clear all;
+%close all;
 
 global k
 
@@ -55,7 +55,7 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-disp('---------------------------------------------------------');
+disp(['---------------------------------------------------------']);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
@@ -100,35 +100,24 @@ disp('---------------------------------------------------------');
 solver = 'CGNR';
 switch solver
     case 'CGNR'
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
     case 'GMRES'
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 end
 
-% figure(1);
-% semilogy(0:itout:maxit,errorVec,'DisplayName',[solver ' - Prec ' num2str(prec)]);
-% hold on
-% box on;
-% grid on;
-% legend('Location','southwest');
-% xlim([0 maxit]);
-% %ylim([1e-3 1]);
-% xlabel('Iteration');
-% ylabel('Value');
-
-figure(3);
+figure;
 hold off
 semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
 semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
 semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
 plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-%plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
 box on;
 grid on;
 legend('Location','southwest');
 title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-ylim([5e-3 1]);
+ylim([0.005 1]);
 xlabel('Iteration');
 ylabel('Value');

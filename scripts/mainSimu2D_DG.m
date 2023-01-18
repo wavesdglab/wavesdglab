@@ -1,5 +1,5 @@
-%close all;
 clear all;
+%close all;
 
 global k
 
@@ -9,16 +9,20 @@ switch benchmark
     case 'open'
         k = 15*pi;
         h = 1/16;
+        tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.1*sqrt(2)*pi;
         h = 1/10;
+        tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
+        tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 3;
 tau = 1;
-theta = 0;
+theta = 1;
+PREC = 1;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -43,7 +47,7 @@ disp(['    theta               ' num2str(theta)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-[solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
+[solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
 errorL2 = computeNormError2D_DG(mesh, dofm, solA);
 
 % Compute projection solution/error
@@ -94,14 +98,12 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGN';
+solver = 'CGNR';
 switch solver
-    case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resVec, errorVec, iter, flag] = solverCGN_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+    case 'CGNR'
+        [resVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
     case 'GMRES'
-        tol = 1e-10; maxit = 50; itout = 1;
-        [resVec, errorVec, iter, flag] = solverGMRES_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+        [resVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 end
 
 figure;

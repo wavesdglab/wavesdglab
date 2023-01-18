@@ -207,7 +207,7 @@ for tri=1:mesh.numTri
                     matGIel = -1/(1+tau) * [tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
                     rhsGel = (rhsPel - nx*rhsUel - ny*rhsVel) / (1+tau);
                 otherwise
-                    warning('Error - Bad BC.');
+                    error('BAD BOUNDARY CONDITION.');
             end
         end
         
@@ -264,45 +264,40 @@ matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 % Solve system
 % -------------------------------------------------------------------------
 
-% Build full system
-matA = [ matII matIG ; matGI matGG ];
-rhsA = [ rhsI ; rhsG ];
-
-% Build reduced system
-matS = matGG - matGI*(matIIinv*matIG);
-rhsS = rhsG - matGI*(matIIinv*rhsI);
-
-% Build physical system
-matPhy = matII - matIG*(matGG\matGI);
-rhsPhy = rhsI - matIG*(matGG\rhsG);
-
-% Compute solution
-solG = matS\rhsS;
-solI = matIIinv*(rhsI-matIG*solG);
-
-% Preconditionning
-if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = inv(matGG);
-else
-    sysA.matP = 1;
-    sysA.matPinv = 1;
-end
-
-% Save system
+% Matrix partition
 sysA.matII = matII;
 sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
+sysA.matGGinv = inv(matGG);
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
-sysA.matA = matA;
-sysA.rhsA = rhsA;
-sysA.matS = matS;
-sysA.rhsS = rhsS;
-sysA.matPhy = matPhy;
-sysA.rhsPhy = rhsPhy;
+
+% Full system
+sysA.matA = [ matII matIG ; matGI matGG ];
+sysA.rhsA = [ rhsI ; rhsG ];
+
+% Reduced system
+sysA.matS = matGG - matGI*(matIIinv*matIG);
+sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
+
+% Physical system
+sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
+sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
+
+% Preconditionning
+if (PREC == 1)
+    sysA.matP = matGG;
+    sysA.matPinv = sysA.matGGinv;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+
+% Compute solution
+solG = sysA.matS\sysA.rhsS;
+solI = matIIinv*(rhsI-matIG*solG);
 
 end
 
@@ -318,6 +313,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set.')
+        error('BAD BOUNDARY TAG.')
 end
 end

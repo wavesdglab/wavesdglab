@@ -1,22 +1,26 @@
-close all;
 clear all;
+%close all;
 
 global k
 
 % Setup benchmark and parameters
-benchmark = 'open';
+benchmark = 'waveguide';
 switch benchmark
     case 'open'
         k = 15*pi;
         h = 1/16;
+        tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.1*sqrt(2)*pi;
         h = 1/10;
+        tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
+        tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 3;
+PREC = 1;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -38,7 +42,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_CG(mesh, dofm);
+[solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 
 solP = computeSolProjL2_2D_CG(mesh, dofm);
@@ -89,14 +93,12 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES';
+solver = 'CGNR';
 switch solver
-    case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 50;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
     case 'GMRES'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
 end
 
 figure;
@@ -112,6 +114,6 @@ grid on;
 legend('Location','southwest');
 title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-ylim([1e-3 1]);
+ylim([0.005 1]);
 xlabel('Iteration');
 ylabel('Value');

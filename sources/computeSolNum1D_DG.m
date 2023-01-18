@@ -172,22 +172,33 @@ switch PREC
     otherwise
         matP = 1;
 end
-matA = matA/matP;
 
-%matA = matP\matA;
-%rhsA = matP\rhsA;
-%matP = 1;
+% Preconditioning (1) — Right
+% matA = matA/matP;
 
-%matP = sqrt(matP);
-%matA = matP\(matA/matP);
-%rhsA = matP\rhsA;
+% Preconditioning (1) — Left
+% matA = matP\matA;
+% rhsA = matP\rhsA;
+% matP = 1;
+
+% Preconditioning (1) — Symmetric
+matP = sqrt(matP);
+matA = matP\(matA/matP);
+rhsA = matP\rhsA;
+
+% Full system
+sysA.matA = matA;
+sysA.rhsA = rhsA;
 
 % Compute solution
 solA = matA\rhsA;
 solA = matP\solA;
 
-% Save system
-sysA.matA = matA;
-sysA.rhsA = rhsA;
+% Preconditioning (2)
+solA = matP\solA;
+
+% TO IMPROVE IN THE FUTURE
+sysA.matP = 1;
+sysA.matPinv = 1;
 
 end

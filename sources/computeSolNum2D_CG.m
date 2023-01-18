@@ -1,4 +1,4 @@
-function [solA, sysA] = computeSolNum2D_CG(mesh, dofm)
+function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
 global k
 
@@ -126,7 +126,7 @@ for edgBnd=1:mesh.numEdgBnd
             matA(dof,dof) = matA(dof,dof) - 1i*k * matMel;
             rhsA(dof) = rhsA(dof) + rhsNel - 1i*k * rhsDel;
         otherwise
-            warning('Error - No valid BC has been set on the South.')
+            error('BAD BOUNDARY CONDITION.');
     end
 end
 
@@ -144,22 +144,37 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
+% Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
 dofG = 1:numDofTRIred;
 dofI = (numDofTRIred+1):dofm.numDofTRI;
-
 sysA.matII = matA(dofI,dofI);
-sysA.matIIinv = inv(sysA.matII);
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
-sysA.matA = matA;
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
+sysA.matIIinv = inv(sysA.matII);
+
+% Full system
+sysA.matA = matA;
 sysA.rhsA = rhsA;
+
+% Reduced system
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
+% Preconditionning
+if (PREC == 1)
+    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+
+% Compute solution
 solG = sysA.matS\sysA.rhsS;
 solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
@@ -178,6 +193,6 @@ switch tag
     case 4
         BC = BCSouth;
     otherwise
-        warning('Error - No valid BC has been set on the East.')
+        error('BAD BOUNDARY TAG.')
 end
 end

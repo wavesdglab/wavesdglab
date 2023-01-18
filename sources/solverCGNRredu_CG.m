@@ -1,6 +1,6 @@
 % CGNR with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_CG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -21,8 +21,8 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
-rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+rPhy = sys.rhsA - sys.matA*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
@@ -49,8 +49,8 @@ while(i <= iMax)
     
     %%%%%%%
     if(mod(i,iOut) == 0)
-        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
-        rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+        xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+        rPhy = sys.rhsA - sys.matA*xPhy;
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
@@ -66,6 +66,6 @@ while(i <= iMax)
     i = i+1;
 end
 
-xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
 
 end

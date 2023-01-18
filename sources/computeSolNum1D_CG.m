@@ -124,30 +124,36 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
-% Preconditionning
-%matA = matA/matP;
+% Preconditioning (1) — Right
+% matA = matA/matP;
 
-%matA = matP\matA;
-%rhsA = matP\rhsA;
-%matP = 1;
+% Preconditioning (1) — Left
+% matA = matP\matA;
+% rhsA = matP\rhsA;
+% matP = 1;
 
+% Preconditioning (1) — Symmetric
 matP = sqrt(matP);
 matA = matP\(matA/matP);
 rhsA = matP\rhsA;
 
-% Save system
+% Matrix partition
 dofG = 1:dofm.numDofGam;
 dofI = (1:dofm.numDofInt) + dofm.numDofGam;
 sysA.matII = matA(dofI,dofI);
-sysA.matIIinv = inv(sysA.matII);
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
-sysA.matA = matA;
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
+sysA.matIIinv = inv(sysA.matII);
+
+% Full system
+sysA.matA = matA;
 sysA.rhsA = rhsA;
+
+% Reduced system
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Compute solution
@@ -155,6 +161,11 @@ solG = sysA.matS\sysA.rhsS;
 solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
 
+% Preconditioning (2)
 solA = matP\solA;
+
+% TO IMPROVE IN THE FUTURE
+sysA.matP = 1;
+sysA.matPinv = 1;
 
 end

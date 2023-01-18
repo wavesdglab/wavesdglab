@@ -3,18 +3,18 @@ clear all;
 
 global k BCLeft BCRight
 
-% Define parameters
+% Setup benchmark and parameters
 degree = 3;
-k = 40;
+k = 20;
 numE = 200;
+h = 1/numE;
 theta = 1;
 tau = 1; % 1i
-resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecMass2 PrecDiag
 BCLeft = 'DIR';
 BCRight = 'ABC';
 
-% Build mesh and dofManager
+% Build mesh and DOF manager
 mesh = buildMesh1D(0, 1, numE);
 dofm = buildDofManager1D_DG(mesh, degree);
 
@@ -26,7 +26,7 @@ disp(['---------------------------------------------------------']);
 disp(['Method DG - Benchmark ' BCLeft '/' BCRight ]);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
-disp(['    h                   ' num2str(1/numE)]);
+disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['    numE                ' num2str(numE)]);
 disp(['    theta               ' num2str(theta)]);
@@ -48,7 +48,8 @@ disp(['---------------------------------------------------------']);
 % Vizu solution
 % -------------------------------------------------------------------------
 
-plotField1D(mesh, dofm, solA, 'Numerical solution');
+% figure;
+% plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -81,29 +82,26 @@ plotField1D(mesh, dofm, solA, 'Numerical solution');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES';
+solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
 switch solver
-    case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+    case 'CGNR'
+        [resPhyVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
     case 'GMRES'
-        tol = 1e-10; maxit = numE; itout = 1;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+        [resPhyVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
 end
 
 figure;
 hold off
-semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
-semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
 semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
 plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
 plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
 box on;
 grid on;
 legend('Location','southwest');
-title(['CG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+title(['DG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
+ylim([1e-3 1]);
 xlabel('Iteration');
 ylabel('Value');
-

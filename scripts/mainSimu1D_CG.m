@@ -5,13 +5,12 @@ global k BCLeft BCRight
 
 % Setup benchmark and parameters
 degree = 3;
-k = 4;
-numE = 100;
+k = 20;
+numE = 200;
 h = 1/numE;
-resTol = 1e-4;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecDiag PrecShiftLap
 shiftPrec = 1; % 1+1i
-BCLeft = 'ABC';
+BCLeft = 'DIR';
 BCRight = 'ABC';
 
 % Build mesh and DOF manager
@@ -79,21 +78,21 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES';
+solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
 switch solver
-    case 'CGN'
-        tol = 1e-10; maxit = 1000; itout = 10;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverCGNredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+        %[resPhyVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
     case 'GMRES'
-        tol = 1e-10; maxit = numE; itout = 1;
-        [resRedVec, resPhyVec, errorVec, iter, flag] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+        %[resPhyVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
 end
 
 figure;
 hold off
-semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
-semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
 semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
 plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
 plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
@@ -102,5 +101,6 @@ grid on;
 legend('Location','southwest');
 title(['CG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
+ylim([1e-3 1]);
 xlabel('Iteration');
 ylabel('Value');

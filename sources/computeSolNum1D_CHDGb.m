@@ -192,4 +192,8 @@ sysA.rhsS = rhsS;
 sysA.matPhy = matPhy;
 sysA.rhsPhy = rhsPhy;
 
+% TO IMPROVE IN THE FUTURE
+sysA.matP = 1;
+sysA.matPinv = 1;
+
 end
