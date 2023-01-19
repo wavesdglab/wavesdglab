@@ -41,7 +41,7 @@ for i = 1:size(hList,2)
     mesh = buildMeshConnectivity(mesh);
     dofm = buildDofManager2D_DG(mesh, degree);
     Ndof(i) = dofm.numDofTRI;
-    [solA, sysA, condLoc] = computeSolNum2D_UDG(mesh, dofm, tau, 1);
+    [solA, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, 1);
     [errorL2(i)] = computeNormError2D_DG(mesh, dofm, solA);
     [solP, ~] = computeSolProjL2_2D_DG(mesh, dofm);
     [errorProjL2(i)] = computeNormError2D_DG(mesh, dofm, solP);
@@ -62,12 +62,12 @@ Dlambda = 2*pi/k * (sqrt(Ndof) - 1);
 
 rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2" "errorPostL2" "errorProjPostL2"];
 rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2' errorPostL2' errorProjPostL2'];
-name = sprintf('output/errorVsH_UDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+name = sprintf('output/errorVsH_CHDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 rezu1 = ["hList" "Ndof" "Dlambda" "condGlo" "condLocMin" "condLocMax"];
 rezu2 = [hList' Ndof' Dlambda' condGlo' condLocMin' condLocMax'];
-name = sprintf('output/condVsH_UDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+name = sprintf('output/condVsH_CHDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 % figure(1);

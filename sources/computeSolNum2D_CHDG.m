@@ -83,9 +83,9 @@ for tri=1:mesh.numTri
     rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     matIIel = [
-        -1i*k*matMel  -matDXel                           -matDYel                          ;
-        -matDXel      -1i*k*matMel                       sparse(numDofPerTRI,numDofPerTRI) ;
-        -matDYel      sparse(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                      ];
+        -1i*k*matMel  -matDXel                          -matDYel                         ;
+        -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI) ;
+        -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                     ];
     
     rhsIel = [
         -1/(1i*k)*rhsPel    ;

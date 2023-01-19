@@ -74,7 +74,7 @@ disp(['---------------------------------------------------------']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGN']);
-[resRedVec, resPhyVec, error] = solverCGNredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
+[resRedVec, resPhyVec, error] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error));

@@ -13,8 +13,6 @@ rhsA = zeros(dofm.numDofTRI, 1);
 degreeQ = 2*dofm.degree;
 [uLinQ, weightsLinQ] = quadratureGaussLIN(degreeQ);
 [uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
-weightsLinQ = sparse(1:size(weightsLinQ,1), 1:size(weightsLinQ,1), weightsLinQ);
-weightsTriQ = sparse(1:size(weightsTriQ,1), 1:size(weightsTriQ,1), weightsTriQ);
 
 % Shape functions
 shapeLinQ = functionsShapeLIN(uLinQ, dofm.degree);
@@ -59,9 +57,9 @@ for tri=1:mesh.numTri
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices
-    matMel = shapeOrQ' * weightsTriQ * shapeOrQ * detJdxdu;
-    matKel = (shapeDxQ' * weightsTriQ * shapeDxQ + shapeDyQ' * weightsTriQ * shapeDyQ ) * detJdxdu;
-    rhsPel = shapeOrQ' * weightsTriQ * rhsQ * detJdxdu;
+    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
+    matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
+    rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
@@ -112,9 +110,9 @@ for edgBnd=1:mesh.numEdgBnd
     shapeOrQ = shapeLinQ * orientation;
     
     % Elemental matrices/vectors
-    matMel = shapeOrQ' * weightsLinQ * shapeOrQ * Jdxdu;
-    rhsDel = shapeOrQ' * weightsLinQ * dirQ * Jdxdu;
-    rhsNel = shapeOrQ' * weightsLinQ * neuQ * Jdxdu;
+    matMel = shapeOrQ' * (weightsLinQ .* shapeOrQ) * Jdxdu;
+    rhsDel = shapeOrQ' * (weightsLinQ .* dirQ) * Jdxdu;
+    rhsNel = shapeOrQ' * (weightsLinQ .* neuQ) * Jdxdu;
     
     % Boundary condition
     switch tagToBC(mesh.tagEdgBnd(edgBnd))
