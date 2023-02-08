@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 function [solP, sysP] = computeSolProjL2_2D_CG(mesh, dofm)
 
 % Quadrature and shape functions

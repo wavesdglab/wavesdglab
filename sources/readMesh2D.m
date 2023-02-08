@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 % mesh.numVer          % Number of nodes
 % mesh.coord           % Coordinates of vertices               [matrix mesh.numVer x 2]
 

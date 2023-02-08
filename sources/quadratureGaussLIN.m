@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 % Gauss-Legendre Quadrature
 % - N is the number of quadrature points
 % - Exact for polynomials of degree 2N-1 or less

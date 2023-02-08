@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 function [x, y] = locToGloTRI(u, v, V1, V2, V3)
 
 l1 = -(u+v)/2;

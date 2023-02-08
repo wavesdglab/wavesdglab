@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 % GMRES with symmetric preconditioning
 
 function [resVec, errorVec, i, flag, x] = solverGMRES(mesh, dofm, sys, tol, iMax, iOut, computeError)

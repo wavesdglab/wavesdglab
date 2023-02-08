@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 % Assumption: x in [-1,1]
 
 function val = functionsJacobiDer(x,alpha,beta,N)

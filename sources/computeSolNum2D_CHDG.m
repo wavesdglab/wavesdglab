@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC)
 
 global k

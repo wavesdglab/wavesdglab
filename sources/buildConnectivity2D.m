@@ -1,3 +1,7 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave
+
 % mesh.numVerBnd   % Number of nodes on the boundary
 % mesh.numVerInt   % Number of nodes inside the domain
 % mesh.listVerBnd  % List of nodes on the boundary     [matrix mesh.numVerBnd x 1]
