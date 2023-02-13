@@ -26,6 +26,7 @@ shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 matXv  = zeros(numDofTRI, numDofPerTRI);
 matYv  = zeros(numDofTRI, numDofPerTRI);
 matMv  = zeros(numDofTRI, numDofPerTRI);
+matMvInv = zeros(numDofTRI, numDofPerTRI);
 matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
 rhsP   = zeros(numDofTRI, 1);
@@ -74,6 +75,7 @@ for tri=1:mesh.numTri
     matXv(dof,:) = dof'*ones(1,size(dof,2));
     matYv(dof,:) = ones(size(dof,2),1)*dof;
     matMv(dof,:) = matMel;
+    matMvInv(dof,:) = inv(matMel);
     matDXv(dof,:) = matDXel;
     matDYv(dof,:) = matDYel;
     rhsP(dof) = vecRHSel;
@@ -81,8 +83,19 @@ for tri=1:mesh.numTri
 end
 
 matM  = sparse(matXv,matYv,matMv);   % Mass matrix
+matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (onverse)
 matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
 matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
+
+matP = [
+    matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
+    sparse(numDofTRI,numDofTRI) matM sparse(numDofTRI,numDofTRI) ;
+    sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
+
+matPinv = [
+    matMinv sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
+    sparse(numDofTRI,numDofTRI) matMinv sparse(numDofTRI,numDofTRI) ;
+    sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matMinv ];
 
 matA = [
     -1i*k*matM  -matDX                       -matDY                      ;
@@ -264,9 +277,9 @@ sysA.rhsA = rhsA;
 
 % Preconditionning
 if (PREC == 1)
-    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
-    sysA.matP = 1;
-    sysA.matPinv = 1;
+    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR DG.')
+    sysA.matP = matP;
+    sysA.matPinv = matPinv;
 else
     sysA.matP = 1;
     sysA.matPinv = 1;

@@ -1,4 +1,4 @@
-%close all;
+% close all;
 clear all;
 
 global k;
@@ -7,38 +7,39 @@ degree = 3;
 tau = 1;
 theta = 1;
 tol = 1e-100;
+PREC = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % BENCH FREE SPACE
-% iMax = 1000; iOut = 50;
-% benchmark = 'open'; k = 15*pi; h = 1/16;
-% run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
-% benchmark = 'open'; k = 30*pi; h = 1/34;
-% run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
+iMax = 1000; iOut = 50;
+benchmark = 'open'; k = 15*pi; h = 1/16;
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
+benchmark = 'open'; k = 30*pi; h = 1/34;
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
 
 % BENCH CAVITY
 iMax = 2000; iOut = 100;
 benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
-run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
-% benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-% run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
+benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
 
 % BENCH WAVEGUIDE
-% iMax = 4000; iOut = 200;
-% benchmark = 'waveguide'; k = 6*pi; h = 1/8;
-% run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
-% benchmark = 'waveguide'; k = 12*pi; h = 1/17;
-% run(benchmark,degree,h,tau,theta,tol,iMax,iOut);
+iMax = 4000; iOut = 200;
+benchmark = 'waveguide'; k = 6*pi; h = 1/8;
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
+benchmark = 'waveguide'; k = 12*pi; h = 1/17;
+run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run(benchmark,degree,h,tau,theta,tol,iMax,iOut)
+function run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut)
 global k;
 
 % Build mesh and dofManager
 mesh = benchmark2D(benchmark,h);
-mesh = buildMeshConnectivity(mesh);
+mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
 Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
@@ -55,8 +56,8 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta);
-[normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG(mesh, dofm, solA);
+[solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
+[normErr] = computeNormError2D_DG(mesh, dofm, solA);
 
 % [solP] = computeSolProjL2_2D_DG(mesh, dofm);
 % [normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
@@ -73,21 +74,34 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- Solver CGN']);
-[resVec, error] = solverCGN_DG(mesh, dofm, sysA, tol, iMax, iOut);
+disp(['--- Solver CGNR']);
+[resVec, error] = solverCGNR(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error));
 
 rezu1 = ["iter" "resVec" "error" "errorRef"];
 rezu2 = [iterVec resVec, error, errorRef];
-name = sprintf('output/historyCGN_DG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+name = sprintf('output/historyCGNR_DG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['--- Solver CGNE']);
+[resVec, error] = solverCGNE(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resVec" "error" "errorRef"];
+rezu2 = [iterVec resVec, error, errorRef];
+name = sprintf('output/historyCGNE_DG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-[resVec, error] = solverGMRES_DG(mesh, dofm, sysA, tol, iMax, iOut);
+[resVec, error] = solverGMRES(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error));

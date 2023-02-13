@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-% CGNR with symmetric preconditioning
+% CGNE with symmetric preconditioning
 
-function [resVec, errorVec, i, flag, x] = solverCGNR(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resVec, errorVec, i, flag, x] = solverCGNE(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matA;
 b = sys.rhsA;
@@ -13,12 +13,10 @@ Pinv = sys.matPinv;
 x = zeros(size(A,2),1);
 r = b - A*x;
 s = Pinv*r;
-y = A'*s;
-z = Pinv*y;
-p = z;
-rrini = r'*r;
-zzini = y'*z;
-zzold = zzini;
+p = A'*s;
+q = Pinv*p;
+rr = r'*s;
+rrini = rr;
 
 resVec = zeros(iMax/iOut+1,1);
 errorVec = zeros(iMax/iOut+1,1);
@@ -33,27 +31,22 @@ flag = 0;
 i = 1;
 while(i <= iMax)
     
-    v = A*p;
-    w = Pinv*v;
-    alpha = zzold/(v'*w);
-    x = x + alpha*p;
-    r = r - alpha*v;
+    pp = p'*q;
+    alpha = rr/pp;
+    x = x + alpha*q;
+    r = r - alpha*A*q;
     s = Pinv*r;
-    y = A'*s;
-    z = Pinv*y;
-    rrnew = r'*r;
-    zznew = y'*z;
-    p = z + (zznew/zzold)*p;
-    zzold = zznew;
+    rrnew = r'*s;
+    beta = rrnew/rr;
+    rr = rrnew;
+    p = A'*s + beta*p;
+    q = Pinv*p;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
         resVec(i/iOut+1) = sqrt(rrnew/rrini);
         errorVec(i/iOut+1) = computeError(mesh, dofm, x);
         fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
-        %xRef = pcg(A'*A,A'*b,1e-10,i);
-        %eRef = computeError(mesh, dofm, xRef);
-        %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
     end
     %%%%%%%
     
