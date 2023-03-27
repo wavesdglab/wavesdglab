@@ -22,7 +22,7 @@ end
 degree = 3;
 tau = 1;
 BASIS = 0;
-PREC = 0;
+PREC = 1;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -100,7 +100,7 @@ disp('---------------------------------------------------------');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'CGNR';
+% solver = 'Rich';
 % switch solver
 %     case 'Rich'
 %         alpha = 1;
