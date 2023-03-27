@@ -7,8 +7,8 @@ global k
 benchmark = 'open';
 switch benchmark
     case 'open'
-        k = 15*pi; %15*pi;
-        h = 1/16; %1/16;
+        k = 15*pi;
+        h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.01*sqrt(2)*pi; %7.1*sqrt(2)*pi;
@@ -22,7 +22,7 @@ end
 degree = 3;
 tau = 1;
 BASIS = 0;
-PREC = 1;
+PREC = 0;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -77,11 +77,11 @@ disp('---------------------------------------------------------');
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
-% 
+%
 % disp(['    Size                ' num2str(size(mat,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-% 
+%
 % figure;
 % hold off; scatter(real(eigenval),imag(eigenval));
 % %hold on; plot(fovals(mat,100));
@@ -89,10 +89,10 @@ disp('---------------------------------------------------------');
 % grid on; box on;
 % set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
 % print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
-% 
+%
 % % Compute condition number
 % condestMat = condest(mat);
-% 
+%
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
@@ -110,7 +110,7 @@ disp('---------------------------------------------------------');
 %     case 'GMRES'
 %         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 % end
-% 
+%
 % figure;
 % hold off
 % semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
@@ -127,3 +127,40 @@ disp('---------------------------------------------------------');
 % ylim([0.005 1]);
 % xlabel('Iteration');
 % ylabel('Value');
+
+
+for tri = 1:mesh.numTri
+    for fac = 1:3
+        %tri = 2;
+        %fac = 2;
+        triNeigh = mesh.mapTriToTri(tri,fac);
+        facNeigh = mesh.mapTriToFac(tri,fac);
+        
+        if(facNeigh>0)
+            
+            nDofI = mesh.numTri*3*dofm.numDofPerTRI;
+            nDofG = mesh.numTri*3*dofm.numDofPerLIN;
+            nDofH = mesh.numTri*3*dofm.numDofPerLIN;
+            solG = solA(nDofI+1:nDofI+nDofG);
+            solH = solA(nDofI+nDofG+1:nDofI+nDofG+nDofH);
+            
+            idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
+            idGloG = dofm.locToGloFAC(tri,idLocG);
+            
+            idLocExtH = (1:dofm.numDofPerLIN) + (facNeigh-1)*dofm.numDofPerLIN;
+            idExtH = dofm.locToGloFAC(triNeigh,idLocExtH);
+            
+            valG = solG(idGloG);
+            valH = solH(idExtH);
+            valH([1 2]) = valH([2 1]);
+            if(max(abs(valG-valH))>1e-12)
+                valG-valH;
+            end
+        end
+        
+        
+        %         [tri triNeigh;
+        %             fac facNeigh]
+        %         [solG(idGloG) solH(idExtH)]
+    end
+end
