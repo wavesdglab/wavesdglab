@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC)
+function [solI, sysA, condLoc] = computeSolNum2D_CHDG_TEST(mesh, dofm, tau, BASIS, PREC)
 
 global k
 
@@ -70,8 +70,6 @@ rhsG = zeros(numDofFAC,1);
 rhsF = zeros(numDofFAC,1);                                                     % NEW
 
 condLoc = zeros(mesh.numTri,1);
-
-kk=0;
 
 for tri=1:mesh.numTri
     
@@ -179,18 +177,18 @@ for tri=1:mesh.numTri
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_IFel = shapePhyQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;           % NEW
-        matK_IIel = shapePhyDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
+        %matK_IIel = shapePhyDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
 
         matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_GFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;           % NEW ( = 0 )
-        matK_GIel = shapeAuxDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
+        %matK_GIel = shapeAuxDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
 
         matM_FIel = shapeFluQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;           % NEW 
         matM_FGel = shapeFluQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;           % NEW
         matM_FFel = shapeFluQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;           % NEW
-        matK_FIel = shapeFluDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
-        matK_FFel = shapeFluDsQ' * (weightsLinQ .* shapeFluDsQ) * Jdxdu;       % NEW (CHECK)
+        %matK_FIel = shapeFluDsQ' * (weightsLinQ .* shapePhyDsQ) * Jdxdu;       % NEW (CHECK)
+        %matK_FFel = shapeFluDsQ' * (weightsLinQ .* shapeFluDsQ) * Jdxdu;       % NEW (CHECK)
 
         % Exterior normal
         nx = normal(fac,1);
@@ -207,16 +205,14 @@ for tri=1:mesh.numTri
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         idLocF = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;                          % NEW
         
-        % Element matrices (local element-wise system)
+        % Element matrices (local element-wise system)  "SURFACE TERMS"
         matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matM_IIel;
         matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matM_IIel;
         matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matM_IIel;
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) - 0.5*0.5/(k^2)     * matK_IIel;     % NEW
 
         matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matM_IGel;
 
         matIFel(idLocU,idLocF) = matIFel(idLocU,idLocF) + nx                * matM_IFel;     % NEW
-
         matIFel(idLocV,idLocF) = matIFel(idLocV,idLocF) + ny                * matM_IFel;     % NEW
         
         % matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matM_IIel;
@@ -249,8 +245,8 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
-            matGIel = [-tau*matM_GIel + 0.5/(k^2)*matK_GIel, nx*matM_GIel, ny*matM_GIel];        % UPDATED
-            matGFel = matM_GFel;                                                                 % NEW
+            matGIel = [-tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];           % UPDATED
+            matGFel = matM_GFel;                                              % NEW
 
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -270,7 +266,7 @@ for tri=1:mesh.numTri
             matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
-            matGFv(idGloG,:) = 0.*matGFel;                                   % NEW
+            matGFv(idGloG,:) = 0.*matGFel;                                     % NEW
 
             matGGvInv(idGloG,:) = inv(matGGel);
 
@@ -293,13 +289,13 @@ for tri=1:mesh.numTri
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
-                    matGIel = [+tau*matM_GIel - 0.5/(k^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel];    % UPDATED
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];    
                     rhsGel  = +2*tau*rhsPel;
                 case 'NEU'
-                    matGIel = [-tau*matM_GIel + 0.5/(k^2)*matK_GIel, -nx*matM_GIel, -ny*matM_GIel];    % UPDATED
+                    matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];   
                     rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = [+tau*matM_GIel - 0.5/(k^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);  % = 0, UPDATED
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);  % = 0
                     rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
@@ -341,13 +337,13 @@ for tri=1:mesh.numTri
         if (triNeigh > 0)
             
             % Elemental matrices (interface condition)
-            matFFel = matM_FFel - 0.5/(k^2)*matK_FFel;                                                    % NEW
-            matFIel = [-0.5*matM_FIel + 0.5*0.5/(k^2)*matK_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel];   % NEW
-            matFGel = -0.5*matM_FGel;                                                                     % NEW
+            matFFel = matM_FFel;                                                    % NEW
+            matFIel = [-0.5*matM_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel];       % NEW
+            matFGel = -0.5*matM_FGel;                                               % NEW
 
             % Global ID for flux and exterior unknowns 
             idGloG = dofm.locToGloFAC(tri,idLocG);
-            idGloF = dofm.locToGloFAC(tri,idLocF);                            % NEW
+            idGloF = dofm.locToGloFAC(tri,idLocF);                                  % NEW
             dofExt = dofm.locFacNeigh(facNeigh,:);
             idExtP = 0*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
             idExtU = 1*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
@@ -368,34 +364,37 @@ for tri=1:mesh.numTri
             matFGvInv(idGloF,:) = inv(matFGel);
 
         else
-            
-            % Source terms  ( rhsF = 0 )
+
+            % Source terms
             [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            rhsPel = 0.* (shapeFluQ' * (weightsLinQ .* solQ) * Jdxdu);             % NEW
-            rhsUel = 0.* (shapeFluQ' * (weightsLinQ .* solDxQ) * Jdxdu);           % NEW
-            rhsVel = 0.* (shapeFluQ' * (weightsLinQ .* solDyQ) * Jdxdu);           % NEW
+            rhsPel = (shapeFluQ' * (weightsLinQ .* solQ) * Jdxdu);             % NEW
+            rhsUel = (shapeFluQ' * (weightsLinQ .* solDxQ) * Jdxdu);           % NEW
+            rhsVel = (shapeFluQ' * (weightsLinQ .* solDyQ) * Jdxdu);           % NEW
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = tagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions) 
-            % FIX WITH B.C. 
+            % FIX B.C. 
              
-            matFGel = matM_FGel;                                              % NEW
-            matFIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);           % NEW
-            matFFel = matM_FFel;                                              % NEW
-            rhsFel = zeros(dofm.numDofPerLIN,1);                              % NEW
+            matFGel = -0.5*matM_FGel;                                          % NEW
+            matFIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);            % NEW
+            matFFel = 0*matM_FFel;                                             % NEW
+            rhsFel = zeros(dofm.numDofPerLIN,1);                               % NEW
             switch BC
                 case 'DIR'
-                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel];
-                    rhsFel  = +2*tau*rhsPel;
+                    matFIel = [-0.5*matM_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel];
+                    rhsFel = - rhsPel;
+                    %rhsFel = +2*tau*rhsPel; % same as above, but *(-2)
                 case 'NEU'
-                    matFIel = [-tau*matM_FIel, -nx*matM_FIel, -ny*matM_FIel];
-                    rhsFel  = -2*(nx*rhsUel + ny*rhsVel);
+                    matFIel = [+0.5*matM_FIel, +0.5*nx*matM_FIel, +0.5*ny*matM_FIel];
+                    rhsFel = nx*rhsUel + ny*rhsVel;
+                    %rhsFel = -2*(nx*rhsUel + ny*rhsVel); % same as above, but *(-2)
                 case 'ABC'
-                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel] * (1-tau)/(1+tau);  % = 0
-                    rhsFel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    matFIel = [-0.5*matM_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel] * (1-tau)/(1+tau); % = 0
+                    rhsFel = -1/2 * (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau); 
+                    %rhsFel = (rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau); % same as above, but *(-2)
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -457,8 +456,6 @@ for tri=1:mesh.numTri
     
 end
 
-%[ii,jj]=find(~matFIx)
-
 % Sparse memory storage
 matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
 matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
@@ -518,7 +515,8 @@ end
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;
-solI = matIIinv*(rhsI-matIG*solG);
+% solI = matIIinv*(rhsI-matIG*solG);
+solI = sysA.matA\sysA.rhsA;
 
 end
 
