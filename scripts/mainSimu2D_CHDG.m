@@ -4,11 +4,11 @@ clear all;
 global k
 
 % Setup benchmark and parameters
-benchmark = 'waveguide';
+benchmark = 'open';
 switch benchmark
     case 'open'
-        k = 30*pi; %15*pi;
-        h = 1/34; %1/16;
+        k = 15*pi; %15*pi;
+        h = 1/16; %1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.01*sqrt(2)*pi; %7.1*sqrt(2)*pi;
@@ -21,7 +21,7 @@ switch benchmark
 end
 degree = 3;
 tau = 1;
-BASIS = 1;
+BASIS = 0;
 PREC = 0;
 
 % Build mesh and DOF manager
@@ -46,7 +46,7 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-[solA, sysA] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_TEST(mesh, dofm, tau, BASIS, PREC);
 errorL2 = computeNormError2D_DG(mesh, dofm, solA);
 
 % Compute projection solution/error
@@ -63,10 +63,10 @@ disp('---------------------------------------------------------');
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+%writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+%writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+%writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+%system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
