@@ -436,9 +436,6 @@ sysA.rhsH = rhsH;
 sysA.rhsF = rhsF;
 
 % Full system
-% sysA.matA = [ matII matIG matIF; matGI matGG matGF; matFI matFG matFF ];
-% sysA.rhsA = [ rhsI ; rhsG ; rhsF];
-
 sysA.matA = [ matII matIG matIH matIF ;
               matGI matGG matGH matGF ;
               matHI matHG matHH matHF ;
