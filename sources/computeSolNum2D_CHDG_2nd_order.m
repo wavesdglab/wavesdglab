@@ -19,7 +19,7 @@ degreeQ = 2*dofm.degree;
 shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);
 shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
-shapePhyLinDuQ = functionsShapeDerLIN(uLinQ, dofm.degree);                      % NEW
+shapePhyLinDuQ = functionsShapeDerLIN(uLinQ, dofm.degree);                           % NEW
 
 % Global matrices
 matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
@@ -313,7 +313,7 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         matHHel = matM_HHel;
-        matHIel = [-matM_HIel + 0.5/(k^2) * matK_HIel, -nx*matM_HIel, -ny*matM_HIel];
+        matHIel = [-matM_HIel + 0.5/(k^2) * matK_HIel, -nx*matM_HIel, -ny*matM_HIel];    % UPDATED
         
         % Global ID for flux and exterior unknowns
         idGloH = dofm.locToGloFAC(tri,idLocG);
@@ -335,7 +335,7 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        matFFel = matM_FFel - 0.5/(k^2) * matK_FFel;                          % UPDATED
+        matFFel = matM_FFel - 0.5/(k^2) * matK_FFel;                                      % UPDATED
         matFHel = -0.5*matM_FHel;
         matFGel = -0.5*matM_FGel;
         
@@ -462,7 +462,7 @@ sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
 % solI = sol(1:3*numDofTRI);
 
 solI = sysA.matA\sysA.rhsA;
-figure(2)
+figure(1)
 spy(sysA.matA)
 end
 
