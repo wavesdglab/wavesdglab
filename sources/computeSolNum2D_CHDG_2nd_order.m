@@ -6,6 +6,8 @@ function [solI, sysA] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, ~, PREC)
 
 global k
 
+beta = 1;
+
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -117,7 +119,7 @@ for tri=1:mesh.numTri
     
     % Source terms
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
-    
+
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
     matDXel = shapeDxQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -202,6 +204,10 @@ for tri=1:mesh.numTri
         nx = normal(fac,1);
         ny = normal(fac,2);
         
+        % Counterclock tangential normal
+        sx = -ny;                          % NEW
+        sy = +nx;                          % NEW
+
         % -----------------------------------------------------------------
         % Physical equations
         % -----------------------------------------------------------------
@@ -254,9 +260,11 @@ for tri=1:mesh.numTri
             
             % Source terms
             [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
+            solDsQ = solDxQ * sx + solDyQ * sy;                               % NEW
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k);
+            rhsP_Kel = shapeAuxDsQ' * (weightsLinQ .* solDsQ);                % NEW
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);  
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k); 
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -271,14 +279,14 @@ for tri=1:mesh.numTri
                 case 'DIR'
                     %matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
                     matGHel = matM_GHel;
-                    rhsGel  = +2*tau*rhsPel;
+                    rhsGel  = +2*tau*rhsPel - 1/(k^2)*rhsP_Kel;                        % UPDATED
                 case 'NEU'
                     %matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
                     matGHel = -matM_GHel;
                     rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     %matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau)
-                    rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    rhsGel  = +(rhsPel - 0.5/(k^2)*rhsP_Kel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -313,7 +321,7 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         matHHel = matM_HHel;
-        matHIel = [-matM_HIel + 0.5/(k^2) * matK_HIel, -nx*matM_HIel, -ny*matM_HIel];    % UPDATED
+        matHIel = [-matM_HIel + beta * 0.5/(k^2) * matK_HIel, -nx*matM_HIel, -ny*matM_HIel];    % UPDATED
         
         % Global ID for flux and exterior unknowns
         idGloH = dofm.locToGloFAC(tri,idLocG);
@@ -335,7 +343,7 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        matFFel = matM_FFel - 0.5/(k^2) * matK_FFel;                                      % UPDATED
+        matFFel = matM_FFel - beta * 0.5/(k^2) * matK_FFel;                                      % UPDATED
         matFHel = -0.5*matM_FHel;
         matFGel = -0.5*matM_FGel;
         
@@ -462,8 +470,8 @@ sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
 % solI = sol(1:3*numDofTRI);
 
 solI = sysA.matA\sysA.rhsA;
-figure(1)
-spy(sysA.matA)
+% figure(1)
+% spy(sysA.matA)
 end
 
 function BC = tagToBC(tag)
