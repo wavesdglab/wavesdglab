@@ -118,7 +118,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
+    [~, ~, ~, ~, rhsQ, ~, ~] = mySol(xQ, yQ);
 
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -257,12 +257,13 @@ for tri=1:mesh.numTri
             matGGvInv(idGloG,:) = inv(matGGel);
             
         else
-            
-            % Source terms
-            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            solDsQ = solDxQ * sx + solDyQ * sy;                               % NEW
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsP_Kel = shapeAuxDsQ' * (weightsLinQ .* solDsQ);                % NEW
+
+            % Source terms    
+            [solQ, solDxQ, solDyQ, solDsDsQ, ~, ~, ~] = mySol(xQ, yQ);
+%             solDsQ = solDxQ * sx + solDyQ * sy;                               % NEW
+            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;               
+%             rhsP_Kel = shapeAuxQ' * (weightsLinQ .* solDsDsQ) * Jdxdu;        % NEW: OPEN
+            rhsP_Kel = shapeAuxDsQ' * (weightsLinQ .* solDsDsQ);              % NEW: CAVITY
             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);  
             rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k); 
             
@@ -277,16 +278,15 @@ for tri=1:mesh.numTri
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
-                    %matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
                     matGHel = matM_GHel;
-                    rhsGel  = +2*tau*rhsPel - 1/(k^2)*rhsP_Kel;                        % UPDATED
+%                     rhsGel  = +2*tau*rhsPel + 1/(k^2)*rhsP_Kel;                       % UPDATED: OPEN
+                    rhsGel  = +2*tau*rhsPel - 1/(k^2)*rhsP_Kel;                     % UPDATED: CAVITY
                 case 'NEU'
-                    %matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
                     matGHel = -matM_GHel;
                     rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    %matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau)
-                    rhsGel  = +(rhsPel - 0.5/(k^2)*rhsP_Kel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+%                     rhsGel  = +(rhsPel + 0.5/(k^2)*rhsP_Kel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);   % UPDATED: OPEN
+                    rhsGel  = +(rhsPel - 0.5/(k^2)*rhsP_Kel - (nx*rhsUel  + ny*rhsVel)) * (2*tau)/(1+tau);   % UPDATED: CAVITY
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
