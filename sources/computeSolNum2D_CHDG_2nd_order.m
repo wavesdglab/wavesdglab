@@ -239,6 +239,7 @@ for tri=1:mesh.numTri
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
             matGHel = -matM_GHel;
+            matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);  %%%%%%%%
             
             % Global ID for auxiliary and exterior unknowns
             idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);            %%%
@@ -251,15 +252,16 @@ for tri=1:mesh.numTri
             idExtH([1 2]) = idExtH([2 1]);
             
             % Assembling
+            matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));    %%%%%
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
             matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));
+            matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;     %%%%%
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;
+            matGIv(idGloG,:) = matGIel;                           %%%%%
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
-            matGGvInv(idGloG,:) = inv(matGGel);
-
-            matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);  %%%%%%%%
+            matGGvInv(idGloG,:) = inv(matGGel); 
             
         else
 
@@ -309,13 +311,13 @@ for tri=1:mesh.numTri
             idGloI = [idGloP idGloU idGloV];
             
             % Assembling
-%             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
+            matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
             matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2));
-%             matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;
+            matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;
-%             matGIv(idGloG,:) = matGIel;
+            matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
@@ -323,10 +325,6 @@ for tri=1:mesh.numTri
             rhsG(idGloG) = rhsGel;
             
         end
-
-        matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));    %%%%%
-        matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;     %%%%%
-        matGIv(idGloG,:) = matGIel;                           %%%%%
       
         % -----------------------------------------------------------------
         % Outgoing characteristic equations
@@ -463,7 +461,7 @@ sysA.matA = [ matII matIG matIH matIF ;
               matHI matHG matHH matHF ;
               matFI matFG matFH matFF ];
 sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
-spy(sysA.matA)
+
 % % Reduced system
 % sysA.matS = matGG - [matGI matGF]*([matII matIF ; matFI matFF]\[matIG ; matFG]);
 % sysA.rhsS = rhsG - [matGI matGF]*([matII matIF ; matFI matFF]\[rhsI ; rhsF]);
@@ -484,8 +482,7 @@ spy(sysA.matA)
 % solI = sol(1:3*numDofTRI);
 
 solI = sysA.matA\sysA.rhsA;
-% figure(1)
-% spy(sysA.matA)
+
 end
 
 function BC = tagToBC(tag)
