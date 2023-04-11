@@ -28,7 +28,7 @@ errorVec = zeros(iMax/iOut+1,1);
 %%%%%%%
 resVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, x);
-fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
+% fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
 %%%%%%%
 
 flag = 0;
@@ -43,7 +43,7 @@ while(i <= iMax)
     end
     H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
-    
+
     % Apply the previous Givens matrix to ith column
     for j = 1:i-1
         matGivens = [ cs(j)' sn(j)' ; -sn(j) cs(j) ];
@@ -67,7 +67,7 @@ while(i <= iMax)
     if(mod(i,iOut) == 0)
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
-        
+ 
         resVec(i/iOut+1) = relRes;
         errorVec(i/iOut+1) = computeError(mesh, dofm, x);
         fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
@@ -83,5 +83,7 @@ while(i <= iMax)
     end
     i = i+1;
 end
-
+% Write the solution
+%writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");
+%system('gmsh output/solNumGMRES.pos&');
 end
