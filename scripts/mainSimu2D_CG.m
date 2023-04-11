@@ -4,7 +4,7 @@ clear all;
 global k
 
 % Setup benchmark and parameters
-benchmark = 'waveguide';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 15*pi;
@@ -19,15 +19,15 @@ switch benchmark
         h = 1/8;
         tol = 1e-10; maxit = 4000; itout = 200;
 end
-degree = 3;
-PREC = 1;
+degree = 1; % P1
+PREC = 0; % for preconditioner
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
-dofm = buildDofManager2D_CG(mesh, degree);
+dofm = buildDofManager2D_CG(mesh, degree); % espace fonctionnel discret
 
-Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1); % nb de points par longueur d'onde
 
 % -------------------------------------------------------------------------
 % Compute solution and error
@@ -58,62 +58,64 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = sysA.matA;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-% rankEigenVec = rank(eigenvec);
-% condEigenVec = cond(eigenvec);
-% 
-% disp(['    Size                ' num2str(size(mat,1))]);
-% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
-% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+mat = sysA.matA;
+[eigenvec, eigenval] = eigs(mat,size(mat,1));
+eigenval = diag(eigenval);
+rankEigenVec = rank(eigenvec);
+condEigenVec = cond(eigenvec);
+
+disp(['    Size                ' num2str(size(mat,1))]);
+disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
+disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
 % % Plot spectrum
 % figure;
 % hold off; scatter(real(eigenval),imag(eigenval));
 % % hold on; plot(fovals(mat,100));
 % grid on; box on;
-% 
-% % Compute condition number
-% condestMat = condest(mat);
-% 
-% disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
-% disp(['---------------------------------------------------------']);
+%
+% Compute condition number
+condestMat = condest(mat);
+
+disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
+disp(['---------------------------------------------------------']);
 
 % -------------------------------------------------------------------------
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGNR';
-switch solver
-    case 'CGNR'
-        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-    case 'GMRES'
-        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-end
+% solver = 'GMRES';
+% switch solver
+%     case 'CGNR'
+%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+%     case 'GMRES'
+%         [resVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+%         %[resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+% end
 
-figure;
-hold off
-semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
-hold on
-semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
-semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-box on;
-grid on;
-legend('Location','southwest');
-title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-xlim([0 maxit]);
-ylim([0.005 1]);
-xlabel('Iteration');
-ylabel('Value');
+% figure;
+% hold off
+%semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+%semilogy(0:itout:maxit,resRedVec,'r-o','DisplayName','Relative residual (Red)');
+% hold on
+% semilogy(0:itout:maxit,resVec,'b-','DisplayName','Relative residual');
+% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+%plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+%plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([0.005 1]);
+% xlabel('Iteration');
+% ylabel('Value');
