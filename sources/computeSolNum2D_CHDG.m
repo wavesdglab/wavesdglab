@@ -71,8 +71,6 @@ rhsF = zeros(numDofFAC,1);                                                     %
 
 condLoc = zeros(mesh.numTri,1);
 
-kk=0;
-
 for tri=1:mesh.numTri
     
     % ---------------------------------------------------------------------

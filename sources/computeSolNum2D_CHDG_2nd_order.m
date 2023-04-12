@@ -245,16 +245,16 @@ for tri=1:mesh.numTri
             idExtH([1 2]) = idExtH([2 1]);
             
             % Assembling
-            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));   
+            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
             matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));
             matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;     
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;
-            matGFv(idGloG,:) = matGFel;                         
+            matGFv(idGloG,:) = matGFel;                 
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
-            matGGvInv(idGloG,:) = inv(matGGel); 
+            matGGvInv(idGloG,:) = inv(matGGel);
 
         else
 
@@ -444,26 +444,58 @@ sysA.matA = [ matII matIG matIH matIF ;
               matFI matFG matFH matFF ];
 sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
 
-% % Reduced system
+A = [ matII matIH matIF ;
+      matHI matHH matHF ;
+      matFI matFH matFF ];
+B = [ matIG ;
+      matHG ;
+      matFG ];
+C = [ matGI matGH matGF ];
+D = matGG;
+c = [rhsI ;
+     rhsH ;
+     rhsF ];
+d = rhsG;
+
+invA = inv(A);
+invD = matGGinv;
+
+sysA.A = A;            % NEW
+sysA.B = B;            % NEW
+sysA.C = C;            % NEW
+sysA.D = D;            % NEW
+sysA.Ainv = invA;   % NEW
+sysA.Dinv = invD;   % NEW
+sysA.c = c;            % NEW
+sysA.d = d;            % NEW
+
+% Reduced system
+sysA.matS = D - C*(invA*B);
+sysA.rhsS = d - C*(invA*c);
 % sysA.matS = matGG - [matGI matGF]*([matII matIF ; matFI matFF]\[matIG ; matFG]);
 % sysA.rhsS = rhsG - [matGI matGF]*([matII matIF ; matFI matFF]\[rhsI ; rhsF]);
-% 
-% % Preconditionning
-% sysA.matGGinv = matGGinv;
-% if (PREC == 1)
-%     sysA.matP = matGG;
-%     sysA.matPinv = matGGinv;
-% else
-%     sysA.matP = 1;
-%     sysA.matPinv = 1;
-% end
-% 
-% % Compute solution
-% solG = sysA.matS\sysA.rhsS;
-% sol = [matII matIF ; matFI matFF]\([rhsI ; rhsF] - [matIG ; matFG] * solG);
-% solI = sol(1:3*numDofTRI);
 
-solI = sysA.matA\sysA.rhsA;
+% Physical system
+sysA.matPhy = A - B*(invD*C);
+sysA.rhsPhy = c - B*(invD*d);
+
+% Preconditionning
+sysA.matGGinv = matGGinv;
+if (PREC == 1)
+    sysA.matP = matGG;
+    sysA.matPinv = matGGinv;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+
+% Compute solution
+solG = sysA.matS\sysA.rhsS;
+% sol = [matII matIF ; matFI matFF]\([rhsI ; rhsF] - [matIG ; matFG] * solG);
+sol = A\(c - B*solG);
+solI = sol(1:3*numDofTRI);
+
+% solI = sysA.matA\sysA.rhsA;   % Direct solver
 
 end
 
