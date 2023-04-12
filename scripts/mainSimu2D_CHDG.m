@@ -3,20 +3,28 @@ clear all;
 
 global k
 
+% for i = 0:5
+
 % Setup benchmark and parameters
 benchmark = 'open';
 switch benchmark
     case 'open'
-        k = 15*pi;
-        h = 1/16;
+        k = 15*pi; %15*pi;
+        h = 1/16;  % 1/16
+%         h = 1/5*(1/2)^i;
+%         H(i+1)=h;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 7.01*sqrt(2)*pi; %7.1*sqrt(2)*pi;
-        h = 1/15; %1/10;
+        h = 1/10; %1/10;
+%         h = 1/5*(1/2)^i;
+%         H(i+1)=h;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
-        k = 12*pi; %6*pi
-        h = 1/17; %1/8
+        k = 6*pi; %6*pi
+        h = 1/8; %1/8
+%         h = 1/5*(1/2)^i;
+%         H(i+1)=h;
         tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 3;
@@ -46,16 +54,44 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-[solA, sysA] = computeSolNum2D_CHDG_TEST(mesh, dofm, tau, BASIS, PREC);
-errorL2 = computeNormError2D_DG(mesh, dofm, solA);
+[solA_1, sysA_1] = computeSolNum2D_CHDG_1st_order(mesh, dofm, tau, BASIS, PREC);
+[solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
+errorL2_1 = computeNormError2D_DG(mesh, dofm, solA_1);
+errorL2_2 = computeNormError2D_DG(mesh, dofm, solA_2);
 
-% Compute projection solution/error
+% Compute projection solution/errormesh.numTri*3*dofm.numDofPerTRI
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
+% % 
+% disp('     1st order');
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+% disp('---------------------------------------------------------');
+% 
+% err(i+1,1) = errorL2;
+% err(i+1,3) = errorProjL2;
 
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-disp('---------------------------------------------------------');
+% [solA, sysA] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
+% errorL2 = computeNormError2D_DG(mesh, dofm, solA);
+% 
+% disp('     2nd order');
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+% disp('---------------------------------------------------------');
+% 
+% err(i+1,2) = errorL2;
+% 
+% end
+% 
+% loglog(H,err(:,1),'-r','LineWidth',2);
+% hold on
+% loglog(H,err(:,2),'-b','LineWidth',2);
+% loglog(H,err(:,3),'-g','LineWidth',2);
+% title('L^2 error');
+% legend('1^{st} order', '2^{nd} order', 'Projection', 'Location', 'northwest');
+% grid on
+% xlabel('h');
+% ylabel('L^2 error');
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
@@ -63,10 +99,10 @@ disp('---------------------------------------------------------');
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-%writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-%writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-%writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-%system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -100,67 +136,35 @@ disp('---------------------------------------------------------');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'Rich';
-% switch solver
-%     case 'Rich'
-%         alpha = 1;
-%         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-%     case 'CGNR'
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-%     case 'GMRES'
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% end
-%
-% figure;
-% hold off
-% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
-% hold on
-% semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
-% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Value');
-
-
-for tri = 1:mesh.numTri
-    for fac = 1:3
-        %tri = 2;
-        %fac = 2;
-        triNeigh = mesh.mapTriToTri(tri,fac);
-        facNeigh = mesh.mapTriToFac(tri,fac);
-        
-        if(facNeigh>0)
-            
-            nDofI = mesh.numTri*3*dofm.numDofPerTRI;
-            nDofG = mesh.numTri*3*dofm.numDofPerLIN;
-            nDofH = mesh.numTri*3*dofm.numDofPerLIN;
-            solG = solA(nDofI+1:nDofI+nDofG);
-            solH = solA(nDofI+nDofG+1:nDofI+nDofG+nDofH);
-            
-            idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
-            idGloG = dofm.locToGloFAC(tri,idLocG);
-            
-            idLocExtH = (1:dofm.numDofPerLIN) + (facNeigh-1)*dofm.numDofPerLIN;
-            idExtH = dofm.locToGloFAC(triNeigh,idLocExtH);
-            
-            valG = solG(idGloG);
-            valH = solH(idExtH);
-            valH([1 2]) = valH([2 1]);
-            if(max(abs(valG-valH))>1e-12)
-                valG-valH;
-            end
-        end
-        
-        
-        %         [tri triNeigh;
-        %             fac facNeigh]
-        %         [solG(idGloG) solH(idExtH)]
-    end
+solver = 'GMRES';
+switch solver
+    case 'Rich'
+        alpha = 1;
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverRichardson_DG(mesh, dofm, sysA_1, tol, maxit, itout, alpha, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverRichardson_DG(mesh, dofm, sysA_2, tol, maxit, itout, alpha, @computeNormError2D_DG);
+    case 'CGNR'
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverCGNRredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverCGNRredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
+    case 'GMRES'
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverGMRESredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverGMRESredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
 end
+
+figure;
+hold off
+% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
+% semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,errorVec_1,'r-o','DisplayName','Relative L2-error (iterative - 1st order)');
+hold on
+semilogy(0:itout:maxit,errorVec_2,'g-o','DisplayName','Relative L2-error (iterative - 2nd order)');
+plot([0 maxit],[errorL2_1 errorL2_1],'k--','DisplayName','Relative L2-error (direct - 1st order)');
+plot([0 maxit],[errorL2_2 errorL2_2],'k-.','DisplayName','Relative L2-error (direct - 2nd order)');
+% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+box on;
+grid on;
+legend('Location','southwest');
+title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.005 1]);
+xlabel('Iteration');
+ylabel('Value');
