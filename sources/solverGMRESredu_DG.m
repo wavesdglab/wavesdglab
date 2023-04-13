@@ -27,19 +27,12 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-xPhy = sys.Ainv*(sys.c-sys.B*x);
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, xPhy);  
-
-% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
-% rPhy = sys.rhsPhy - sys.matPhy*xPhy;
-% resPhyIni = rPhy'*rPhy;
-% resRedVec(1) = 1;
-% resPhyVec(1) = 1;
-% errorVec(1) = computeError(mesh, dofm, xPhy);
+errorVec(1) = computeError(mesh, dofm, xPhy);
 %%%%%%%
 
 flag = 0;
@@ -90,21 +83,13 @@ while(i <= iMax)
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
         
-        xPhy = sys.Ainv*(sys.c-sys.B*x);
+        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = relRes;
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);      
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
-
-%         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
-%         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
-%         resPhyNew = rPhy'*rPhy;
-%         resRedVec(i/iOut+1) = relRes;
-%         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-%         errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
-%         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     
@@ -115,7 +100,6 @@ while(i <= iMax)
     i = i+1;
 end
 
-xPhy = sys.Ainv*(sys.c-sys.B*x);
-% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 
 end
