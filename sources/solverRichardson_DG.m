@@ -24,7 +24,7 @@ rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, xPhy);
+errorVec(1) = computeError(mesh, dofm, xPhy);   
 
 % xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 % rPhy = sys.rhsPhy - sys.matPhy*xPhy;
