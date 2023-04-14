@@ -436,22 +436,25 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 % sysA.rhsG = rhsG;
 % sysA.rhsH = rhsH;
 % sysA.rhsF = rhsF;
+
 sysA.matII = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF];
 sysA.matIG = [matIG; matHG; matFG];
 sysA.matGI = [matGI matGH matGF];
 sysA.matGG = matGG;
-sysA.matGGinv = matGGinv;
-sysA.matIIinv = inv(sysA.matII);
+
+% sysA.matGGinv = matGGinv;
+% sysA.matIIinv = inv(sysA.matII);
+
 sysA.rhsI = [rhsI; rhsH; rhsF];
 sysA.rhsG = rhsG;
 
 % Full system
-% sysA.matA = [ matII matIG matIH matIF ;
-%               matGI matGG matGH matGF ;
-%               matHI matHG matHH matHF ;
-%               matFI matFG matFH matFF ];
-% sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
-% 
+sysA.matA = [ matII matIG matIH matIF ;
+              matGI matGG matGH matGF ;
+              matHI matHG matHH matHF ;
+              matFI matFG matFH matFF ];
+sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
+
 % A = [ matII matIH matIF ;
 %       matHI matHH matHF ;
 %       matFI matFH matFF ];
@@ -480,14 +483,14 @@ sysA.rhsG = rhsG;
 % Reduced system
 % sysA.matS = D - C*(invA*B);
 % sysA.rhsS = d - C*(invA*c);
-% sysA.matS = matGG - [matGI matGF]*([matII matIF ; matFI matFF]\[matIG ; matFG]);
-% sysA.rhsS = rhsG - [matGI matGF]*([matII matIF ; matFI matFF]\[rhsI ; rhsF]);
+
 sysA.matS = matGG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[matIG; matHG; matFG]);
 sysA.rhsS = rhsG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[rhsI; rhsH; rhsF]);
 
 % Physical system
 % sysA.matPhy = A - B*(invD*C);
 % sysA.rhsPhy = c - B*(invD*d);
+
 sysA.matPhy = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF] - [matIG; matHG; matFG]*(matGG\[matGI matGH matGF]);
 sysA.rhsPhy = [rhsI; rhsH; rhsF] - [matIG; matHG; matFG]*(matGG\rhsG);
 
@@ -502,12 +505,6 @@ else
 end
 
 % Compute solution
-% solG = sysA.matS\sysA.rhsS;
-% sol = [matII matIF ; matFI matFF]\([rhsI ; rhsF] - [matIG ; matFG] * solG);
-% solI = sol(1:3*numDofTRI);
-% 
-% solI = sysA.matA\sysA.rhsA;
-
 solG = sysA.matS\sysA.rhsS;
 % sol = A\(c - B*solG);
 sol = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\([rhsI; rhsH; rhsF]-[matIG; matHG; matFG]*solG);
