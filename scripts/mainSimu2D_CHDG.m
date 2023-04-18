@@ -1,6 +1,6 @@
 clear all;
 %close all;
-
+tic
 global k
 
 % for i = 0:5
@@ -15,7 +15,7 @@ switch benchmark
 %         H(i+1)=h;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 7.01*sqrt(2)*pi; %7.1*sqrt(2)*pi;
+        k = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi;
         h = 1/10; %1/10;
 %         h = 1/5*(1/2)^i;
 %         H(i+1)=h;
@@ -63,10 +63,10 @@ errorL2_2 = computeNormError2D_DG(mesh, dofm, solA_2);
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % % 
-% disp('     1st order');
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+disp('     1st order');
+disp(['    L2-Error (numSol)   ' num2str(errorL2_1,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 % 
 % err(i+1,1) = errorL2;
 % err(i+1,3) = errorProjL2;
@@ -74,10 +74,10 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % [solA, sysA] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
 % errorL2 = computeNormError2D_DG(mesh, dofm, solA);
 % 
-% disp('     2nd order');
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+disp('     2nd order');
+disp(['    L2-Error (numSol)   ' num2str(errorL2_2,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 % 
 % err(i+1,2) = errorL2;
 % 
@@ -113,11 +113,11 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
-%
+% 
 % disp(['    Size                ' num2str(size(mat,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-%
+% 
 % figure;
 % hold off; scatter(real(eigenval),imag(eigenval));
 % %hold on; plot(fovals(mat,100));
@@ -168,3 +168,4 @@ xlim([0 maxit]);
 ylim([0.005 1]);
 xlabel('Iteration');
 ylabel('Value');
+toc
