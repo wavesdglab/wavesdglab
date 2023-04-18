@@ -27,7 +27,8 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+xPhy = sys.matII\(sys.rhsI-sys.matIG*x);
 rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
@@ -83,7 +84,8 @@ while(i <= iMax)
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
         
-        xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+%         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+        xPhy = sys.matII\(sys.rhsI-sys.matIG*x);
         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = relRes;
@@ -100,6 +102,7 @@ while(i <= iMax)
     i = i+1;
 end
 
-xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+xPhy = sys.matII\(sys.rhsI-sys.matIG*x);
 
 end
