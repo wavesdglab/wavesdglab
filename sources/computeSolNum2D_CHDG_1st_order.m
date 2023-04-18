@@ -431,12 +431,24 @@ sysA.matII = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF];
 sysA.matIG = [matIG; matHG; matFG];
 sysA.matGI = [matGI matGH matGF];
 sysA.matGG = matGG;
+% sysA.matII = matII;
+% sysA.matIG = [matIH matIF matIG];
+% sysA.matGI = [matHI; matFI; matGI];
+% sysA.matGG = [matHH matHF matHG; matFH matFF matFG; matGH matGF matGG];
+% sysA.matII = [matII matIH; matHI matHH];
+% sysA.matIG = [matIF matIG; matHF matHG];
+% sysA.matGI = [matFI matFH; matGI matGH];
+% sysA.matGG = [matFF matFG; matGF matGG];
 
 % sysA.matGGinv = matGGinv;
 % sysA.matIIinv = inv(sysA.matII);
 
 sysA.rhsI = [rhsI; rhsH; rhsF];
 sysA.rhsG = rhsG;
+% sysA.rhsI = rhsI;
+% sysA.rhsG = [rhsH; rhsF; rhsG];
+% sysA.rhsI = [rhsI; rhsH];
+% sysA.rhsG = [rhsF; rhsG];
 
 % Full system (for direct solver)
 sysA.matA = [ matII matIG matIH matIF ;
@@ -471,15 +483,19 @@ sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
 % sysA.matS = D - C*(inv(A)*B);
 % sysA.rhsS = d - C*(inv(A)*c);
 
-sysA.matS = matGG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[matIG; matHG; matFG]);
-sysA.rhsS = rhsG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[rhsI; rhsH; rhsF]);
+% sysA.matS = matGG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[matIG; matHG; matFG]);
+% sysA.rhsS = rhsG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[rhsI; rhsH; rhsF]);
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
+sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
 
 % Physical system
 % sysA.matPhy = A - B*(invD*C);
 % sysA.rhsPhy = c - B*(invD*d);
 
-sysA.matPhy = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF] - [matIG; matHG; matFG]*(matGG\[matGI matGH matGF]);
-sysA.rhsPhy = [rhsI; rhsH; rhsF] - [matIG; matHG; matFG]*(matGG\rhsG);
+% sysA.matPhy = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF] - [matIG; matHG; matFG]*(matGG\[matGI matGH matGF]);
+% sysA.rhsPhy = [rhsI; rhsH; rhsF] - [matIG; matHG; matFG]*(matGG\rhsG);
+sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
+sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
 
 % Preconditionning
 if (PREC == 1)
@@ -493,7 +509,8 @@ end
 % Compute solution
 solG = sysA.matS\sysA.rhsS;
 % sol = A\(c - B*solG);
-sol = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\([rhsI; rhsH; rhsF]-[matIG; matHG; matFG]*solG);
+% sol = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\([rhsI; rhsH; rhsF]-[matIG; matHG; matFG]*solG);
+sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
 solI = sol(1:3*numDofTRI);
 
 % solI = sysA.matA\sysA.rhsA;   % Direct solver
