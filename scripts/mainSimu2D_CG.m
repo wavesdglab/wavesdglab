@@ -4,15 +4,19 @@ clear all;
 global k
 
 % Setup benchmark and parameters
-benchmark = 'cavity';
+benchmark = 'cavity2';
 switch benchmark
     case 'open'
         k = 15*pi;
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 7.1*sqrt(2)*pi;
-        h = 1/10;
+        k = 2*sqrt(2)*pi;
+        h = 1/64;
+        tol = 1e-10; maxit = 2000; itout = 100;
+    case 'cavity2'
+        k = sqrt(5+0.5)*pi;
+        h = 1/64;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi;
@@ -44,13 +48,13 @@ disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
-
+% 
 solP = computeSolProjL2_2D_CG(mesh, dofm);
 errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
-
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-disp(['---------------------------------------------------------']);
+% 
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+% disp(['---------------------------------------------------------']);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
@@ -58,36 +62,40 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-mat = sysA.matA;
-[eigenvec, eigenval] = eigs(mat,size(mat,1));
-eigenval = diag(eigenval);
-rankEigenVec = rank(eigenvec);
-condEigenVec = cond(eigenvec);
+% mat = sysA.matA;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% eigenval = diag(eigenval);
+% rankEigenVec = rank(eigenvec);
+% condEigenVec = cond(eigenvec);
 
-disp(['    Size                ' num2str(size(mat,1))]);
-disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
-disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-% 
-% % Plot spectrum
+% writeField2D(dofm, mesh, eigenvec(:,end), 'output/eigenvec.pos', "eigenvec");
+% system('gmsh output/eigenvec.pos');
+
+
+% disp(['    Size                ' num2str(size(mat,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
+% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+
+% Plot spectrum
 % figure;
 % hold off; scatter(real(eigenval),imag(eigenval));
 % % hold on; plot(fovals(mat,100));
 % grid on; box on;
-%
-% Compute condition number
-condestMat = condest(mat);
 
-disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
-disp(['---------------------------------------------------------']);
+% Compute condition number
+% condestMat = condest(mat);
+% 
+% disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
+% disp(['---------------------------------------------------------']);
 
 % -------------------------------------------------------------------------
 % Compute iterative solution
