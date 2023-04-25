@@ -2,12 +2,16 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC, h_PML)
 
 global k
+global Rexiy
+
+L_pml = 1. + h_PML;
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
+
 
 % -------------------------------------------------------------------------
 % Quadrature
@@ -34,10 +38,27 @@ for tri=1:mesh.numTri
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3);
+    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3); 
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
+
+    % if(abs(V1(1))> 1 || abs(V1(2))> 1 || abs(V2(1))> 1 || abs(V2(2))> 1 || abs(V3(1))> 1 || abs(V3(2))> 1)
+    %     disp('PML')
+    % end
+
+    % if(abs(xQ(1))> 1 || abs(xQ(2))> 1 || abs(xQ(3))> 1 || abs(yQ(1))> 1 || abs(yQ(2))> 1 || abs(yQ(3))> 1)
+    %     disp('PML')
+    % end
+
+    sigma_x = zeros(size(xQ)) + ((1 <= abs(xQ)) .* (abs(xQ) <= L_pml) ./ (L_pml-abs(xQ))) ;
+    sigma_y = zeros(size(yQ)) + ((1 <= abs(yQ)) .* (abs(yQ) <= L_pml) ./ (L_pml-abs(yQ))) ;
+    % sigma_x = 0;
+    % sigma_y = 0;
+    gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (1 <= abs(xQ)) .* (abs(xQ) <= L_pml);
+    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (1 <= abs(yQ)) .* (abs(yQ) <= L_pml);
+    alpha_pml = gamma_x .* gamma_y;
+
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -61,8 +82,8 @@ for tri=1:mesh.numTri
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices
-    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
-    matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
+    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alpha_pml) * detJdxdu;
+    matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ .* gamma_y ./ gamma_x) + shapeDyQ' * (weightsTriQ .* shapeDyQ .* gamma_x ./ gamma_y) ) * detJdxdu;
     rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     % Matrix assembling
@@ -121,7 +142,10 @@ for edgBnd=1:mesh.numEdgBnd
     % Boundary condition
     switch tagToBC(mesh.tagEdgBnd(edgBnd))
         case 'DIR'
-            dofDIR = [dofDIR ; dof];
+            % dofDIR = [dofDIR ; dof];
+            matA(dof,:) = 0;
+            matA(dof,dof) = eye(length(dof),length(dof));
+            rhsA(dof) = 0;
         case 'NEU'
             rhsA(dof) = rhsA(dof) + rhsNel;
         case 'ABC'
@@ -132,15 +156,15 @@ for edgBnd=1:mesh.numEdgBnd
     end
 end
 
-if(~isempty(dofDIR))
-    solP = computeSolProjL2_2D_CG(mesh, dofm);
-    dofDIR = unique(dofDIR);
-    rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
-    rhsA(dofDIR) = solP(dofDIR);
-    matA(dofDIR,:) = 0;
-    matA(:,dofDIR) = 0;
-    matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
-end
+% if(~isempty(dofDIR))
+%     solP = computeSolProjL2_2D_CG(mesh, dofm);
+%     dofDIR = unique(dofDIR);
+%     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
+%     rhsA(dofDIR) = solP(dofDIR);
+%     matA(dofDIR,:) = 0;
+%     matA(:,dofDIR) = 0;
+%     matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
+% end
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -184,16 +208,19 @@ solA = [ solG ; solI ];
 end
 
 function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
+global BCWest BCNorth BCEast BCSouth BCCircle;
 switch tag
     case 1
         BC = BCWest;
     case 2
-        BC = BCNorth;
+        % BC = BCNorth;
+        BC = BCCircle;
     case 3
         BC = BCEast;
     case 4
         BC = BCSouth;
+    case 5
+        BC = BCCircle;
     otherwise
         error('BAD BOUNDARY TAG.')
 end

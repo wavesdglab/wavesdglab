@@ -1,7 +1,7 @@
 function [ Val ] = solScattPlaneWaveHard(k,R,xTab,yTab)
 
 zTab = xTab + 1i*yTab;
-zTab = zTab.*(abs(zTab)>1);
+zTab = zTab.*(abs(zTab)>0.5);
 rTab = abs(zTab);
 thetaTab = angle(zTab);
 
