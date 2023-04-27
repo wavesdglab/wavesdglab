@@ -1,6 +1,6 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
-global k TAGbench R;
+global k TAGbench R_disk L L_PML
 
 switch TAGbench
     case 'cavity'
@@ -31,35 +31,33 @@ switch TAGbench
         solVx = cos(theta) * solU;
         solVy = sin(theta) * solU;
     case 'scatteringHard'
-        solU = solScattPlaneWaveHard(k,R,x,y);
-        solF = exp(1i*k*x);
-        % solF = 0*x;
+        solU = solScattPlaneWaveHard(k,R_disk,x,y);
+        solF = 0*x;
         solDx = -1i*k*exp(1i*k*x);
         solDy = 0*x;
         % solVx = 0*x;
         % solVy = 0*x;
     case 'scatteringSoft'
-        solU = solScattPlaneWaveSoft(k,R,x,y);
-        solF = exp(1i*k*x);
+        solU = solScattPlaneWaveSoft(k,R_disk,x,y);
+        solF = 0*x;
         solDx = 0*x;
         solDy = 0*x;
         solVx = 0*x;
         solVy = 0*x;
-    case 'scatteringPML_01'
-        solU = solScattPlaneWaveHard(k,R,x,y);
-        solF = exp(1i*k*x);
+    case 'scatteringPML'
+        solU = solScattPlaneWaveHard(k,R_disk,x,y);
+        solF = 0*x;
         solDx = -1i*k*exp(1i*k*x);
         solDy = 0*x;
         solVx = 0*x;
         solVy = 0*x;
     case 'scatteringPML_02'
-        solU = solScattPlaneWaveHard(k,R,x,y);
-        solF = exp(1i*k*x);
+        solU = solScattPlaneWaveHard(k,R_disk,x,y);
+        solF = 0*x;
         solDx = -1i*k*exp(1i*k*x);
         solDy = 0*x;
     case 'scatteringPML_05'
-        solU = solScattPlaneWaveHard(k,R,x,y);
-        % solF = exp(1i*k*x);
+        solU = solScattPlaneWaveHard(k,R_disk,x,y);
         solF = 0*x;
         solDx = -1i*k*exp(1i*k*x);
         solDy = 0*x;

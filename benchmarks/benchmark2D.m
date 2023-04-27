@@ -1,6 +1,6 @@
 function mesh = benchmark2D(tag,h)
 
-global BCWest BCNorth BCEast BCSouth TAGbench BCCircle
+global BCWest BCNorth BCEast BCSouth TAGbench BCCircle L L_PML R_disk
 
 TAGbench = tag;
 switch tag
@@ -48,36 +48,22 @@ switch tag
         BCCircle = 'DIR';
         linkMsh = 'benchmarks/scattering/scattering.msh';
         linkGeo = 'benchmarks/scattering/scattering.geo';
-    case 'scatteringPML_01'
+    case 'scatteringPML'
         BCWest = 'DIR';
         BCNorth = 'DIR';
         BCEast = 'DIR';
         BCSouth = 'DIR';
         BCCircle = 'NEU';
-        linkMsh = 'benchmarks/scattering/scatteringPML_01.msh';
-        linkGeo = 'benchmarks/scattering/scatteringPML_01.geo';
-    case 'scatteringPML_02'
-        BCWest = 'DIR';
-        BCNorth = 'DIR';
-        BCEast = 'DIR';
-        BCSouth = 'DIR';
-        BCCircle = 'NEU';
-        linkMsh = 'benchmarks/scattering/scatteringPML_02.msh';
-        linkGeo = 'benchmarks/scattering/scatteringPML_02.geo';
-    case 'scatteringPML_05'
-        BCWest = 'DIR';
-        BCNorth = 'DIR';
-        BCEast = 'DIR';
-        BCSouth = 'DIR';
-        BCCircle = 'NEU';
-        linkMsh = 'benchmarks/scattering/scatteringPML_05.msh';
-        linkGeo = 'benchmarks/scattering/scatteringPML_05.geo';
+        linkMsh = 'benchmarks/scattering/scatteringPML.msh';
+        linkGeo = 'benchmarks/scattering/scatteringPML.geo';
 
     otherwise
         warning('Error - No valid benchmark has been set.')
 end
 
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h)]);
+% disp(['L = ' L ', L_PML = ' L_PML ', R_disk = ' R_disk]);
+
+system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ' -setnumber L ' num2str(L) ' -setnumber L_PML ' num2str(L_PML) ' -setnumber R_disk ' num2str(R_disk)]);
 mesh = readMesh2D(linkMsh);
 
 end

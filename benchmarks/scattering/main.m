@@ -1,25 +1,21 @@
 close all;
 clear all;
 
-global k;
-global R;
+global k R_disk L L_PML;
 
-k = 5*pi;
+k = 25;
+L = 1.1;
+R_disk = 1;
+L_PML = 0.1;
+
 % benchmark = 'scatteringHard';
 % benchmark = 'scatteringSoft';
-% benchmark = 'scatteringPML_01';
-% benchmark = 'scatteringPML_02';
-benchmark = 'scatteringPML_05';
+benchmark = 'scatteringPML';
 
-h = 1/64;
+
+h = 0.01;
 tol = 1e-10; maxit = 1000; itout = 50;
-h_PML = 0.5;
 
-
-R = 0.5;
-
-% Npt = 200;
-% d = 1;
 degree = 1;
 PREC = 0;
 
@@ -39,7 +35,7 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 
-[solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC, h_PML);
+[solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 

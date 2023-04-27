@@ -2,12 +2,12 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC, h_PML)
+function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
 global k
 global Rexiy
-
-L_pml = 1. + h_PML;
+global L_PML
+global L
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
@@ -51,13 +51,13 @@ for tri=1:mesh.numTri
     %     disp('PML')
     % end
 
-    sigma_x = zeros(size(xQ)) + ((1 <= abs(xQ)) .* (abs(xQ) <= L_pml) ./ (L_pml-abs(xQ))) ;
-    sigma_y = zeros(size(yQ)) + ((1 <= abs(yQ)) .* (abs(yQ) <= L_pml) ./ (L_pml-abs(yQ))) ;
+    sigma_x = zeros(size(xQ)) + ((L <= abs(xQ)) .* (abs(xQ) <= L + L_PML) ./ (L + L_PML-abs(xQ))) ;
+    sigma_y = zeros(size(yQ)) + ((L <= abs(yQ)) .* (abs(yQ) <= L + L_PML) ./ (L + L_PML-abs(yQ))) ;
     % sigma_x = 0;
     % sigma_y = 0;
-    gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (1 <= abs(xQ)) .* (abs(xQ) <= L_pml);
-    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (1 <= abs(yQ)) .* (abs(yQ) <= L_pml);
-    alpha_pml = gamma_x .* gamma_y;
+    gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (L <= abs(xQ)) .* (abs(xQ) <= L + L_PML);
+    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (L <= abs(yQ)) .* (abs(yQ) <= L + L_PML);
+    alpha_PML = gamma_x .* gamma_y;
 
     
     % Orientation
@@ -82,7 +82,7 @@ for tri=1:mesh.numTri
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices
-    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alpha_pml) * detJdxdu;
+    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alpha_PML) * detJdxdu;
     matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ .* gamma_y ./ gamma_x) + shapeDyQ' * (weightsTriQ .* shapeDyQ .* gamma_x ./ gamma_y) ) * detJdxdu;
     rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     

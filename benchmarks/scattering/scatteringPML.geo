@@ -1,25 +1,27 @@
 //Mesh.MshFileVersion = 2.2;
 
+Printf("Parameters : L = %f, L_PML = %f, R_disk = %f\n", L, L_PML, R_disk);
+
 // Points de la frontiere exterieure
-Point(1) = {-1.5, -1.5, 0, 1.0};
-Point(2) = {1.5, -1.5, 0, 1.0};
-Point(3) = {1.5, 1.5, 0, 1.0};
-Point(4) = {-1.5, 1.5, 0, 1.0};
+Point(1) = {-(L+L_PML), -(L+L_PML), 0, 1.0};
+Point(2) = {(L+L_PML), -(L+L_PML), 0, 1.0};
+Point(3) = {(L+L_PML), (L+L_PML), 0, 1.0};
+Point(4) = {-(L+L_PML), (L+L_PML), 0, 1.0};
 
 // Points de la frontiere du disque
-Point(5) = {0, -0.5, 0};
-Point(6) = {0.5, 0, 0};
-Point(7) = {0, 0.5, 0};
-Point(8) = {-0.5, 0, 0};
+Point(5) = {0, -R_disk, 0};
+Point(6) = {R_disk, 0, 0};
+Point(7) = {0, R_disk, 0};
+Point(8) = {-R_disk, 0, 0};
 
 // Centre du disque
 Point(9) = {0, 0, 0};
 
 // Points de la frontiere domaine-PML
-Point(10) = {-1, -1, 0};
-Point(11) = {1, -1, 0};
-Point(12) = {1, 1, 0};
-Point(13) = {-1, 1, 0};
+Point(10) = {-L, -L, 0};
+Point(11) = {L, -L, 0};
+Point(12) = {L, L, 0};
+Point(13) = {-L, L, 0};
 
 // Frontiere exterieure
 Line(1) = {1, 4};
