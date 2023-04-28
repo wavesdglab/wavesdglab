@@ -51,16 +51,6 @@ switch TAGbench
         solDy = 0*x;
         solVx = 0*x;
         solVy = 0*x;
-    case 'scatteringPML_02'
-        solU = solScattPlaneWaveHard(k,R_disk,x,y);
-        solF = 0*x;
-        solDx = -1i*k*exp(1i*k*x);
-        solDy = 0*x;
-    case 'scatteringPML_05'
-        solU = solScattPlaneWaveHard(k,R_disk,x,y);
-        solF = 0*x;
-        solDx = -1i*k*exp(1i*k*x);
-        solDy = 0*x;
     otherwise
         warning('Error - No valid benchmark has been set.')
 end
