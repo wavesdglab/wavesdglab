@@ -4,6 +4,9 @@
 
 function [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
 
+
+global L;
+
 % Quadrature
 degreeQ = 2*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
@@ -25,7 +28,7 @@ for tri=1:mesh.numTri
     V3 = mesh.coord(ver(3),:);
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
 
-    if (max(max(abs(xQ)), max(abs(yQ))) >= 1)
+    if (max(max(abs(xQ)), max(abs(yQ))) >= L)
         continue;
     end
 
