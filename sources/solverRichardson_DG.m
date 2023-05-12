@@ -57,12 +57,6 @@ while(i <= iMax)
         return;
     end
 
-%     if (i==1 || i==4 || i==10 || i==20 || i==iMax)
-%         xPhy = sys.matII\(sys.rhsI-sys.matIG*x);
-%         writeField2D(dofm, mesh, xPhy, 'output/solNum.pos', "solNum");
-%         system('gmsh output/solNum.pos');
-%     end
-
     i = i+1;
 end
 
