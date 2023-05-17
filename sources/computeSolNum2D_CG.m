@@ -10,6 +10,7 @@ global L_PML
 global L
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
+matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
 
@@ -51,12 +52,14 @@ for tri=1:mesh.numTri
     %     disp('PML')
     % end
 
-    sigma_x = zeros(size(xQ)) + ((L <= abs(xQ)) .* (abs(xQ) <= L + L_PML) ./ (L + L_PML-abs(xQ))) ;
-    sigma_y = zeros(size(yQ)) + ((L <= abs(yQ)) .* (abs(yQ) <= L + L_PML) ./ (L + L_PML-abs(yQ))) ;
+    % sigma_x = zeros(size(xQ)) + ((L <= abs(xQ)) .* (abs(xQ) <= L + L_PML) ./ (L + L_PML-abs(xQ))) ;
+    % sigma_y = zeros(size(yQ)) + ((L <= abs(yQ)) .* (abs(yQ) <= L + L_PML) ./ (L + L_PML-abs(yQ))) ;
     % sigma_x = 0;
     % sigma_y = 0;
-    gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (L <= abs(xQ)) .* (abs(xQ) <= L + L_PML);
-    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (L <= abs(yQ)) .* (abs(yQ) <= L + L_PML);
+    % gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (L <= abs(xQ)) .* (abs(xQ) <= L + L_PML);
+    % gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (L <= abs(yQ)) .* (abs(yQ) <= L + L_PML);
+    gamma_x = 1;
+    gamma_y = 1;
     alpha_PML = gamma_x .* gamma_y;
 
     
@@ -89,6 +92,7 @@ for tri=1:mesh.numTri
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
+    matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
     
 end
@@ -142,10 +146,12 @@ for edgBnd=1:mesh.numEdgBnd
     % Boundary condition
     switch tagToBC(mesh.tagEdgBnd(edgBnd))
         case 'DIR'
-            % dofDIR = [dofDIR ; dof];
-            matA(dof,:) = 0;
-            matA(dof,dof) = eye(length(dof),length(dof));
-            rhsA(dof) = 0;
+            % If DIR homogene, comment this line :
+            dofDIR = [dofDIR ; dof];
+            % For DIR homogene :
+            % matA(dof,:) = 0;
+            % matA(dof,dof) = eye(length(dof),length(dof));
+            % rhsA(dof) = 0;
         case 'NEU'
             rhsA(dof) = rhsA(dof) + rhsNel;
         case 'ABC'
@@ -156,15 +162,16 @@ for edgBnd=1:mesh.numEdgBnd
     end
 end
 
-% if(~isempty(dofDIR))
-%     solP = computeSolProjL2_2D_CG(mesh, dofm);
-%     dofDIR = unique(dofDIR);
-%     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
-%     rhsA(dofDIR) = solP(dofDIR);
-%     matA(dofDIR,:) = 0;
-%     matA(:,dofDIR) = 0;
-%     matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
-% end
+% If DIR homogene, comment these lines :
+if(~isempty(dofDIR))
+    solP = computeSolProjL2_2D_CG(mesh, dofm);
+    dofDIR = unique(dofDIR);
+    rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
+    rhsA(dofDIR) = solP(dofDIR);
+    matA(dofDIR,:) = 0;
+    matA(:,dofDIR) = 0;
+    matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
+end
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -192,9 +199,9 @@ sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
-    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
-    sysA.matP = 1;
-    sysA.matPinv = 1;
+    % warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
+    sysA.matP = matM;
+    sysA.matPinv = inv(matM);
 else
     sysA.matP = 1;
     sysA.matPinv = 1;
@@ -204,6 +211,7 @@ end
 solG = sysA.matS\sysA.rhsS;
 solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
+% solA = 0;
 
 end
 
@@ -213,8 +221,8 @@ switch tag
     case 1
         BC = BCWest;
     case 2
-        % BC = BCNorth;
-        BC = BCCircle;
+        BC = BCNorth;
+        % BC = BCCircle;
     case 3
         BC = BCEast;
     case 4
