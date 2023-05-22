@@ -6,7 +6,7 @@ global k
 % for i = 0:5
 
 % Setup benchmark and parameters
-benchmark = 'open';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -30,7 +30,7 @@ end
 degree = 3;
 tau = 1;
 BASIS = 0;
-PREC = 0;
+PREC = 1; 
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -53,16 +53,31 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution/error
+% Compute numerical solution
+
 [solA_1, sysA_1] = computeSolNum2D_CHDG_1st_order(mesh, dofm, tau, BASIS, PREC);
-[solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
+% [solA_1, sysA_1] = computeSolNum2D_CHDG_1st_order_ALT(mesh, dofm, tau, BASIS, PREC);
+
+% [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order_ALT(mesh, dofm, tau, BASIS, PREC);
+% [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
+
+% CHDG2
+[solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);
+% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order(mesh, dofm, tau, BASIS, PREC);
+
+% CHDG3
+% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);
+% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, BASIS, PREC);                     % IT WORKS
+
+% Compute numerical error
+
 errorL2_1 = computeNormError2D_DG(mesh, dofm, solA_1);
 errorL2_2 = computeNormError2D_DG(mesh, dofm, solA_2);
 
 % Compute projection solution/errormesh.numTri*3*dofm.numDofPerTRI
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
-% % 
+% % % 
 disp('     1st order');
 disp(['    L2-Error (numSol)   ' num2str(errorL2_1,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
@@ -99,36 +114,58 @@ disp('---------------------------------------------------------');
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+% writeField2D(dofm, mesh, solA_2(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = sysA.matPinv*sysA.matS;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-% rankEigenVec = rank(eigenvec);
-% condEigenVec = cond(eigenvec);
-% 
-% disp(['    Size                ' num2str(size(mat,1))]);
-% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
-% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+% mat1 = sysA_1.matPinv*sysA_1.matS;
+% [eigenvec1, eigenval1] = eigs(mat1,size(mat1,1));
+% eigenval1 = 1-eigenval1;
+% eigenval1 = diag(eigenval1);
+% rankEigenVec1 = rank(eigenvec1);
+% condEigenVec1 = cond(eigenvec1);
+
+% disp(['    Size                ' num2str(size(mat1,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec1)]);
+% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec1)]);
 % 
 % figure;
-% hold off; scatter(real(eigenval),imag(eigenval));
+% hold off; scatter(real(eigenval1),imag(eigenval1));
+% axis equal
+% %hold on; plot(fovals(mat,100));
+% hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+% plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+% grid on; box on;
+% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+
+% mat2 = sysA_2.matPinv*sysA_2.matS;
+% [eigenvec2, eigenval2] = eigs(mat2,size(mat2,1));
+% eigenval2 = diag(eigenval2);
+% rankEigenVec2 = rank(eigenvec2);
+% condEigenVec2 = cond(eigenvec2);
+% 
+% disp(['    Size                ' num2str(size(mat2,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec2)]);
+% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec2)]);
+% 
+% figure;
+% hold off; scatter(real(eigenval2),imag(eigenval2));
+% axis equal
 % %hold on; plot(fovals(mat,100));
 % hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
 % grid on; box on;
 % set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
 % print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
-%
+
 % % Compute condition number
 % condestMat = condest(mat);
-%
+% 
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
@@ -136,7 +173,7 @@ disp('---------------------------------------------------------');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES';
+solver = 'Rich';
 switch solver
     case 'Rich'
         alpha = 1;
@@ -150,22 +187,57 @@ switch solver
         [resRedVec_2, resPhyVec_2, errorVec_2] = solverGMRESredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
 end
 
-figure;
+% errorVec(2*j+1,:) = errorVec_1;
+% errorVec(2*j+2,:) = errorVec_2;
+
+errorVec(3,:) = errorVec_1;
+errorVec(4,:) = errorVec_2;
+
+% end
+
+% figure();
+% hold off
+% % semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
+% % semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
+% % semilogy(0:itout:maxit,errorVec(1,:),'r-o','DisplayName','Relative L2-error (iterative - 1st order)');
+% % hold on
+% % semilogy(0:itout:maxit,errorVec(2,:),'g-o','DisplayName','Relative L2-error (iterative - 2nd order)');
+% % hold on
+% semilogy(0:itout:maxit,errorVec(3,:),'r-x','DisplayName','Relative L2-error (iterative - 1st order) - precond.');
+% hold on
+% semilogy(0:itout:maxit,errorVec(4,:),'g-x','DisplayName','Relative L2-error (iterative - 2nd order) - precond.');
+% hold on
+% plot([0 maxit],[errorL2_1 errorL2_1],'k--','DisplayName','Relative L2-error (direct - 1st order)');
+% hold on
+% plot([0 maxit],[errorL2_2 errorL2_2],'k-.','DisplayName','Relative L2-error (direct - 2nd order)');
+% % plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+% box on;
+% grid on;
+% % legend('Location','southwest');
+% legend('Iterative - 1st order','Iterative - 2nd order', 'Iterative - 1st order - precond.', 'Iterative - 2nd order - precond.', 'Direct - 1st order', 'Direct - 2nd order');
+% title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([0.005 1]);
+% xlabel('Iteration');
+% ylabel('Relative L^2-error');
+
+figure(9);
 hold off
-% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
-% semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
-semilogy(0:itout:maxit,errorVec_1,'r-o','DisplayName','Relative L2-error (iterative - 1st order)');
+semilogy(0:itout:maxit,errorVec(3,:),'r-x','DisplayName','Relative L2-error (iterative - 1st order) - precond.');
 hold on
-semilogy(0:itout:maxit,errorVec_2,'g-o','DisplayName','Relative L2-error (iterative - 2nd order)');
+semilogy(0:itout:maxit,errorVec(4,:),'g-x','DisplayName','Relative L2-error (iterative - 2nd order) - precond.');
+hold on
 plot([0 maxit],[errorL2_1 errorL2_1],'k--','DisplayName','Relative L2-error (direct - 1st order)');
+hold on
 plot([0 maxit],[errorL2_2 errorL2_2],'k-.','DisplayName','Relative L2-error (direct - 2nd order)');
-% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
 box on;
 grid on;
-legend('Location','southwest');
+% legend('Location','southwest');
+legend('Iterative - 1st order - precond.', 'Iterative - 2nd order - precond.', 'Direct - 1st order', 'Direct - 2nd order');
 title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
 ylim([0.005 1]);
 xlabel('Iteration');
-ylabel('Value');
+ylabel('Relative L^2-error');
+
 toc
