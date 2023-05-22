@@ -61,13 +61,13 @@ disp(['---------------------------------------------------------']);
 % [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order_ALT(mesh, dofm, tau, BASIS, PREC);
 % [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
 
-% CHDG2
-[solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);
-% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order(mesh, dofm, tau, BASIS, PREC);
+% CHDG2  (1st order, 2nd order slightly different error)
+% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order_FULL(mesh, dofm, tau,BASIS, PREC);                 % IT WORKS
+% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order(mesh, dofm, tau, BASIS, PREC);                     % IT WORKS
 
-% CHDG3
-% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);
-% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, BASIS, PREC);                     % IT WORKS
+% CHDG3  (1st order, 2nd order same error)
+% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);                % IT DOES NOT WORK
+[solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, BASIS, PREC);                       % IT WORKS
 
 % Compute numerical error
 
@@ -221,7 +221,7 @@ errorVec(4,:) = errorVec_2;
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
 
-figure(9);
+figure(10);
 hold off
 semilogy(0:itout:maxit,errorVec(3,:),'r-x','DisplayName','Relative L2-error (iterative - 1st order) - precond.');
 hold on
