@@ -59,6 +59,9 @@ disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
 disp(['---------------------------------------------------------']);
 
+% DOES NOT WORK -> random char instead of computed values
+% csvwrite('output/param.csv', [num2str(k),num2str(h),num2str(degree),benchmark,num2str(tol), num2str(itout), num2str(errorL2), num2str(errorProjL2)]');
+
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
 % -------------------------------------------------------------------------
@@ -84,6 +87,8 @@ condEigenVec = cond(eigenvec);
 disp(['    Size                ' num2str(size(mat,1))]);
 disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+
+csvwrite('output/eigA.csv', eigenval');
 
 % Plot spectrum
 % figure;

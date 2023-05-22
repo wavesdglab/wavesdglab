@@ -38,8 +38,16 @@ resVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, x);
 % fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
 %%%%%%%
-%%%%%%%
+
+%%%%%%% HRV
 eigenvalArray = zeros(iMax, size(A,2));
+
+% mat = Pinv * A;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% eigenvalA = diag(eigenval);
+
+% x_min = -200; x_max = 400;
+% y_min = -1; y_max = 1;
 
 % figure
 % set(0,'DefaultFigureWindowStyle','docked')
@@ -47,12 +55,9 @@ eigenvalArray = zeros(iMax, size(A,2));
 % hold on
 
 % subplot(2,1,1);
-% mat = Pinv * A;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenvalA = diag(eigenval);
 % scatter(real(eigenvalA),imag(eigenvalA), 'r', 'Marker', 'x');
-% xlim([-200 200]);
-% ylim([-1 1]);
+% xlim([x_min x_max]);
+% ylim([y_min y_max]);
 % % title(['Harmonic Ritz values at iteration 0'], 'interpreter', 'latex', 'fontsize', 20)
 % grid on; box on;
 
@@ -145,18 +150,18 @@ while(i <= iMax)
         % set(0,'DefaultFigureWindowStyle','docked')
         % subplot(2,1,1);
         % grid on; box on;
-        
+
 
         % hold on
         % scatter(real(eigenvalA),imag(eigenvalA), 'r', 'Marker', 'x');
         % scatter(real(eigenval),imag(eigenval), 'b');
-        % xlim([-200 200]);
-        % ylim([-1 1]);
-        
-        
+        % xlim([x_min x_max]);
+        % ylim([y_min y_max]);
+
+
         % title(['Harmonic Ritz values at iteration ' num2str(i)], 'interpreter', 'latex', 'fontsize', 20)
         % drawnow;
-        
+
         % nbOut = floor(i/iOut) +1;
 
         % subplot(2,1,2);
@@ -178,6 +183,7 @@ while(i <= iMax)
         % drawnow;
 
         % pause(0.5);
+        % % waitforbuttonpress;
     end
     %%%%%%%
     
@@ -189,6 +195,8 @@ while(i <= iMax)
 end
 csvwrite('output/hrv.csv', eigenvalArray);
 csvwrite('output/res_rel.csv', resVec);
+csvwrite('output/err_vec.csv', errorVec);
+
 % Write the solution
 %writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");
 %system('gmsh output/solNumGMRES.pos&');
