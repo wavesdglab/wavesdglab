@@ -61,13 +61,13 @@ disp(['---------------------------------------------------------']);
 % [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order_ALT(mesh, dofm, tau, BASIS, PREC);
 % [solA_2, sysA_2] = computeSolNum2D_CHDG_2nd_order(mesh, dofm, tau, BASIS, PREC);
 
-% CHDG2  (1st order, 2nd order slightly different error)
-% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order_FULL(mesh, dofm, tau,BASIS, PREC);                 % IT WORKS
-% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order(mesh, dofm, tau, BASIS, PREC);                     % IT WORKS
+% CHDG2  (1st order, 2nd order slightly different error, the two are equivalent)
+% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order_FULL(mesh, dofm, tau,BASIS, PREC);            
+% [solA_2, sysA_2] = computeSolNum2D_CHDG2_2nd_order(mesh, dofm, tau, BASIS, PREC);                   
 
 % CHDG3  (1st order, 2nd order same error)
-% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);                % IT DOES NOT WORK
-[solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, BASIS, PREC);                       % IT WORKS
+[solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, BASIS, PREC);               
+% [solA_2, sysA_2] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, BASIS, PREC);                     
 
 % Compute numerical error
 
