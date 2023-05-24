@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG3_2nd_order_FULL(mesh, dofm, tau, ~, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG3_2nd_order(mesh, dofm, tau, ~, PREC)
 
 global k
 
@@ -31,9 +31,6 @@ matIGv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIHx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIHy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIHv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
-matIFx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
-matIFy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
-matIFv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 
 matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
@@ -44,9 +41,6 @@ matGGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matGFx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matGFy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matGFv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 matHIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
@@ -58,28 +52,11 @@ matHGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matHHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matHHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matHHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matHFx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matHFy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matHFv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-
-matFIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
-matFIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
-matFIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
-matFGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFFx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFFy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matFFv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofFAC,1);
 rhsH = zeros(numDofFAC,1);
-rhsF = zeros(numDofFAC,1);
 
 for tri=1:mesh.numTri
     
@@ -140,7 +117,6 @@ for tri=1:mesh.numTri
     
     matIGel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
     matIHel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
-    matIFel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
     
     % Exterior normals
     verTri = mesh.mapTriToVer(tri,:);
@@ -170,39 +146,28 @@ for tri=1:mesh.numTri
         % Shape functions (physical space)
         shapePhyQ = shapePhyLinQ * orientation;
         shapeAuxQ = shapePhyQ;
-        shapeFluQ = shapePhyQ;
         shapePhyDsQ = shapePhyLinDuQ * orientation;                          % NEW
         shapeAuxDsQ = shapePhyDsQ;                                           % NEW
-        shapeFluDsQ = shapePhyDsQ;                                           % NEW
         
         % Mass matrices (physical space)
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_IHel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_IFel = shapePhyQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
+        matK_IGel = shapePhyDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);     % NEW
+        matK_IHel = shapePhyDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);     % NEW
 
         matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_GHel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
         matK_GGel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
         matK_GHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-        matK_GFel = shapeAuxDsQ' * (weightsLinQ .* shapeFluDsQ) / (Jdxdu);       % NEW
+        matK_HGel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
 
         matM_HIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_HGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_HHel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_HFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
-        matK_HIel = shapeAuxDsQ' * (weightsLinQ .* shapePhyDsQ) / (Jdxdu);       % NEW
+        matM_HGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matK_HHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-
-        matM_FIel = shapeFluQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_FGel = shapeFluQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_FHel = shapeFluQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_FFel = shapeFluQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
-        matK_FHel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-        matK_FGel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-
+        
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
@@ -217,14 +182,15 @@ for tri=1:mesh.numTri
         idLocV = 2*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         idLocH = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
-        idLocF = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         
         % Element matrices (local element-wise system)
         matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0.5 * matM_IHel;
         matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 * matM_IGel;
-        
-        matIFel(idLocU,idLocF) = matIFel(idLocU,idLocF) + nx  * matM_IFel;
-        matIFel(idLocV,idLocF) = matIFel(idLocV,idLocF) + ny  * matM_IFel;
+
+        matIHel(idLocU,idLocH) = matIHel(idLocU,idLocH) + nx * 0.5 * matM_IHel + nx * 0.25/(k^2) * matK_IHel;
+        matIHel(idLocV,idLocH) = matIHel(idLocV,idLocH) + ny * 0.5 * matM_IHel + ny * 0.25/(k^2) * matK_IHel;
+        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + nx * 0.5 * matM_IGel + nx * 0.25/(k^2) * matK_IGel;
+        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + ny * 0.5 * matM_IGel + ny * 0.25/(k^2) * matK_IGel;
         
         % -----------------------------------------------------------------
         % Incoming characteristics
@@ -239,23 +205,18 @@ for tri=1:mesh.numTri
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
             matGHel = -matM_GHel;
-            matGFel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
             
             % Global ID for auxiliary and exterior unknowns
-            idGloF = dofm.locToGloFAC(tri,idLocF);
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idLocExtH = (1:dofm.numDofPerLIN) + (facNeigh-1)*dofm.numDofPerLIN;
             idExtH = dofm.locToGloFAC(triNeigh,idLocExtH);
             idExtH([1 2]) = idExtH([2 1]);
             
             % Assembling
-            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
-            matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));
-            matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;     
+            matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));   
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
-            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;
-            matGFv(idGloG,:) = matGFel;                 
+            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;                
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
@@ -272,9 +233,8 @@ for tri=1:mesh.numTri
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = tagToBC(mesh.tagEdg(edgGlo));
             
-            % Elemental matrices and RHS vectors (boundary conditions) 
+            % Elemental matrices and RHS vectors (boundary conditions)
             matGHel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-            matGFel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
@@ -296,18 +256,14 @@ for tri=1:mesh.numTri
             % Global ID for auxiliary unknowns and interior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idGloH = dofm.locToGloFAC(tri,idLocH);
-            idGloF = dofm.locToGloFAC(tri,idLocF);
             
             % Assembling
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
             matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2));
-            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;
-            matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
-            matGFv(idGloG,:) = matGFel;
             matGGvInv(idGloG,:) = inv(matGGel);
             
             rhsG(idGloG) = rhsGel;
@@ -319,15 +275,12 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        matHHel = matM_HHel;
-        matHGel = - matM_HGel;
-        matHIel = - 2 * [matM_HIel, nx * matM_HIel, ny * matM_HIel];    % UPDATED
-        matHFel = 2 * matM_HFel;
+        matHHel = 2*matM_HHel + 0.5/(k^2) * matK_HHel;               % UPDATED 
+        matHIel = -2*[matM_HIel, nx * matM_HIel, ny * matM_HIel];    % UPDATED
+        matHGel = 0.5/(k^2) * matK_HGel;                             % UPDATED
         
         % Global ID for flux and exterior unknowns
-        idGloH = dofm.locToGloFAC(tri,idLocH);
-        idGloG = dofm.locToGloFAC(tri,idLocG);
-        idGloF = dofm.locToGloFAC(tri,idLocF);
+        idGloH = dofm.locToGloFAC(tri,idLocG);
         idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);
         idGloU = 1*numDofTRI + dofm.locToGloTRI(tri,idLocP);
         idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
@@ -337,41 +290,13 @@ for tri=1:mesh.numTri
         matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));
         matHHx(idGloH,:) = idGloH'*ones(1,size(idGloH,2));
         matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));
-        matHFx(idGloH,:) = idGloH'*ones(1,size(idGloF,2));
         matHIy(idGloH,:) = ones(size(idGloH,2),1)*idGloI;
         matHHy(idGloH,:) = ones(size(idGloH,2),1)*idGloH;
         matHGy(idGloH,:) = ones(size(idGloH,2),1)*idGloG;
-        matHFy(idGloH,:) = ones(size(idGloH,2),1)*idGloF;
         matHIv(idGloH,:) = matHIel;
         matHHv(idGloH,:) = matHHel;
         matHGv(idGloH,:) = matHGel;
-        matHFv(idGloH,:) = matHFel;
-        
-        % -----------------------------------------------------------------
-        % Flux equations
-        % -----------------------------------------------------------------
-        
-        % Elemental matrices (interface condition)
-        matFFel = matM_FFel;                                      % UPDATED
-        matFHel = - 0.5*matM_FHel - 0.25/(k^2) * matK_FHel;
-        matFGel = - 0.5*matM_FGel - 0.25/(k^2) * matK_FGel; 
-        
-        % Global ID for flux and exterior unknowns
-        idGloG = dofm.locToGloFAC(tri,idLocG);
-        idGloH = dofm.locToGloFAC(tri,idLocH);
-        idGloF = dofm.locToGloFAC(tri,idLocF);
-        
-        % Assembling
-        matFGx(idGloF,:) = idGloF'*ones(1,size(idGloG,2));
-        matFHx(idGloF,:) = idGloF'*ones(1,size(idGloH,2));
-        matFFx(idGloF,:) = idGloF'*ones(1,size(idGloF,2));
-        matFGy(idGloF,:) = ones(size(idGloF,2),1)*idGloG;
-        matFHy(idGloF,:) = ones(size(idGloF,2),1)*idGloH;
-        matFFy(idGloF,:) = ones(size(idGloF,2),1)*idGloF;
-        matFGv(idGloF,:) = matFGel;
-        matFHv(idGloF,:) = matFHel;
-        matFFv(idGloF,:) = matFFel;
-        
+
     end
 
     % ---------------------------------------------------------------------
@@ -385,22 +310,18 @@ for tri=1:mesh.numTri
     dofGloI = [dofGloP dofGloU dofGloV];
     dofGloG = dofm.locToGloFAC(tri,:);
     dofGloH = dofm.locToGloFAC(tri,:);
-    dofGloF = dofm.locToGloFAC(tri,:);
     
     % Assembling
     idTRI = (tri-1)*3*dofm.numDofPerTRI + (1:3*dofm.numDofPerTRI);
     matIIx(idTRI,:) = dofGloI'*ones(1,size(dofGloI,2));
     matIGx(idTRI,:) = dofGloI'*ones(1,size(dofGloG,2));
     matIHx(idTRI,:) = dofGloI'*ones(1,size(dofGloH,2));
-    matIFx(idTRI,:) = dofGloI'*ones(1,size(dofGloF,2));
     matIIy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloI;
     matIGy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloG;
     matIHy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloH;
-    matIFy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloF;
     matIIv(idTRI,:) = matIIel;
     matIGv(idTRI,:) = matIGel;
     matIHv(idTRI,:) = matIHel;
-    matIFv(idTRI,:) = matIFel;
     
     rhsI(dofGloI) = rhsIel;
     
@@ -410,19 +331,12 @@ end
 matII = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
 matIG = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
 matIH = sparse(matIHx, matIHy, matIHv, 3*numDofTRI, numDofFAC);
-matIF = sparse(matIFx, matIFy, matIFv, 3*numDofTRI, numDofFAC);
 matGI = sparse(numDofFAC, 3*numDofTRI);
 matGG = sparse(matGGx, matGGy, matGGv, numDofFAC, numDofFAC);
 matGH = sparse(matGHx, matGHy, matGHv, numDofFAC, numDofFAC);
-matGF = sparse(numDofFAC, numDofFAC);
 matHI = sparse(matHIx, matHIy, matHIv, numDofFAC, 3*numDofTRI);
 matHG = sparse(matHGx, matHGy, matHGv, numDofFAC, numDofFAC);
 matHH = sparse(matHHx, matHHy, matHHv, numDofFAC, numDofFAC);
-matHF = sparse(matHFx, matHFy, matHFv, numDofFAC, numDofFAC);
-matFI = sparse(numDofFAC, 3*numDofTRI);
-matFG = sparse(matFGx, matFGy, matFGv, numDofFAC, numDofFAC);
-matFH = sparse(matFHx, matFHy, matFHv, numDofFAC, numDofFAC);
-matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
@@ -431,36 +345,43 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 % -------------------------------------------------------------------------
 
 % Matrix partition
-% sysA.matII = matII - matIH * (matHH \ matHI) + matIF * (matFF \ (matFH * ( matHH \ matHI)));
-% sysA.matIG = matIG - matIF * (matFF \ matFG);
-% sysA.matGI = - matGH * (matHH \ matHI);
-% sysA.matGG = matGG;
-% sysA.matGGinv = inv(sysA.matGG);
-
-X = matHF - matHH * (matFH \ matFF);
-Y = matHG - matHH * (matFH \ matFG);
-
-sysA.matII = matII + matIH * (matFH \ (matFF * (X \ matHI))) - matIF * (X \ matHI);
-sysA.matIG = matIG + matIH * (matFH \ (matFF * (X \ Y))) - matIF * (X \ Y) - matIH * (matFH \ matFG);
-sysA.matGI = matGI + matGH * (matFH \ (matFF * (X \ matHI)));
-sysA.matGG = matGG + matGH * (matFH \ (matFF * (X \ Y))) - matGH * (matFH \ matFG);
+sysA.matII = matII - matIH*(matHH\matHI);
+sysA.matIG = matIG - matIH*(matHH\matHG);
+sysA.matGI = - matGH*(matHH\matHI);
+sysA.matGG = matGG - matGH*(matHH\matHG);
 sysA.matGGinv = inv(sysA.matGG);
 
+% % % % % % sysA.matGGinv = matGGinv;
+% sysA.matIIinv = inv(sysA.matII);
+
+% sysA.rhsI = [rhsI; rhsH; rhsF];
+% sysA.rhsG = rhsG;
+% sysA.rhsI = rhsI;
+% sysA.rhsG = [rhsH; rhsF; rhsG];
+% sysA.rhsI = [rhsI; rhsH];
+% sysA.rhsG = [rhsF; rhsG];
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 
 % Full system
-sysA.matA = [ matII matIG matIH matIF ;
-              matGI matGG matGH matGF ;
-              matHI matHG matHH matHF ;
-              matFI matFG matFH matFF ];
-sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
+sysA.matA = [ matII matIG matIH ;
+              matGI matGG matGH ;
+              matHI matHG matHH] ;
+sysA.rhsA = [ rhsI ; rhsG ; rhsH];
 
 % Reduced system
+% sysA.matS = D - C*(invA*B);
+% sysA.rhsS = d - C*(invA*c);
+% sysA.matS = matGG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[matIG; matHG; matFG]);
+% sysA.rhsS = rhsG - [matGI matGH matGF]*([matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\[rhsI; rhsH; rhsF]);
 sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
 
 % Physical system
+% sysA.matPhy = A - B*(invD*C);
+% sysA.rhsPhy = c - B*(invD*d);
+% sysA.matPhy = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF] - [matIG; matHG; matFG]*(matGG\[matGI matGH matGF]);
+% sysA.rhsPhy = [rhsI; rhsH; rhsF] - [matIG; matHG; matFG]*(matGG\rhsG);
 sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
 sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
 
@@ -475,9 +396,11 @@ else
 end
 
 % Compute solution
-% solG = sysA.matS\sysA.rhsS;
-% sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
-% solI = sol(1:3*numDofTRI);
+% % solG = sysA.matS\sysA.rhsS;
+% % % sol = A\(c - B*solG);
+% % % sol = [matII matIH matIF; matHI matHH matHF; matFI matFH matFF]\([rhsI; rhsH; rhsF]-[matIG; matHG; matFG]*solG);
+% % sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
+% % solI = sol(1:3*numDofTRI);
 
 solX = sysA.matA\sysA.rhsA;   % Direct solver
 solI = solX(1:3*numDofTRI);
