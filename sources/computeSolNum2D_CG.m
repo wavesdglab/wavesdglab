@@ -199,9 +199,10 @@ sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
-    % warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
+    warning('DO NOT USE Pinv : USE P\ INSTEAD');
     sysA.matP = matM;
-    sysA.matPinv = inv(matM);
+    % sysA.matPinv = inv(matM);
+    sysA.matPinv = 1;
 else
     sysA.matP = 1;
     sysA.matPinv = 1;

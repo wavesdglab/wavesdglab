@@ -17,10 +17,13 @@ switch benchmark
         h = 1/32;
         tol = 1e-10; maxit = 2000; itout =10;
         L = 1;
-    case 'cavity2'
-        k = sqrt(5+0.5)*pi;
-        h = 1/64;
-        tol = 1e-10; maxit = 2000; itout = 100;
+    case 'scatteringPML'
+        k = 25;
+        h = 0.05;
+        tol = 1e-10; maxit = 2000; itout = 50;
+        L = 1.1;
+        R_disk = 1;
+        L_PML = 0.2;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
@@ -51,7 +54,7 @@ disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
-% 
+%
 solP = computeSolProjL2_2D_CG(mesh, dofm);
 errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
 % 
@@ -59,8 +62,8 @@ disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
 disp(['---------------------------------------------------------']);
 
-% DOES NOT WORK -> random char instead of computed values
-% csvwrite('output/param.csv', [num2str(k),num2str(h),num2str(degree),benchmark,num2str(tol), num2str(itout), num2str(errorL2), num2str(errorProjL2)]');
+% param = [k h degre tol itout errorL2 errorProjL2];
+% csvwrite('output/param.csv', param');
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
@@ -77,7 +80,8 @@ disp(['---------------------------------------------------------']);
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-mat = sysA.matPinv * sysA.matA;
+% mat = sysA.matPinv * sysA.matA;
+mat = sysA.matP\sysA.matA;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = diag(eigenval);
 rankEigenVec = rank(eigenvec);

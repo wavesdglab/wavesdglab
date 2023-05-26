@@ -26,7 +26,8 @@ sn = zeros(iMax,1);
 cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
 
-r = Pinv*(b-A*x);
+% r = Pinv*(b-A*x);
+r = P\(b-A*x);
 beta(1) = sqrt(r'*P*r);
 Q(:,1) = r/beta(1);
 
@@ -41,10 +42,21 @@ errorVec(1) = computeError(mesh, dofm, x);
 
 %%%%%%% HRV
 eigenvalArray = zeros(iMax, size(A,2));
+distArray = zeros(iMax, 3);
 
-% mat = Pinv * A;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenvalA = diag(eigenval);
+mat = Pinv * A;
+[eigenvec, eigenval] = eigs(mat,size(mat,1));
+eigenvalA = diag(eigenval);
+
+% Get the 3 last eigenvalues of A
+
+lambdaMinA1 = eigenvalA(end);
+lambdaMinA2 = eigenvalA(end-1);
+lambdaMinA3 = eigenvalA(end-2);
+lambdaMinA4 = eigenvalA(end-3);
+lambdaMinA5 = eigenvalA(end-4);
+
+lambdaMinA = [lambdaMinA1 lambdaMinA2 lambdaMinA3 lambdaMinA4 lambdaMinA5];
 
 % x_min = -200; x_max = 400;
 % y_min = -1; y_max = 1;
@@ -85,7 +97,8 @@ i = 1;
 while(i <= iMax)
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    Q(:,i+1) = Pinv*A*Q(:,i);
+    % Q(:,i+1) = Pinv*A*Q(:,i);
+    Q(:,i+1) = P\(A*Q(:,i));
     for j = 1:i
         H(j,i) = Q(:,j)' * P * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
@@ -146,6 +159,12 @@ while(i <= iMax)
 
         eigenvalArray(i, 1:length(eigenval)) = eigenval';
 
+        distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)));
+        distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)));
+        distArray(i, 3) = min(abs(eigenval - lambdaMinA(3)));
+        distArray(i, 4) = min(abs(eigenval - lambdaMinA(4)));
+        distArray(i, 5) = min(abs(eigenval - lambdaMinA(5)));
+
         % clf;
         % set(0,'DefaultFigureWindowStyle','docked')
         % subplot(2,1,1);
@@ -196,6 +215,7 @@ end
 csvwrite('output/hrv.csv', eigenvalArray);
 csvwrite('output/res_rel.csv', resVec);
 csvwrite('output/err_vec.csv', errorVec);
+csvwrite('output/dist.csv', distArray);
 
 % Write the solution
 %writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");
