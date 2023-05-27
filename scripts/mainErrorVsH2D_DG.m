@@ -34,7 +34,7 @@ run(benchmark,degree,12*pi,hList,tau,BASIS,PREC);
 function run(benchmark,degree,kList,hList,tau,BASIS,PREC)
 
 disp(['---------------------------------------------------------']);
-disp(['Method CHDG - ' benchmark ' - k=' num2str(kList)]);
+disp(['Method DG - ' benchmark ' - k=' num2str(kList)]);
 disp(['---------------------------------------------------------']);
 
 global k;
@@ -43,9 +43,6 @@ Ndof = zeros(1,size(hList,2));
 errorL2 = zeros(1,size(hList,2));
 errorProjL2 = zeros(1,size(hList,2));
 condGlo = zeros(1,size(hList,2));
-specRad = zeros(1,size(hList,2));
-condLocMin = zeros(1,size(hList,2));
-condLocMax = zeros(1,size(hList,2));
 
 for i = 1:size(hList,2)
     k = kList;
@@ -56,18 +53,13 @@ for i = 1:size(hList,2)
     mesh = buildConnectivity2D(mesh);
     dofm = buildDofManager2D_DG(mesh, degree);
     Ndof(i) = dofm.numDofTRI;
-    [solA, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC);
+    [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, BASIS, PREC);
     errorL2(i) = computeNormError2D_DG(mesh, dofm, solA);
     solP = computeSolProjL2_2D_DG(mesh, dofm);
     errorProjL2(i) = computeNormError2D_DG(mesh, dofm, solP);
     fprintf('Errors:  %i  %i \n', errorL2(i), errorProjL2(i));
-    condGlo(i) = condest(sysA.matS);
+    condGlo(i) = condest(sysA.matA);
     fprintf('CondGlo:  %i \n', condGlo(i));
-    condLocMin(i) = min(condLoc);
-    condLocMax(i) = max(condLoc);
-    fprintf('CondLoc:  %i  %i \n', condLocMin(i), condLocMax(i));
-    specRad(i) = max(abs(1-eigs(sysA.matS,100)));
-    fprintf('1-SpecRad:  %i \n', 1-specRad(i));
     toc
     disp('---------------------------------------------------------');
 end
@@ -76,14 +68,13 @@ Dlambda = 2*pi/k * (sqrt(Ndof) - 1);
 
 rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2"];
 rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2'];
-name = sprintf('output/errorVsH_CHDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+name = sprintf('output/errorVsH_DG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
-rezu1 = ["hList" "Ndof" "Dlambda" "condGlo" "condLocMin" "condLocMax" "1-specRad"];
-rezu2 = [hList' Ndof' Dlambda' condGlo' condLocMin' condLocMax' 1-specRad'];
-name = sprintf('output/condVsH_CHDG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
+rezu1 = ["hList" "Ndof" "Dlambda" "condGlo"];
+rezu2 = [hList' Ndof' Dlambda' condGlo'];
+name = sprintf('output/condVsH_DG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
 
 % figure;
 % hold off;
