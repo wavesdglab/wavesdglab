@@ -15,7 +15,7 @@ r = b - A*x;
 s = Pinv*r;
 p = A'*s;
 q = Pinv*p;
-rr = r'*s;
+rr = real(r'*s);
 rrini = rr;
 
 resVec = zeros(iMax/iOut+1,1);
@@ -31,12 +31,12 @@ flag = 0;
 i = 1;
 while(i <= iMax)
     
-    pp = p'*q;
+    pp = real(p'*q);
     alpha = rr/pp;
     x = x + alpha*q;
     r = r - alpha*A*q;
     s = Pinv*r;
-    rrnew = r'*s;
+    rrnew = real(r'*s);
     beta = rrnew/rr;
     rr = rrnew;
     p = A'*s + beta*p;
