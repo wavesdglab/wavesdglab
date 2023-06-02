@@ -31,7 +31,7 @@ degreeQ = 2*dofm.degree;
 shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);
 shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
-shapePhyLinDuQ = functionsShapeDerLIN(uLinQ, dofm.degree);                           % NEW
+shapePhyLinDuQ = functionsShapeDerLIN(uLinQ, dofm.degree);
 
 % Global matrices
 matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
@@ -199,7 +199,6 @@ for tri=1:mesh.numTri
         matM_GFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
         matK_GGel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
         matK_GHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-        matK_GFel = shapeAuxDsQ' * (weightsLinQ .* shapeFluDsQ) / (Jdxdu);       % NEW
 
         matM_HIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_HGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
@@ -251,23 +250,18 @@ for tri=1:mesh.numTri
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
             matGHel = -matM_GHel;
-            matGFel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
             
             % Global ID for auxiliary and exterior unknowns
-            idGloF = dofm.locToGloFAC(tri,idLocF);
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idLocExtH = (1:dofm.numDofPerLIN) + (facNeigh-1)*dofm.numDofPerLIN;
             idExtH = dofm.locToGloFAC(triNeigh,idLocExtH);
             idExtH([1 2]) = idExtH([2 1]);
             
             % Assembling
-            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
-            matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));
-            matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;     
+            matGHx(idGloG,:) = idGloG'*ones(1,size(idExtH,2));   
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
-            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;
-            matGFv(idGloG,:) = matGFel;                 
+            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idExtH;               
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
@@ -308,17 +302,13 @@ for tri=1:mesh.numTri
             % Global ID for auxiliary unknowns and interior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idGloH = dofm.locToGloFAC(tri,idLocH);
-            idGloF = dofm.locToGloFAC(tri,idLocF);
             
             % Assembling
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
-            matGFx(idGloG,:) = idGloG'*ones(1,size(idGloF,2));
             matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2));
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
-            matGFy(idGloG,:) = ones(size(idGloG,2),1)*idGloF;
             matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;
             matGGv(idGloG,:) = matGGel;
-            matGFv(idGloG,:) = matGFel;
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
             
@@ -461,6 +451,8 @@ sysA.matA = [ matII matIG matIH matIF ;
               matHI matHG matHH matHF ;
               matFI matFG matFH matFF ];
 sysA.rhsA = [ rhsI ; rhsG ; rhsH ; rhsF];
+
+% spy(sysA.matA)
 
 % Reduced system
 sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
