@@ -6,6 +6,7 @@
 
 function [resVec, errorVec, i, flag, x] = solverGMRES(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
+global k;
 
 % [solA, ~] = computeSolNum2D_CG(mesh, dofm, 1);
 % errorL2 = computeNormError2D_CG(mesh, dofm, solA);

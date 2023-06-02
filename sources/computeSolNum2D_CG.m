@@ -88,11 +88,13 @@ for tri=1:mesh.numTri
     matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alpha_PML) * detJdxdu;
     matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ .* gamma_y ./ gamma_x) + shapeDyQ' * (weightsTriQ .* shapeDyQ .* gamma_x ./ gamma_y) ) * detJdxdu;
     rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
+    matMelreal = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
+
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
-    matM(dof,dof) = matM(dof,dof) + matMel;
+    matM(dof,dof) = matM(dof,dof) + matMelreal;
     rhsA(dof) = rhsA(dof) + rhsPel;
     
 end
