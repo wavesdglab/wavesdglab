@@ -14,8 +14,8 @@ switch benchmark
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 2*sqrt(2)*pi;
-        h = 1/32;
-        tol = 1e-10; maxit = 2000; itout =10;
+        h = 1/16;
+        tol = 1e-10; maxit = 2000; itout =1;
         L = 1;
     case 'scatteringPML'
         k = 25;
@@ -62,8 +62,8 @@ disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
 disp(['---------------------------------------------------------']);
 
-% param = [k h degre tol itout errorL2 errorProjL2];
-% csvwrite('output/param.csv', param');
+% param = [k h degree tol itout errorL2 errorProjL2];
+% csvwrite(['output/param_' num2str(k) '.csv'], param);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
@@ -92,7 +92,7 @@ disp(['    Size                ' num2str(size(mat,1))]);
 disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
-csvwrite('output/eigA.csv', eigenval');
+% csvwrite(['output/eigenval_' num2str(k) '.csv'], eigenval);
 
 % Plot spectrum
 % figure;

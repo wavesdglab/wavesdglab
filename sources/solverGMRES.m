@@ -44,7 +44,7 @@ errorVec(1) = computeError(mesh, dofm, x);
 eigenvalArray = zeros(iMax, size(A,2));
 distArray = zeros(iMax, 3);
 
-mat = Pinv * A;
+mat = P\A;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenvalA = diag(eigenval);
 
@@ -159,6 +159,12 @@ while(i <= iMax)
 
         eigenvalArray(i, 1:length(eigenval)) = eigenval';
 
+        % distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)))/lambdaMinA1;
+        % distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)))/lambdaMinA1;
+        % distArray(i, 3) = min(abs(eigenval - lambdaMinA(3)))/lambdaMinA1;
+        % distArray(i, 4) = min(abs(eigenval - lambdaMinA(4)))/lambdaMinA1;
+        % distArray(i, 5) = min(abs(eigenval - lambdaMinA(5)))/lambdaMinA1;
+
         distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)));
         distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)));
         distArray(i, 3) = min(abs(eigenval - lambdaMinA(3)));
@@ -212,10 +218,10 @@ while(i <= iMax)
     end
     i = i+1;
 end
-csvwrite('output/hrv.csv', eigenvalArray);
-csvwrite('output/res_rel.csv', resVec);
-csvwrite('output/err_vec.csv', errorVec);
-csvwrite('output/dist.csv', distArray);
+csvwrite(['output/hrv_' num2str(k) '.csv'], eigenvalArray);
+csvwrite(['output/res_rel_' num2str(k) '.csv'], resVec);
+csvwrite(['output/err_vec_' num2str(k) '.csv'], errorVec);
+csvwrite(['output/dist_' num2str(k) '.csv'], distArray);
 
 % Write the solution
 %writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");
