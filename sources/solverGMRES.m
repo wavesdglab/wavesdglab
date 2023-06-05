@@ -42,7 +42,8 @@ errorVec(1) = computeError(mesh, dofm, x);
 %%%%%%%
 
 %%%%%%% HRV
-eigenvalArray = zeros(iMax, size(A,2));
+hrvArray = zeros(iMax, size(A,2));
+rvArray = zeros(iMax, size(A,2));
 distArray = zeros(iMax, 3);
 
 mat = P\A;
@@ -155,10 +156,14 @@ while(i <= iMax)
             H_sub(j, 1:i) = H(j, 1:i);
         end
 
-        [V,D] = eig(H_sub'*H_sub,H_sub'*matQ);
-        eigenval = diag(D);
+        [~,D] = eig(H_sub'*H_sub,H_sub'*matQ);
+        hrv = diag(D);
 
-        eigenvalArray(i, 1:length(eigenval)) = eigenval';
+        rv = eig(matQ'*H_sub);
+
+
+        hrvArray(i, 1:length(hrv)) = hrv';
+        rvArray(i, 1:length(rv)) = rv';
 
         % distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)))/lambdaMinA1;
         % distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)))/lambdaMinA1;
@@ -166,11 +171,11 @@ while(i <= iMax)
         % distArray(i, 4) = min(abs(eigenval - lambdaMinA(4)))/lambdaMinA1;
         % distArray(i, 5) = min(abs(eigenval - lambdaMinA(5)))/lambdaMinA1;
 
-        distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)));
-        distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)));
-        distArray(i, 3) = min(abs(eigenval - lambdaMinA(3)));
-        distArray(i, 4) = min(abs(eigenval - lambdaMinA(4)));
-        distArray(i, 5) = min(abs(eigenval - lambdaMinA(5)));
+        distArray(i, 1) = min(abs(hrv - lambdaMinA(1)));
+        distArray(i, 2) = min(abs(hrv - lambdaMinA(2)));
+        distArray(i, 3) = min(abs(hrv - lambdaMinA(3)));
+        distArray(i, 4) = min(abs(hrv - lambdaMinA(4)));
+        distArray(i, 5) = min(abs(hrv - lambdaMinA(5)));
 
         % clf;
         % set(0,'DefaultFigureWindowStyle','docked')
@@ -219,7 +224,8 @@ while(i <= iMax)
     end
     i = i+1;
 end
-csvwrite(['output/hrv_' num2str(k) '.csv'], eigenvalArray);
+csvwrite(['output/hrv_' num2str(k) '.csv'], hrvArray);
+csvwrite(['output/rv_' num2str(k) '.csv'], rvArray);
 csvwrite(['output/res_rel_' num2str(k) '.csv'], resVec);
 csvwrite(['output/err_vec_' num2str(k) '.csv'], errorVec);
 csvwrite(['output/dist_' num2str(k) '.csv'], distArray);
