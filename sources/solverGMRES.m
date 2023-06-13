@@ -27,15 +27,17 @@ sn = zeros(iMax,1);
 cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
 
-% r = Pinv*(b-A*x);
+
 r = P\(b-A*x);
-beta(1) = sqrt(r'*P*r);
+%beta(1) = sqrt(r'*P*r);
+beta(1) = sqrt(r'*r);
 Q(:,1) = r/beta(1);
 
 resVec = zeros(iMax/iOut+1,1);
 errorVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
+resInit = abs(beta(1));
 resVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, x);
 % fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
@@ -44,7 +46,8 @@ errorVec(1) = computeError(mesh, dofm, x);
 %%%%%%% HRV
 hrvArray = zeros(iMax, size(A,2));
 rvArray = zeros(iMax, size(A,2));
-distArray = zeros(iMax, 3);
+distArrayHRV = zeros(iMax, 3);
+distArrayRV = zeros(iMax, 3);
 
 mat = P\A;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
@@ -52,11 +55,28 @@ eigenvalA = diag(eigenval);
 
 % Get the 3 last eigenvalues of A
 
-lambdaMinA1 = eigenvalA(end);
-lambdaMinA2 = eigenvalA(end-1);
-lambdaMinA3 = eigenvalA(end-2);
-lambdaMinA4 = eigenvalA(end-3);
-lambdaMinA5 = eigenvalA(end-4);
+% lambdaMinA1 = eigenvalA(end);
+% lambdaMinA2 = eigenvalA(end-1);
+% lambdaMinA3 = eigenvalA(end-2);
+% lambdaMinA4 = eigenvalA(end-3);
+% lambdaMinA5 = eigenvalA(end-4);
+
+
+i1 = find(abs(eigenvalA) == min(abs(eigenvalA)));
+lambdaMinA1 = eigenvalA(i1);
+
+i2 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1))));
+lambdaMinA2 = eigenvalA(i2);
+
+i3 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2))));
+lambdaMinA3 = eigenvalA(i3);
+
+i4 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2 & eigenvalA~=lambdaMinA3))));
+lambdaMinA4 = eigenvalA(i4);
+
+i5 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2 & eigenvalA~=lambdaMinA3 & eigenvalA~=lambdaMinA4))));
+lambdaMinA5 = eigenvalA(i5);
+
 
 lambdaMinA = [lambdaMinA1 lambdaMinA2 lambdaMinA3 lambdaMinA4 lambdaMinA5];
 
@@ -102,10 +122,12 @@ while(i <= iMax)
     % Q(:,i+1) = Pinv*A*Q(:,i);
     Q(:,i+1) = P\(A*Q(:,i));
     for j = 1:i
-        H(j,i) = Q(:,j)' * P * Q(:,i+1);
+        %H(j,i) = Q(:,j)' * P * Q(:,i+1);
+        H(j,i) = Q(:,j)' * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
-    H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
+    %H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
+    H(i+1,i) = sqrt(Q(:,i+1)' * Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
 
     % Apply the previous Givens matrix to ith column
@@ -125,7 +147,7 @@ while(i <= iMax)
     beta(i:i+1) = matGivens * beta(i:i+1);
     
     % Update the residual vector
-    relRes = abs(beta(i+1)) / norm(beta(1));
+    relRes = abs(beta(i+1)) / resInit;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
@@ -139,9 +161,9 @@ while(i <= iMax)
         %eRef = computeError(mesh, dofm, xRef);
         %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
 
-        matQ = eye(i,i);
-        for j = 1:i-1
-            tempQ = eye(i,i);
+        matQ = eye(i+1,i+1);
+        for j = 1:i
+            tempQ = eye(i+1,i+1);
             tempQ(j,j) = cs(j)';
             tempQ(j+1,j+1) = cs(j);
             tempQ(j,j+1) = sn(j)';
@@ -149,33 +171,35 @@ while(i <= iMax)
             matQ = tempQ*matQ;
         end
 
-        H_sub = zeros(i, i);
+        R = zeros(i+1, i);
+        
+        R(1:i,1:i) = H(1:i,1:i);
 
+        Ht_i = matQ'*R;
 
-        for j = 1:i
-            H_sub(j, 1:i) = H(j, 1:i);
-        end
+        H_i = Ht_i(1:i,1:i);
 
-        [~,D] = eig(H_sub'*H_sub,H_sub'*matQ);
+        [~,D] = eig(Ht_i'*Ht_i,H_i');
         hrv = diag(D);
 
-        rv = eig(matQ'*H_sub);
+        rv = eig(H_i);
 
 
         hrvArray(i, 1:length(hrv)) = hrv';
         rvArray(i, 1:length(rv)) = rv';
 
-        % distArray(i, 1) = min(abs(eigenval - lambdaMinA(1)))/lambdaMinA1;
-        % distArray(i, 2) = min(abs(eigenval - lambdaMinA(2)))/lambdaMinA1;
-        % distArray(i, 3) = min(abs(eigenval - lambdaMinA(3)))/lambdaMinA1;
-        % distArray(i, 4) = min(abs(eigenval - lambdaMinA(4)))/lambdaMinA1;
-        % distArray(i, 5) = min(abs(eigenval - lambdaMinA(5)))/lambdaMinA1;
 
-        distArray(i, 1) = min(abs(hrv - lambdaMinA(1)));
-        distArray(i, 2) = min(abs(hrv - lambdaMinA(2)));
-        distArray(i, 3) = min(abs(hrv - lambdaMinA(3)));
-        distArray(i, 4) = min(abs(hrv - lambdaMinA(4)));
-        distArray(i, 5) = min(abs(hrv - lambdaMinA(5)));
+        distArrayHRV(i, 1) = min(abs(hrv - lambdaMinA(1)));
+        distArrayHRV(i, 2) = min(abs(hrv - lambdaMinA(2)));
+        distArrayHRV(i, 3) = min(abs(hrv - lambdaMinA(3)));
+        distArrayHRV(i, 4) = min(abs(hrv - lambdaMinA(4)));
+        distArrayHRV(i, 5) = min(abs(hrv - lambdaMinA(5)));
+
+        distArrayRV(i, 1) = min(abs(rv - lambdaMinA(1)));
+        distArrayRV(i, 2) = min(abs(rv - lambdaMinA(2)));
+        distArrayRV(i, 3) = min(abs(rv - lambdaMinA(3)));
+        distArrayRV(i, 4) = min(abs(rv - lambdaMinA(4)));
+        distArrayRV(i, 5) = min(abs(rv - lambdaMinA(5)));
 
         % clf;
         % set(0,'DefaultFigureWindowStyle','docked')
@@ -184,8 +208,11 @@ while(i <= iMax)
 
 
         % hold on
-        % scatter(real(eigenvalA),imag(eigenvalA), 'r', 'Marker', 'x');
-        % scatter(real(eigenval),imag(eigenval), 'b');
+        % scatter(real(eigenvalA),imag(eigenvalA), 'r', 'Marker', 'x','DisplayName','Eig A');
+        % scatter(real(rv), imag(rv), 'Marker', 'o', 'Color', 'b','DisplayName','Ritz Values');
+        % scatter(real(hrv), imag(hrv), 'Marker', '+', 'Color', 'k','DisplayName','Harmonic Ritz Values');
+        % legend('Location', 'southwest', 'fontsize', 15)
+        
         % xlim([x_min x_max]);
         % ylim([y_min y_max]);
 
@@ -228,7 +255,8 @@ csvwrite(['output/hrv_' num2str(k) '.csv'], hrvArray);
 csvwrite(['output/rv_' num2str(k) '.csv'], rvArray);
 csvwrite(['output/res_rel_' num2str(k) '.csv'], resVec);
 csvwrite(['output/err_vec_' num2str(k) '.csv'], errorVec);
-csvwrite(['output/dist_' num2str(k) '.csv'], distArray);
+csvwrite(['output/dist_' num2str(k) '.csv'], distArrayHRV);
+csvwrite(['output/dist_rv_' num2str(k) '.csv'], distArrayRV);
 
 % Write the solution
 %writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");

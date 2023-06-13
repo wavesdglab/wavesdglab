@@ -5,7 +5,6 @@
 function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
 global k
-global Rexiy
 global L_PML
 global L
 
@@ -94,7 +93,7 @@ for tri=1:mesh.numTri
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
-    matM(dof,dof) = matM(dof,dof) + matMelreal;
+    matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
     
 end
