@@ -6,8 +6,8 @@ global k;
 degree = 3;
 tau = 1;
 tol = 1e-100;
-BASIS = 0;
-PREC = 1;
+BASIS = 1;
+PREC = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -74,17 +74,17 @@ normErr = computeNormError2D_DG(mesh, dofm, solA);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver Richardson']);
-% alpha = 1;
-% [resRedVec, resPhyVec, error1] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error1));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error1, errorRef];
-% name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVec, resPhyVec, error1] = solverRichardson_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error1));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error1, errorRef];
+name = sprintf('output/historyRich_CHDG_%s_p%i_k%g_h%g_tau%g+%gi_alpha%g.csv', benchmark, degree, k, h, real(tau), imag(tau), alpha);
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -114,16 +114,16 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver GMRES']);
-% [resRedVec, resPhyVec, error4] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error4));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error4, errorRef];
-% name = sprintf('output/historyGMRES_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver GMRES']);
+[resRedVec, resPhyVec, error4] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error4));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error4, errorRef];
+name = sprintf('output/historyGMRES_CHDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

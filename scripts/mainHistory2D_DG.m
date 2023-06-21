@@ -1,4 +1,4 @@
-% close all;
+close all;
 clear all;
 
 global k;
@@ -7,7 +7,7 @@ degree = 3;
 tau = 1;
 theta = 1;
 tol = 1e-100;
-PREC = 1;
+PREC = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -57,7 +57,7 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
-[normErr] = computeNormError2D_DG(mesh, dofm, solA);
+normErr = computeNormError2D_DG(mesh, dofm, solA);
 
 % [solP] = computeSolProjL2_2D_DG(mesh, dofm);
 % [normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);
