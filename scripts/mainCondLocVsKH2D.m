@@ -35,7 +35,7 @@ for degree = 1:3
     
     rezu1 = ["khList" "condLoc" "khListInv"];
     rezu2 = [khList' condLocMaxHDG' khInvList'];
-    name = sprintf('output/condLocVsKH_HDG_p%i_k%g_tau%g+%gi.csv', degree, k), real(tau), imag(tau);
+    name = sprintf('output/condLocVsKH_HDG_p%i_k%g_tau%g+%gi.csv', degree, k, real(tau), imag(tau));
     writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
     
     rezu1 = ["khList" "condLoc" "khListInv"];

@@ -74,7 +74,14 @@ for i = 1:size(hList,2)
     solP = computeSolProjL2_2D_DG(mesh, dofm);
     errorProjL2(i) = computeNormError2D_DG(mesh, dofm, solP);
     fprintf('Error Proj:  %i \n', errorProjL2(i));
-    condGlo(i) = condest(sysA.matA);
+    switch method
+        case 'DG'
+            condGlo(i) = condest(sysA.matA);
+        case 'HDG'
+            condGlo(i) = condest(sysA.matS);
+        case 'CHDG'
+            condGlo(i) = condest(sysA.matS);
+    end
     fprintf('CondGlo:     %i \n', condGlo(i));
     toc
     disp('---------------------------------------------------------');
@@ -82,8 +89,8 @@ end
 
 Dlambda = 2*pi/k * (sqrt(NdofTRI) - 1);
 
-rezu1 = ["hList" "hEff" "invKH" "NdofTRI" "Dlambda" "errorL2" "errorProjL2" "condGlo"];
-rezu2 = [hList' hEff' invKH' NdofTRI' Dlambda' errorL2' errorProjL2' condGlo'];
+rezu1 = ["hList" "hEff" "invH" "invKH" "NdofTRI" "Dlambda" "errorL2" "errorProjL2" "condGlo"];
+rezu2 = [hList' hEff' 1./hEff' invKH' NdofTRI' Dlambda' errorL2' errorProjL2' condGlo'];
 name = sprintf('output/errorCondGloVsKH_%s_%s_P%i_k%g_tau%g+%gi_%g_%g.csv', method, benchmark, degree, k, real(tau), imag(tau), BASIS, PREC);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
