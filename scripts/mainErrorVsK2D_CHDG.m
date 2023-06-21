@@ -8,23 +8,23 @@ tau = 1;
 % C = h^(2*p)*k^(2*p+1);
 % hList = (C./kList.^(2*p+1)).^(1/(2*p));
 
-% % BENCH FREE SPACE
-% k = 15*pi;
-% h = 1/16;
-% C = h*k;
-% kList = 2.^(2:0.5:5)*pi;
-% hList = C./kList;
-% benchmark = 'open'; degree = p;
-% run(benchmark,degree,C,kList,hList,tau);
-% 
-% % BENCH CAVITY
-% k = (5+1/8)*sqrt(2)*pi;
-% h = 1/8;
-% C = h*k;
-% kList = (4:0.2:7)*pi;
-% hList = C./kList;
-% benchmark = 'cavity'; degree = p;
-% run(benchmark,degree,C,kList,hList,tau);
+% BENCH FREE SPACE
+k = 15*pi;
+h = 1/16;
+C = h*k;
+kList = 2.^(2:0.5:5)*pi;
+hList = C./kList;
+benchmark = 'open'; degree = p;
+run(benchmark,degree,C,kList,hList,tau);
+
+% BENCH CAVITY
+k = (5+1/8)*sqrt(2)*pi;
+h = 1/8;
+C = h*k;
+kList = (4:0.2:7)*pi;
+hList = C./kList;
+benchmark = 'cavity'; degree = p;
+run(benchmark,degree,C,kList,hList,tau);
 
 % BENCH WAVEGUIDE
 k = 6*pi;

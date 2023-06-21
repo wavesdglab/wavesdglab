@@ -17,8 +17,8 @@ run(benchmark,degree,30*pi,hList,tau,BASIS,PREC);
 
 % BENCH CAVITY
 benchmark = 'cavity';
-h1 = log2(1/10); h2 = log2(1/15); hInt = (h2-h1)/3;
-hList = 2.^[h1-2*hInt h1-hInt h1 h1+hInt h2-hInt h2 h2+hInt h2+2*hInt];
+h1 = log2(1/10); h2 = log2(1/15); hInt = (h2-h1)/2;
+hList = 2.^[h1-hInt h1 h1+hInt h2 h2+hInt h2+2*hInt h2+3*hInt h2+4*hInt];
 run(benchmark,degree,7.10*sqrt(2)*pi,hList,tau,BASIS,PREC);
 run(benchmark,degree,7.01*sqrt(2)*pi,hList,tau,BASIS,PREC);
 
@@ -43,6 +43,7 @@ Ndof = zeros(1,size(hList,2));
 errorL2 = zeros(1,size(hList,2));
 errorProjL2 = zeros(1,size(hList,2));
 condGlo = zeros(1,size(hList,2));
+invKH = zeros(1,size(hList,2));
 
 for i = 1:size(hList,2)
     k = kList;
@@ -51,6 +52,7 @@ for i = 1:size(hList,2)
     tic
     mesh = benchmark2D(benchmark,h);
     mesh = buildConnectivity2D(mesh);
+    invKH(i) = 1/k*sqrt(mesh.numVer);  % mesh.numVer/4 for waveguide
     dofm = buildDofManager2D_DG(mesh, degree);
     Ndof(i) = dofm.numDofTRI;
     [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, BASIS, PREC);
@@ -66,13 +68,13 @@ end
 
 Dlambda = 2*pi/k * (sqrt(Ndof) - 1);
 
-rezu1 = ["hList" "Ndof" "Dlambda" "errorL2" "errorProjL2"];
-rezu2 = [hList' Ndof' Dlambda' errorL2' errorProjL2'];
+rezu1 = ["hList" "invKH" "Ndof" "Dlambda" "errorL2" "errorProjL2"];
+rezu2 = [hList' invKH' Ndof' Dlambda' errorL2' errorProjL2'];
 name = sprintf('output/errorVsH_DG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
-rezu1 = ["hList" "Ndof" "Dlambda" "condGlo"];
-rezu2 = [hList' Ndof' Dlambda' condGlo'];
+rezu1 = ["hList" "invKH" "Ndof" "Dlambda" "condGlo"];
+rezu2 = [hList' invKH' Ndof' Dlambda' condGlo'];
 name = sprintf('output/condVsH_DG_%s_P%i_k%g_tau%g+%gi.csv', benchmark, degree, k, real(tau), imag(tau));
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
