@@ -4,7 +4,7 @@ clear all;
 global k
 
 % Setup benchmark and parameters
-benchmark = 'waveguide';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 30*pi; %15*pi;

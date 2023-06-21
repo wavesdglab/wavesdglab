@@ -11,6 +11,9 @@
 % mesh.mapEdgBndToVer  % Connectivity BoundaryEdge-to-Vertices [matrix mesh.numEdgBnd x 2]
 % mesh.tagEdgBndFile
 
+% mesh.hmin            % Min length of edge
+% mesh.hmax            % Max length of edge
+
 % -------------------------------------------------------------------------
 % Mesh reader - General function
 % -------------------------------------------------------------------------
@@ -35,6 +38,18 @@ switch meshFormat(1)
 end
 
 fclose(file);
+
+mesh.hmin = 1e10;
+mesh.hmax = 0;
+for i = 1:mesh.numTri
+    V = mesh.mapTriToVer(i,:);
+    X = mesh.coord(V,:);
+    l1 = norm(X(1,:)-X(2,:));
+    l2 = norm(X(2,:)-X(3,:));
+    l3 = norm(X(3,:)-X(1,:));
+    mesh.hmax = max(max(max(mesh.hmax,l1),l2),l3);
+    mesh.hmin = min(min(min(mesh.hmin,l1),l2),l3);
+end
 
 end
 
