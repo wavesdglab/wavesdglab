@@ -183,9 +183,9 @@ for tri=1:mesh.numTri
         shapePhyQ = shapePhyLinQ * orientation;
         shapeAuxQ = shapePhyQ;
         shapeFluQ = shapePhyQ;
-        shapePhyDsQ = shapePhyLinDuQ * orientation;                          % NEW
-        shapeAuxDsQ = shapePhyDsQ;                                           % NEW
-        shapeFluDsQ = shapePhyDsQ;                                           % NEW
+        shapePhyDsQ = shapePhyLinDuQ * orientation;
+        shapeAuxDsQ = shapePhyDsQ;
+        shapeFluDsQ = shapePhyDsQ;
         
         % Mass matrices (physical space)
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
@@ -197,22 +197,22 @@ for tri=1:mesh.numTri
         matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_GHel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_GFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
-        matK_GGel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-        matK_GHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
+        matK_GGel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);
+        matK_GHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);
 
         matM_HIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_HGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_HHel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_HFel = shapeAuxQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
-        matK_HIel = shapeAuxDsQ' * (weightsLinQ .* shapePhyDsQ) / (Jdxdu);       % NEW
-        matK_HHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
+        matK_HIel = shapeAuxDsQ' * (weightsLinQ .* shapePhyDsQ) / (Jdxdu);
+        matK_HHel = shapeAuxDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);
 
         matM_FIel = shapeFluQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_FGel = shapeFluQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_FHel = shapeFluQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
         matM_FFel = shapeFluQ' * (weightsLinQ .* shapeFluQ) * Jdxdu;
-        matK_FHel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
-        matK_FGel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);       % NEW
+        matK_FHel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);
+        matK_FGel = shapeFluDsQ' * (weightsLinQ .* shapeAuxDsQ) / (Jdxdu);
         
         % Exterior normal
         nx = normal(fac,1);
@@ -322,7 +322,7 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         matHHel = matM_HHel + alfa * beta * 0.5/(k^2) * matK_HHel;
-        matHIel = (1 + (1 - beta)) * [-matM_HIel, -nx * (matM_HIel + alfa * beta * 0.5/(k^2)*matK_HIel), -ny *(matM_HIel + alfa * beta * 0.5/(k^2)*matK_HIel)];  % UPDATED
+        matHIel = (1 + (1 - beta)) * [-matM_HIel, -nx * (matM_HIel + alfa * beta * 0.5/(k^2)*matK_HIel), -ny *(matM_HIel + alfa * beta * 0.5/(k^2)*matK_HIel)];
         matHGel = - (1 - beta) * matM_HGel;
         matHFel = 2 * (1 - beta) * matM_HFel;
 
@@ -353,7 +353,7 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        matFFel = matM_FFel;           % UPDATED
+        matFFel = matM_FFel;         
         matFHel = - 0.5*matM_FHel - alfa * 0.25/(k^2) * matK_FHel;
         matFGel = - 0.5*matM_FGel - alfa * 0.25/(k^2) * matK_FGel; 
         
@@ -472,12 +472,12 @@ else
     sysA.matPinv = 1;
 end
 
-% Compute solution
+% Compute direct solution
 solG = sysA.matS\sysA.rhsS;
 sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
 solI = sol(1:3*numDofTRI);
 
-% solX = sysA.matA\sysA.rhsA;   % Direct solver
+% solX = sysA.matA\sysA.rhsA;
 % solX = solX(1:3*numDofTRI);
 
 end
