@@ -279,9 +279,6 @@ for tri=1:mesh.numTri
             BC = tagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
-            matGGel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-            matGHel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-            rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
                     matGGel = matM_GGel + alfa * 0.5/(k^2) * matK_GGel;
