@@ -12,8 +12,6 @@ else
     alfa = 0;
 end
 
-%tt
-
 if order(1,2) == 2
     beta = 1;
 else
@@ -282,9 +280,6 @@ for tri=1:mesh.numTri
             BC = tagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
-            matGGel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-            matGHel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-            rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
                     matGGel = matM_GGel + alfa * 0.5/(k^2) * matK_GGel;
@@ -325,15 +320,9 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         matHHel = matM_HHel;
-
-%         matHIel = -2 * [matM_HIel, nx * matM_HIel, ny * matM_HIel];
-        matHIel = - [sqrt(1 + 1/k^2.*matK_HIel), nx * matM_HIel, ny * matM_HIel];
-
-%         matHGel = - matM_HGel;
-        matHGel = 0.*matM_HGel;
-
-%         matHFel = 2 * matM_HFel;
-        matHFel = 0.*matM_HFel;
+        matHIel = (1-beta) * (-2) * [matM_HIel, nx * matM_HIel, ny * matM_HIel] + beta * (-1) * [sqrt(1 + 1/k^2.*matK_HIel), nx * matM_HIel, ny * matM_HIel];
+        matHGel = - (1-beta) * matM_HGel; 
+        matHFel = 2 * (1-beta) * matM_HFel;
 
         % Global ID for flux and exterior unknowns
         idGloH = dofm.locToGloFAC(tri,idLocG);

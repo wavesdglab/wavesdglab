@@ -4,7 +4,7 @@ clear all;
 global k
 
 % Order of the operator B for characteristic variables (order(1,1)) and of the transmission conditions (order(1,2))
-order = [2,2]; % standard CHDG = [1,1] or [1,2]; CHDG2 = [2,2]; CHDG3 = [2,1]
+order = [2,1]; % standard CHDG = [1,1] or [1,2]; CHDG2 = [2,2]; CHDG3 = [2,1]
 
 % Setup benchmark and parameters
 benchmark = 'cavity';
@@ -15,14 +15,14 @@ switch benchmark
         tol = 1e-10; maxit = 200; itout = 50;   %maxit = 1000
     case 'cavity'
         k = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi;
-        h = 0.1; %1/10;
+        h = 0.2; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide'
         k = 6*pi; %6*pi
         h = 1/6; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
 end
-degree = 3;
+degree = 5;
 tau = 1;
 BASIS = 0;
 PREC = 1; 
@@ -49,9 +49,9 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-[solA_1, sysA_1] = computeSolNum2D_CHDG_new(mesh, dofm, tau, BASIS, PREC, [1, 1]);
-[solA_2, sysA_2] = computeSolNum2D_CHDG_new(mesh, dofm, tau, BASIS, PREC, order);
-%[solA_2, sysA_2] = computeSolNum2D_CHDG_sqrt(mesh, dofm, tau, BASIS, PREC, order);
+% [solA_1, sysA_1] = computeSolNum2D_CHDG_new(mesh, dofm, tau, BASIS, PREC, [1, 1]);
+[solA_1, sysA_1] = computeSolNum2D_CHDG_new(mesh, dofm, tau, BASIS, PREC, order);
+[solA_2, sysA_2] = computeSolNum2D_CHDG_sqrt(mesh, dofm, tau, BASIS, PREC, order);
 
 % Compute numerical error
 errorL2_1 = computeNormError2D_DG(mesh, dofm, solA_1);
@@ -152,19 +152,19 @@ disp('---------------------------------------------------------');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'GMRES';
-% switch solver
-%     case 'Rich'
-%         alpha = 1;
-%         [resRedVec_1, resPhyVec_1, errorVec_1] = solverRichardson_DG(mesh, dofm, sysA_1, tol, maxit, itout, alpha, @computeNormError2D_DG);
-%         [resRedVec_2, resPhyVec_2, errorVec_2] = solverRichardson_DG(mesh, dofm, sysA_2, tol, maxit, itout, alpha, @computeNormError2D_DG);
-%     case 'CGNR'
-%         [resRedVec_1, resPhyVec_1, errorVec_1] = solverCGNRredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
-%         [resRedVec_2, resPhyVec_2, errorVec_2] = solverCGNRredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
-%     case 'GMRES'
-%         [resRedVec_1, resPhyVec_1, errorVec_1] = solverGMRESredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
-%         [resRedVec_2, resPhyVec_2, errorVec_2] = solverGMRESredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
-% end
+solver = 'GMRES';
+switch solver
+    case 'Rich'
+        alpha = 1;
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverRichardson_DG(mesh, dofm, sysA_1, tol, maxit, itout, alpha, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverRichardson_DG(mesh, dofm, sysA_2, tol, maxit, itout, alpha, @computeNormError2D_DG);
+    case 'CGNR'
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverCGNRredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverCGNRredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
+    case 'GMRES'
+        [resRedVec_1, resPhyVec_1, errorVec_1] = solverGMRESredu_DG(mesh, dofm, sysA_1, tol, maxit, itout, @computeNormError2D_DG);
+        [resRedVec_2, resPhyVec_2, errorVec_2] = solverGMRESredu_DG(mesh, dofm, sysA_2, tol, maxit, itout, @computeNormError2D_DG);
+end
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -204,21 +204,21 @@ disp('---------------------------------------------------------');
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
 
-% figure();
-% hold off
-% semilogy(0:itout:maxit,errorVec_1,'r-x','DisplayName','Relative L2-error (iterative - 1st order) - precond.');
-% hold on
-% semilogy(0:itout:maxit,errorVec_2,'g-x','DisplayName','Relative L2-error (iterative - 2nd order) - precond.');
-% hold on
-% plot([0 maxit],[errorL2_1 errorL2_1],'k--','DisplayName','Relative L2-error (direct - 1st order)');
-% hold on
-% plot([0 maxit],[errorL2_2 errorL2_2],'k-.','DisplayName','Relative L2-error (direct - 2nd order)');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% legend('Iterative - 1st order - precond.', 'Iterative - 2nd order - precond.', 'Direct - 1st order', 'Direct - 2nd order');
-% title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Relative L^2-error');
+figure();
+hold off
+semilogy(0:itout:maxit,errorVec_1,'r-x','DisplayName','Relative L2-error (iterative - 1st order) - precond.');
+hold on
+semilogy(0:itout:maxit,errorVec_2,'g-x','DisplayName','Relative L2-error (iterative - 2nd order) - precond.');
+hold on
+plot([0 maxit],[errorL2_1 errorL2_1],'k--','DisplayName','Relative L2-error (direct - 1st order)');
+hold on
+plot([0 maxit],[errorL2_2 errorL2_2],'k-.','DisplayName','Relative L2-error (direct - 2nd order)');
+box on;
+grid on;
+legend('Location','southwest');
+legend('Iterative - 1st order - precond.', 'Iterative - 2nd order - precond.', 'Direct - 1st order', 'Direct - 2nd order');
+title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.005 1]);
+xlabel('Iteration');
+ylabel('Relative L^2-error');
