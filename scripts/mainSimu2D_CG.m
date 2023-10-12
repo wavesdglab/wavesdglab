@@ -5,6 +5,8 @@ global k L L_PML R_disk;
 L_PML = 0;
 R_disk = 0;
 
+computeSolNum2D = @computeSolNum2D_CG;
+
 % Setup benchmark and parameters
 benchmark = 'cavity';
 switch benchmark
@@ -24,6 +26,7 @@ switch benchmark
         L = 1.1;
         R_disk = 1;
         L_PML = 0.2;
+        computeSolNum2D = @computeSolNum2DPML_CG;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
@@ -52,7 +55,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
+[solA, sysA] = computeSolNum2D(mesh, dofm, PREC);
 errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 %
 solP = computeSolProjL2_2D_CG(mesh, dofm);
@@ -61,11 +64,6 @@ errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
 disp(['---------------------------------------------------------']);
-
-% param = [k h degree tol itout errorL2 errorProjL2];
-% csvwrite(['output/param_' num2str(k) '.csv'], param);
-
-% disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
@@ -81,18 +79,18 @@ disp(['---------------------------------------------------------']);
 % -------------------------------------------------------------------------
 
 % mat = sysA.matPinv * sysA.matA;
-mat = sysA.matP\sysA.matA;
-[eigenvec, eigenval] = eigs(mat,size(mat,1));
-eigenval = diag(eigenval);
-rankEigenVec = rank(eigenvec);
-condEigenVec = cond(eigenvec);
+% mat = sysA.matP\sysA.matA;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% eigenval = diag(eigenval);
+% rankEigenVec = rank(eigenvec);
+% condEigenVec = cond(eigenvec);
 
 
-disp(['    Size                ' num2str(size(mat,1))]);
-disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
-disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+% disp(['    Size                ' num2str(size(mat,1))]);
+% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
+% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
-% csvwrite(['output/eigenval_' num2str(k) '.csv'], eigenval);
+% csvwrite(['output/eigA_' num2str(k) '.csv'], eigenval');
 
 % Plot spectrum
 % figure;
@@ -122,21 +120,21 @@ end
 
 
 
-figure
-hold on
-set(0,'DefaultFigureWindowStyle','docked')
+% figure
+% hold on
+% set(0,'DefaultFigureWindowStyle','docked')
 
 
-plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)','linewidth', 1);
-plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)','linewidth', 1);
-semilogy(0:itout:maxit,resVec,'b-o','DisplayName','Relative residual','linewidth', 1,'markersize', 5);
-semilogy(0:itout:maxit,errorVec,'k-o','DisplayName','Relative L2-error (iterative)','linewidth', 1,'markersize', 5);
-set(gca, 'YScale', 'log')
-box on
-grid on
-xlim([0 155]);
-ylim auto;
-title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)'], 'interpreter', 'latex', 'fontsize', 20)
-xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
-ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
-legend('Location', 'southwest', 'fontsize', 15)
+% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)','linewidth', 1);
+% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)','linewidth', 1);
+% semilogy(0:itout:maxit,resVec,'b-o','DisplayName','Relative residual','linewidth', 1,'markersize', 5);
+% semilogy(0:itout:maxit,errorVec,'k-o','DisplayName','Relative L2-error (iterative)','linewidth', 1,'markersize', 5);
+% set(gca, 'YScale', 'log')
+% box on
+% grid on
+% xlim([0 155]);
+% ylim auto;
+% title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)'], 'interpreter', 'latex', 'fontsize', 20)
+% xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
+% ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
+% legend('Location', 'southwest', 'fontsize', 15)

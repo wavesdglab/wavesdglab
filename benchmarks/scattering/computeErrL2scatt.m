@@ -61,9 +61,9 @@ for i = 1:length(L_PML_tab)
             errorL2 = computeNormError2D_CG(mesh, dofm, solP);
             disp(['    L2-Error (refSol)   ' num2str(errorL2,'%1.2e')]);
 
-            fprintf(file, '%s, %f, %f, %f\n', benchmark, h, errornumL2, errorL2);
+            fprintf(file, '%f, %f, %1.2e, %1.2e\n', L_PML, h, errornumL2, errorL2);
         else
-            fprintf(file, '%s, %f, %f\n', benchmark, h, errornumL2);
+            fprintf(file, '%f, %f, %1.2e\n', L_PML, h, errornumL2);
         end
     end
 end

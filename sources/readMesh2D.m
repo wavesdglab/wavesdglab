@@ -24,7 +24,7 @@ end
 while (~strcmp(fgetl(file),'$MeshFormat'))
 end
 meshFormat = str2num(fgetl(file));
-disp(['Mesh format ', num2str(meshFormat(1)), ' detected.']);
+% disp(['Mesh format ', num2str(meshFormat(1)), ' detected.']);
 
 
 switch meshFormat(1)

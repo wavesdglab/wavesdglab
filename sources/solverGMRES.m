@@ -4,9 +4,16 @@
 
 % GMRES with symmetric preconditioning
 
-function [resVec, errorVec, i, flag, x] = solverGMRES(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resVec, errorVec, i_array, flag_array, err_array,X,hrvArray,rvArray,distArrayHRV,distArrayRV] = solverGMRES(mesh, dofm, sys, tol_array, iMax, iOut, computeError)
 
 global k;
+
+min_tol = min(tol_array);
+i_array = zeros(length(tol_array),1);
+err_array = zeros(length(tol_array),1);
+flag_array = zeros(length(tol_array),1);
+
+X = zeros(size(sys.matA,2),length(tol_array));
 
 % [solA, ~] = computeSolNum2D_CG(mesh, dofm, 1);
 % errorL2 = computeNormError2D_CG(mesh, dofm, solA);
@@ -39,47 +46,21 @@ errorVec = zeros(iMax/iOut+1,1);
 %%%%%%%
 resInit = abs(beta(1));
 resVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, x);
+% errorVec(1) = computeError(mesh, dofm, x);
 % fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
 %%%%%%%
 
 %%%%%%% HRV
-hrvArray = zeros(iMax, size(A,2));
-rvArray = zeros(iMax, size(A,2));
-distArrayHRV = zeros(iMax, 3);
-distArrayRV = zeros(iMax, 3);
 
-mat = P\A;
-[eigenvec, eigenval] = eigs(mat,size(mat,1));
-eigenvalA = diag(eigenval);
-
-% Get the 3 last eigenvalues of A
-
-% lambdaMinA1 = eigenvalA(end);
-% lambdaMinA2 = eigenvalA(end-1);
-% lambdaMinA3 = eigenvalA(end-2);
-% lambdaMinA4 = eigenvalA(end-3);
-% lambdaMinA5 = eigenvalA(end-4);
+%%%%%% Initialisation
+% hrvArray = zeros(iMax, size(A,2));
+% rvArray = zeros(iMax, size(A,2));
+% distArrayHRV = zeros(iMax, 3);
+% distArrayRV = zeros(iMax, 3);
+%%%%%%
 
 
-i1 = find(abs(eigenvalA) == min(abs(eigenvalA)));
-lambdaMinA1 = eigenvalA(i1);
-
-i2 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1))));
-lambdaMinA2 = eigenvalA(i2);
-
-i3 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2))));
-lambdaMinA3 = eigenvalA(i3);
-
-i4 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2 & eigenvalA~=lambdaMinA3))));
-lambdaMinA4 = eigenvalA(i4);
-
-i5 = find(abs(eigenvalA) == min(abs(eigenvalA(eigenvalA~=lambdaMinA1 & eigenvalA~=lambdaMinA2 & eigenvalA~=lambdaMinA3 & eigenvalA~=lambdaMinA4))));
-lambdaMinA5 = eigenvalA(i5);
-
-
-lambdaMinA = [lambdaMinA1 lambdaMinA2 lambdaMinA3 lambdaMinA4 lambdaMinA5];
-
+%%%%%% Plot
 % x_min = -200; x_max = 400;
 % y_min = -1; y_max = 1;
 
@@ -110,6 +91,7 @@ lambdaMinA = [lambdaMinA1 lambdaMinA2 lambdaMinA3 lambdaMinA4 lambdaMinA5];
 % ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
 % legend('Location', 'southwest', 'fontsize', 15)
 % grid on; box on;
+%%%%%%
 
 
 %%%%%%%
@@ -119,14 +101,11 @@ i = 1;
 while(i <= iMax)
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    % Q(:,i+1) = Pinv*A*Q(:,i);
     Q(:,i+1) = P\(A*Q(:,i));
     for j = 1:i
-        %H(j,i) = Q(:,j)' * P * Q(:,i+1);
         H(j,i) = Q(:,j)' * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
-    %H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
     H(i+1,i) = sqrt(Q(:,i+1)' * Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
 
@@ -155,52 +134,20 @@ while(i <= iMax)
         x = Q(:,1:i) * y;
  
         resVec(i/iOut+1) = relRes;
-        errorVec(i/iOut+1) = computeError(mesh, dofm, x);
-        fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+        % errorVec(i/iOut+1) = computeError(mesh, dofm, x);
+        % fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
         %xRef = gmres(A,b,[],1e-10,i);
         %eRef = computeError(mesh, dofm, xRef);
         %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
 
-        matQ = eye(i+1,i+1);
-        for j = 1:i
-            tempQ = eye(i+1,i+1);
-            tempQ(j,j) = cs(j)';
-            tempQ(j+1,j+1) = cs(j);
-            tempQ(j,j+1) = sn(j)';
-            tempQ(j+1,j) = -sn(j)';
-            matQ = tempQ*matQ;
-        end
-
-        R = zeros(i+1, i);
+        %%%%%% Compute harmonic Ritz values and Ritz values
+        % [hrv, dist_hrv] = computeHRV(H,cs, sn, i, P\A, 5);
+        % hrvArray(i, 1:length(hrv)) = hrv';
         
-        R(1:i,1:i) = H(1:i,1:i);
+        %%%%%% Compute the distance to the eigenvalues
+        % distArrayHRV(i, :) = dist_hrv;
 
-        Ht_i = matQ'*R;
-
-        H_i = Ht_i(1:i,1:i);
-
-        [~,D] = eig(Ht_i'*Ht_i,H_i');
-        hrv = diag(D);
-
-        rv = eig(H_i);
-
-
-        hrvArray(i, 1:length(hrv)) = hrv';
-        rvArray(i, 1:length(rv)) = rv';
-
-
-        distArrayHRV(i, 1) = min(abs(hrv - lambdaMinA(1)));
-        distArrayHRV(i, 2) = min(abs(hrv - lambdaMinA(2)));
-        distArrayHRV(i, 3) = min(abs(hrv - lambdaMinA(3)));
-        distArrayHRV(i, 4) = min(abs(hrv - lambdaMinA(4)));
-        distArrayHRV(i, 5) = min(abs(hrv - lambdaMinA(5)));
-
-        distArrayRV(i, 1) = min(abs(rv - lambdaMinA(1)));
-        distArrayRV(i, 2) = min(abs(rv - lambdaMinA(2)));
-        distArrayRV(i, 3) = min(abs(rv - lambdaMinA(3)));
-        distArrayRV(i, 4) = min(abs(rv - lambdaMinA(4)));
-        distArrayRV(i, 5) = min(abs(rv - lambdaMinA(5)));
-
+        %%%%%% Plot
         % clf;
         % set(0,'DefaultFigureWindowStyle','docked')
         % subplot(2,1,1);
@@ -242,21 +189,34 @@ while(i <= iMax)
 
         % pause(0.5);
         % % waitforbuttonpress;
+        %%%%%%
+
     end
     %%%%%%%
+
+    for(j=1:length(tol_array))
+        tol = tol_array(j);
+        if (relRes <= tol & flag_array(j) == 0)
+            disp(['    GMRES for tol=' num2str(tol) ' converged at iteration ' num2str(i)]);
+            i_array(j) = i;
+            flag_array(j) = 1;
+
+            % y = H(1:i,1:i) \ beta(1:i);
+            % x = Q(:,1:i) * y;
+            % err_array(j) = computeNormError2D_CG(mesh, dofm, x);
+            % X_array(:,j) = x;
+        end
+    end
     
-    if (relRes <= tol)
-        flag = 1;
+    if (relRes <= min_tol)
+        % y = H(1:i,1:i) \ beta(1:i);
+        % x = Q(:,1:i) * y;
+        % errorVec = computeError(mesh, dofm, x);
+        % flag = 1;
         break;
     end
     i = i+1;
 end
-csvwrite(['output/hrv_' num2str(k) '.csv'], hrvArray);
-csvwrite(['output/rv_' num2str(k) '.csv'], rvArray);
-csvwrite(['output/res_rel_' num2str(k) '.csv'], resVec);
-csvwrite(['output/err_vec_' num2str(k) '.csv'], errorVec);
-csvwrite(['output/dist_' num2str(k) '.csv'], distArrayHRV);
-csvwrite(['output/dist_rv_' num2str(k) '.csv'], distArrayRV);
 
 % Write the solution
 %writeField2D(dofm, mesh, x, 'output/solNumGMRES.pos', "solNumGMRES");

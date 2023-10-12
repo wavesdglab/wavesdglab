@@ -50,6 +50,6 @@ Plane Surface(2) = {1, 3};
 
 // Definition des elements physiques
 Physical Curve("bd_pml", 1) = {1,2,3,4};
-Physical Curve(2) = {5,6,7,8};
-Physical Surface(1) = {1};
+Physical Curve("bd_obstacle", 2) = {5,6,7,8};
+Physical Surface("domain", 1) = {1};
 Physical Surface("pml", 2) = {2};
