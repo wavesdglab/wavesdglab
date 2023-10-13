@@ -5,12 +5,12 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'open_heterogeneous';
+benchmark = 'waveguide_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
         h = 1/16;  % 1/16
-        tol = 1e-10; maxit = 200; itout = 50;   %maxit = 1000
+        tol = 1e-10; maxit = 200; itout = 50;  
     case 'cavity'
         k = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi;
         h = 0.1; %1/10;
@@ -21,12 +21,16 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/16;  % 1/16
-        tol = 1e-10; maxit = 200; itout = 50;   %maxit = 1000
+        h = 1/8;  % 1/16
+        tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity_heterogeneous'
         omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
         h = 1/10; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
+    case 'waveguide_heterogeneous'
+        omega = 6*pi; %6*pi
+        h = 1/6; %1/8
+        tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 5;
 tau = 1;
@@ -104,26 +108,27 @@ system('gmsh output/solNum.pos&');
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
-% 
-% mat = sysA.matPinv*sysA.matS;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = 1-diag(eigenval);
+
+mat = sysA.matPinv*sysA.matS;
+[eigenvec, eigenval] = eigs(mat,size(mat,1));
+eigenval = 1-diag(eigenval);
+
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
 % % 
 % disp(['    Size                ' num2str(size(mat,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-% 
-% figure;
-% hold off; scatter(real(eigenval),imag(eigenval));
-% axis equal
-% %hold on; plot(fovals(mat,100));
-% hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
-% plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-% grid on; box on;
-% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+
+figure;
+hold off; scatter(real(eigenval),imag(eigenval));
+axis equal
+%hold on; plot(fovals(mat,100));
+hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+grid on; box on;
+set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 
 % % Compute condition number
 % condestMat = condest(mat);

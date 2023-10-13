@@ -25,6 +25,13 @@ switch tag
         BCSouth = 'DIR';
         linkMsh = 'benchmarks/waveguide/waveguide.msh';
         linkGeo = 'benchmarks/waveguide/waveguide.geo';
+    case 'waveguide_heterogeneous'
+        BCWest  = 'DIR';
+        BCNorth = 'DIR';
+        BCEast  = 'ABC';
+        BCSouth = 'DIR';
+        linkMsh = 'benchmarks/waveguide_heterogeneous/waveguide_heterogeneous.msh';
+        linkGeo = 'benchmarks/waveguide_heterogeneous/waveguide_heterogeneous.geo';    
     case 'open'
         BCWest  = 'ABC';
         BCNorth = 'ABC';

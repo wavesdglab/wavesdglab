@@ -4,7 +4,7 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, BASIS, PREC)
 
-global omega
+global TAGbench omega;
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -37,6 +37,8 @@ matGGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matPPv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matPPvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
@@ -198,6 +200,8 @@ for tri=1:mesh.numTri
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta/(eta + etaNeigh) * ny * ny * matM_IIel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta/(eta + etaNeigh)               * ny * matM_IGel;
 
+        coefP = max(c,1/c);
+
         % -----------------------------------------------------------------
         % Incoming characteristics
         % -----------------------------------------------------------------
@@ -227,7 +231,9 @@ for tri=1:mesh.numTri
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
+            matPPv(idGloG,:) = matGGel*coefP;
             matGGvInv(idGloG,:) = inv(matGGel);
+            matPPvInv(idGloG,:) = inv(matGGel*coefP);
 
         else
 
@@ -271,7 +277,9 @@ for tri=1:mesh.numTri
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
+            matPPv(idGloG,:) = matGGel*coefP;
             matGGvInv(idGloG,:) = inv(matGGel);
+            matPPvInv(idGloG,:) = inv(matGGel*coefP);
             rhsG(idGloG) = rhsGel;
       
         end
@@ -306,8 +314,10 @@ matII = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
 matIG = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
 matGI = sparse(matGIx, matGIy, matGIv, numDofFAC, 3*numDofTRI);
 matGG = sparse(matGGx, matGGy, matGGv, numDofFAC, numDofFAC);
+matPP = sparse(matGGx, matGGy, matPPv, numDofFAC, numDofFAC);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
+matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
 
 % -------------------------------------------------------------------------
 % Build and solve full system
@@ -337,8 +347,8 @@ sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditionning
 if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = matGGinv;
+    sysA.matP = matPP;
+    sysA.matPinv = matPPinv;
 else
     sysA.matP = 1;
     sysA.matPinv = 1;
