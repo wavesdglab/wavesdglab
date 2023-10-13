@@ -7,14 +7,17 @@ V3 = mesh.coord(verTri(3),:);
 x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
 % y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
 
-% Cavity
+% Cavity / Open
 if (x_C<0.5)
-    rho = 1;
-    c = 0.5;
+%     rho = 100;
+    eta = 1;
+    c = 1;
 else
-    rho = 1;
-    c = 0.25;
+%     rho = 100;
+    eta = 1;
+    c = 0.8;
 end
-eta = rho*c;
+% eta = rho*c;
+rho = eta / c;
 
 end
