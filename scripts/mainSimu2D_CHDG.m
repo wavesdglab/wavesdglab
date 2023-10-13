@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'cavity_heterogeneous';
+benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -19,6 +19,10 @@ switch benchmark
         k = 6*pi; %6*pi
         h = 1/6; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
+    case 'open_heterogeneous'
+        omega = 15*pi; %15*pi;
+        h = 1/16;  % 1/16
+        tol = 1e-10; maxit = 200; itout = 50;   %maxit = 1000
     case 'cavity_heterogeneous'
         omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
         h = 1/10; %1/10;
@@ -86,11 +90,11 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-% system('gmsh output/solNum.pos&');
+system('gmsh output/solNum.pos&');
 
 % writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");

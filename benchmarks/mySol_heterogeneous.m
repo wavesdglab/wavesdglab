@@ -1,6 +1,6 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol_heterogeneous(x,y,k)
 
-global TAGbench;
+global TAGbench omega;
 
 switch TAGbench
     case 'cavity'
@@ -28,6 +28,15 @@ switch TAGbench
         solF = 0*x+1;
         solVx = solDx/(1i*k);
         solVy = solDy/(1i*k);
+    case 'open_heterogeneous'
+        k = omega / 1;
+        theta = pi/4;
+        solU  = exp(1i*k*(cos(theta)*x+sin(theta)*y));
+        solF  = 0*x;
+        solDx = 1i*k*cos(theta) * solU;
+        solDy = 1i*k*sin(theta) * solU;
+        solVx = cos(theta) * solU;
+        solVy = sin(theta) * solU;
     otherwise
         warning('Error - No valid benchmark has been set.')
 end

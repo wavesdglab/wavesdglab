@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, ~, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, BASIS, PREC)
 
 global omega
 
@@ -18,6 +18,7 @@ degreeQ = 2*dofm.degree;
 % Shape functions and derivatives (reference space)
 shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);
 shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+shapeAuxLinQ = functionsLegendre(uLinQ, dofm.degree);        
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
@@ -73,7 +74,7 @@ for tri=1:mesh.numTri
         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
+
     % Shape functions and derivatives with orientation (physical space)
     shapePhyQ = shapePhyTriQ * orientation;
     shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
@@ -124,10 +125,32 @@ for tri=1:mesh.numTri
         
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
+        orientation2 = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
             orientation(3:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerEdg-1);
+            orientation2(1:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerLIN-1);
         end
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
+        orientation2 = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation2);
+
+        % Shape functions (physical space)
+        shapePhyQ = shapePhyLinQ * orientation;
+        if (BASIS == 1)
+            shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(Jdxdu);
+        else
+            shapeAuxQ = shapePhyQ;
+        end
+
+        % Mass matrices (physical space)
+        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
+        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
+
+        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
+        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
+
+        % Exterior normal
+        nx = normal(fac,1);
+        ny = normal(fac,2);
 
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
@@ -148,21 +171,6 @@ for tri=1:mesh.numTri
                     error('BAD BOUNDARY CONDITION.');
             end
         end
-
-        % Shape functions (physical space)
-        shapePhyQ = shapePhyLinQ * orientation;
-        shapeAuxQ = shapePhyQ;
-        
-        % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-
-        % Exterior normal
-        nx = normal(fac,1);
-        ny = normal(fac,2);
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -223,7 +231,7 @@ for tri=1:mesh.numTri
 
         else
 
-            % Source terms    
+            % Source terms
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;             % IT SHOULD BE OKAY
             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);  % MAY NEED SOME CHANGES WHEN B.C. IS NOT DIRICHLET
@@ -243,7 +251,7 @@ for tri=1:mesh.numTri
                     matGIel = [-matM_GIel, -eta*nx*matM_GIel, -eta*ny*matM_GIel];
                     rhsGel  = -2*eta*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = 0 * matM_GIel;
+                    matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
                     rhsGel  = (rhsPel - (nx*rhsUel  + ny*rhsVel)) * (2*tau)/(1+tau);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
