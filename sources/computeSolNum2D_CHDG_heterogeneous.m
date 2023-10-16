@@ -201,6 +201,7 @@ for tri=1:mesh.numTri
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta/(eta + etaNeigh)               * ny * matM_IGel;
 
         coefP = max(c,1/c);
+%         coefP = 1;
 
         % -----------------------------------------------------------------
         % Incoming characteristics

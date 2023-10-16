@@ -30,7 +30,7 @@ switch TAGbench
         solVy = solDy/(1i*k);
     case 'waveguide_heterogeneous'
         L = 4.;
-        theta = 30.*(pi/180.);
+        theta = 45.*(pi/180.);
         [solU, solDx, solDy] = waveguide(x,y,k,L,theta);
         solF = 0*x;
         solVx = solDx/(1i*k);
