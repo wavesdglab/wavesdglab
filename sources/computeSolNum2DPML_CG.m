@@ -11,6 +11,7 @@ global L
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
+matShiftedLaplacian = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
 
@@ -201,10 +202,10 @@ else
 end
 
 % Compute solution
-solG = sysA.matS\sysA.rhsS;
-solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
-solA = [ solG ; solI ];
-% solA = 0;
+% solG = sysA.matS\sysA.rhsS;
+% solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
+% solA = [ solG ; solI ];
+solA = 0;
 
 end
 

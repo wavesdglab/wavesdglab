@@ -8,7 +8,7 @@ R_disk = 0;
 computeSolNum2D = @computeSolNum2D_CG;
 
 % Setup benchmark and parameters
-benchmark = 'cavity';
+benchmark = 'scattering_rect';
 switch benchmark
     case 'open'
         k = 15*pi;
@@ -25,6 +25,13 @@ switch benchmark
         tol = 1e-10; maxit = 2000; itout = 50;
         L = 1.1;
         R_disk = 1;
+        L_PML = 0.2;
+        computeSolNum2D = @computeSolNum2DPML_CG;
+    case 'scattering_rect'
+        k = 64;
+        h = 0.015;
+        tol = 1e-10; maxit = 5000; itout = 5000;
+        L = 1.5;
         L_PML = 0.2;
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'waveguide'
@@ -55,15 +62,15 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D(mesh, dofm, PREC);
-errorL2 = computeNormError2D_CG(mesh, dofm, solA);
+[~, sysA] = computeSolNum2D(mesh, dofm, PREC);
+% errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 %
-solP = computeSolProjL2_2D_CG(mesh, dofm);
-errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
+% solP = computeSolProjL2_2D_CG(mesh, dofm);
+% errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
 % 
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-disp(['---------------------------------------------------------']);
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+% disp(['---------------------------------------------------------']);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
@@ -114,9 +121,13 @@ switch solver
     case 'CGNR'
         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
     case 'GMRES'
-        [resVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+        [resVec, ~, ~, ~, ~, X] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
 end
 
+% solGMRES = X(:,end);
+% writeField2D(dofm, mesh, solGMRES, 'output/solGMRES.pos', "solGMRES");
+% writeField2D(dofm, mesh, solP, 'output/solInc.pos', "solInc");
+% writeField2D(dofm, mesh, solGMRES+solP, 'output/solTot.pos', "solTot");
 
 
 

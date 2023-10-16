@@ -204,13 +204,14 @@ while(i <= iMax)
             % y = H(1:i,1:i) \ beta(1:i);
             % x = Q(:,1:i) * y;
             % err_array(j) = computeNormError2D_CG(mesh, dofm, x);
-            % X_array(:,j) = x;
+            % X(:,j) = x;
         end
     end
     
     if (relRes <= min_tol)
-        % y = H(1:i,1:i) \ beta(1:i);
-        % x = Q(:,1:i) * y;
+        y = H(1:i,1:i) \ beta(1:i);
+        x = Q(:,1:i) * y;
+        X(:,j) = x;
         % errorVec = computeError(mesh, dofm, x);
         % flag = 1;
         break;

@@ -30,7 +30,11 @@ switch tag
         BCObstacle = 'NEU';
         linkMsh = 'benchmarks/scattering/scatteringPML.msh';
         linkGeo = 'benchmarks/scattering/scatteringPML.geo';
-
+    case 'scattering_rect'
+        BCPML = 'DIR';
+        BCObstacle = 'NEU';
+        linkMsh = 'benchmarks/scattering_cav/rec_cavity.msh';
+        linkGeo = 'benchmarks/scattering_cav/rec_cavity.geo';
     otherwise
         warning('Error - No valid benchmark has been set.')
 end
