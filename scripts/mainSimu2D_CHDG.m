@@ -124,7 +124,7 @@ if min(f) < 1
     alpha_min = min(f) / 2;
 end
 
-eigenval = 1 - alpha_min * diag(eigenval);
+% eigenval = 1 - alpha_min * diag(eigenval);
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -133,15 +133,15 @@ eigenval = 1 - alpha_min * diag(eigenval);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
-figure;
-hold off; scatter(real(eigenval),imag(eigenval),"blue");
-axis equal
-%hold on; plot(fovals(mat,100));
-hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
-plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-grid on; box on;
-set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+% figure;
+% hold off; scatter(real(eigenval),imag(eigenval),"blue");
+% axis equal
+% % hold on; plot(fovals(mat,100));
+% hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+% plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+% grid on; box on;
+% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 
 % % Compute condition number
 % condestMat = condest(mat);
