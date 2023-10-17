@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'waveguide_heterogeneous';
+benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -21,7 +21,7 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/8;  % 1/16
+        h = 1/4;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity_heterogeneous'
         omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
@@ -29,7 +29,7 @@ switch benchmark
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
-        h = 1/6; %1/8
+        h = 1/4; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 5;
@@ -90,6 +90,7 @@ disp(['---------------------------------------------------------']);
 
 % disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
 
+%%
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
@@ -105,13 +106,25 @@ system('gmsh output/solNum.pos&');
 % writeField2D(dofm, mesh, solA_2(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
+%%
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
 mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
-eigenval = 1-diag(eigenval);
+eigenval = diag(eigenval);
+
+alpha_min = 1 ;
+f = zeros(size(eigenval));
+for j=1:size(eigenval,1)
+    f(j) = 2*real(eigenval(j,1))/(abs(eigenval(j,1)))^2;
+end
+if min(f) < 1
+    alpha_min = min(f) / 2;
+end
+
+eigenval = 1 - alpha_min * diag(eigenval);
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -121,7 +134,7 @@ eigenval = 1-diag(eigenval);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
 figure;
-hold off; scatter(real(eigenval),imag(eigenval));
+hold off; scatter(real(eigenval),imag(eigenval),"blue");
 axis equal
 %hold on; plot(fovals(mat,100));
 hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
@@ -136,6 +149,7 @@ print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
+%%
 % -------------------------------------------------------------------------
 % Compute iterative solution
 % -------------------------------------------------------------------------
@@ -143,7 +157,7 @@ print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 solver = 'Rich';
 switch solver
     case 'Rich'
-        alpha = 1;
+        alpha = alpha_min;
         [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
 %         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
     case 'CGNR'
