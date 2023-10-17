@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'open_heterogeneous';
+benchmark = 'cavity_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -116,10 +116,7 @@ mat = sysA.matPinv*sysA.matS;
 eigenval = diag(eigenval);
 
 alpha_min = 1 ;
-f = zeros(size(eigenval));
-for j=1:size(eigenval,1)
-    f(j) = 2*real(eigenval(j,1))/(abs(eigenval(j,1)))^2;
-end
+f = 2.*real(eigenval)./(abs(eigenval)).^2;
 if min(f) < 1
     alpha_min = min(f) / 2;
 end
