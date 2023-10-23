@@ -9,22 +9,22 @@ x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
 
 % % Cavity / Open
 if (x_C<0.5)
-    rho = 1;
+    rho = 50;
 %     eta = 1;
-    c = 5;
+    c = 0.1;
 else
-    rho = 1;
+    rho = 50;
 %     eta = 8;
-    c = 1.5;
+    c = 0.1;
 end
-eta = rho*c;
+eta = rho * c;
 % rho = eta / c;
 
 % % Waveguide
 % if (x_C<2)
-%     rho = 2;
+%     rho = 4;
 % %     eta = 1;
-%     c = 3;
+%     c = 5;
 % else
 %     rho = 1;
 % %     eta = 8;

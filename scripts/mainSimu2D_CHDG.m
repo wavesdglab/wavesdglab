@@ -25,7 +25,7 @@ switch benchmark
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity_heterogeneous'
         omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
-        h = 1/10; %1/10;
+        h = 1/5; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
@@ -35,7 +35,7 @@ end
 degree = 5;
 tau = 1;
 BASIS = 0;
-PREC = 1;
+PREC = 0;
 order=[1,1];  
 % [1,1] or [1,2] first order transmission conditions and characteristic variables: standard CHDG
 % [1,2]          first order transmission conditions and second order characteristic variables
@@ -95,11 +95,11 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-system('gmsh output/solNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+% % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% system('gmsh output/solNum.pos&');
 
 % writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
@@ -113,15 +113,15 @@ system('gmsh output/solNum.pos&');
 
 mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
-eigenval = diag(eigenval);
+% eigenval = diag(eigenval);
 
 alpha_min = 1 ;
-f = 2.*real(eigenval)./(abs(eigenval)).^2;
-if min(f) < 1
-    alpha_min = min(f) / 2;
-end
+% f = 2.*real(eigenval)./(abs(eigenval)).^2;
+% if min(f) < 1
+%     alpha_min = min(f) / 2;
+% end
 
-% eigenval = 1 - alpha_min * diag(eigenval);
+eigenval = 1 - alpha_min * diag(eigenval);
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -130,15 +130,15 @@ end
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
-% figure;
-% hold off; scatter(real(eigenval),imag(eigenval),"blue");
-% axis equal
-% % hold on; plot(fovals(mat,100));
-% hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
-% plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-% grid on; box on;
-% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+figure;
+hold off; scatter(real(eigenval),imag(eigenval),"blue");
+axis equal
+% hold on; plot(fovals(mat,100));
+hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+grid on; box on;
+set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 
 % % Compute condition number
 % condestMat = condest(mat);

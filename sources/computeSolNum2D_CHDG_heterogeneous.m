@@ -200,8 +200,9 @@ for tri=1:mesh.numTri
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta/(eta + etaNeigh) * ny * ny * matM_IIel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta/(eta + etaNeigh)               * ny * matM_IGel;
 
-%         coefP = max(c,1/c);
         coefP = 1;
+%         coefP = max(c,1/c);
+%         coefP = (eta + etaNeigh)/2;
 
         % -----------------------------------------------------------------
         % Incoming characteristics
