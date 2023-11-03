@@ -72,11 +72,11 @@ fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
 % Plot spectrum
-figure;
-hold off; scatter(real(eigenval),imag(eigenval));
-% hold on; plot(fovals(mat,100));
-hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-grid on; box on; axis equal;
+% figure;
+% hold off; scatter(real(eigenval),imag(eigenval));
+% % hold on; plot(fovals(mat,100));
+% hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+% grid on; box on; axis equal;
 % 
 % % Compute condition number
 % condestMat = condest(mat);
