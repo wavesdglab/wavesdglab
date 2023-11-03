@@ -64,7 +64,6 @@ eigenval = 1-diag(eigenval);
 
 fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 
-
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
 % 

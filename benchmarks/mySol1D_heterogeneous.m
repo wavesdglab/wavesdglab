@@ -15,10 +15,16 @@ elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'DIR'))
 %     derP = 1i*2*pi*exp(1i*2*pi*x);
 %     sou =  k^2 * (solP * (c^2 - 1) + c^2);
 
+%     c = omega / k;
+%     solP = eta * (exp(1i*4*pi*x)-1);
+%     derP = eta * 1i * 4 * pi * exp(1i*4*pi*x);
+%     sou = 16 * pi^2 * eta * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
+
     c = omega / k;
-    solP = eta * (exp(1i*4*pi*x)-1);
-    derP = eta * 1i * 4 * pi * exp(1i*4*pi*x);
-    sou = 16 * pi^2 * eta * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
+    rho = eta / c;
+    solP = rho * (exp(1i*4*pi*x)-1);
+    derP = rho * 1i * 4 * pi * exp(1i*4*pi*x);
+    sou = 16 * pi^2 * rho * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
 
 elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'ABC'))
     solP = exp(1i*k*x) - 1i*exp(1i*k)*sin(k*x) - 1;

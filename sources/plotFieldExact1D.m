@@ -12,9 +12,9 @@ for e=1:mesh.numE
     [eta, ~, c] = physical_parameters_1D(mesh, e);
     k = omega / c;
     [solP, ~] = mySol1D_heterogeneous(x,k,eta);
-    plot(x,real(solP),'-b');
+    plot(x,real(solP),'-b','LineWidth',1.5);
     hold on
-    plot(x,imag(solP),'-r');
+    plot(x,imag(solP),'-r','LineWidth',1.5);
 end
 title('Exact solution');
 legend('Real part', 'Imaginary part','FontSize',15);
