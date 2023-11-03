@@ -51,6 +51,7 @@ disp(['---------------------------------------------------------']);
 figure;
 plotField1D(mesh, dofm, solA, 'Numerical solution');
 grid on;
+axis equal;
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -59,7 +60,9 @@ grid on;
 mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
-max(abs(eigenval))
+
+fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
+
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
