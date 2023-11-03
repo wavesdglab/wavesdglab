@@ -52,6 +52,7 @@ figure;
 plotField1D(mesh, dofm, solA, 'Numerical solution');
 grid on;
 axis equal;
+plotFieldExact1D(mesh);
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
