@@ -7,7 +7,7 @@ global omega BCLeft BCRight
 % Setup benchmark and parameters
 degree = 1;
 % k = 20;
-omega = 2*pi;
+omega = 4*pi;
 numE = 200;
 h = 1/numE;
 tau = 1; % 1i
@@ -50,6 +50,7 @@ disp(['---------------------------------------------------------']);
 
 figure;
 plotField1D(mesh, dofm, solA, 'Numerical solution');
+grid on;
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -58,6 +59,8 @@ plotField1D(mesh, dofm, solA, 'Numerical solution');
 mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
+max(abs(eigenval))
+
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
 % 

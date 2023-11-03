@@ -21,11 +21,11 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/4;  % 1/16
+        h = 1/8;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity_heterogeneous'
         omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
-        h = 1/5; %1/10;
+        h = 1/10; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
@@ -95,11 +95,11 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 % % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 % % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 % % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-% system('gmsh output/solNum.pos&');
+system('gmsh output/solNum.pos&');
 
 % writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
@@ -122,6 +122,7 @@ alpha_min = 1 ;
 % end
 
 eigenval = 1 - alpha_min * diag(eigenval);
+max(abs(eigenval))
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -151,20 +152,20 @@ print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'Rich';
-switch solver
-    case 'Rich'
-        alpha = alpha_min;
-        [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
-%         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-    case 'CGNR'
-        [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-    case 'GMRES'
-        [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-
-end
+% solver = 'Rich';
+% switch solver
+%     case 'Rich'
+%         alpha = alpha_min;
+%         [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
+% %         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+%     case 'CGNR'
+%         [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
+% %         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+%     case 'GMRES'
+%         [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
+% %         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+% 
+% end
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
