@@ -17,11 +17,11 @@ x_C = (mesh.coordV(1,e) +  mesh.coordV(1,e+1)) / 2;
 
 
 if x_C < 1/2
-    rho = 0.8; 
-    c = 0.8;
+    rho = 1; 
+    c = 2.1;
 else
-    rho = 0.1;
-    c = 1.6;
+    rho = 1;
+    c = 0.5;
 end
 
 eta = rho * c;

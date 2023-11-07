@@ -7,8 +7,8 @@ global omega BCLeft BCRight
 % Setup benchmark and parameters
 degree = 1;
 % k = 20;
-omega = 4*pi;
-numE = 200;
+omega = 20;
+numE = 300;
 h = 1/numE;
 tau = 1; % 1i
 BCLeft = 'DIR';
