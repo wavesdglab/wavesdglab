@@ -7,12 +7,12 @@ global omega BCLeft BCRight
 % Setup benchmark and parameters
 degree = 1;
 % k = 20;
-omega = 20;
+omega = 2*pi;
 numE = 300;
 h = 1/numE;
 tau = 1; % 1i
 BCLeft = 'DIR';
-BCRight = 'DIR';
+BCRight = 'ABC';
 
 % Build mesh and DOF manager
 mesh = buildMesh1D(0, 1, numE);
