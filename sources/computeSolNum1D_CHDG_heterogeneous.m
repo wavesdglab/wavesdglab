@@ -176,7 +176,9 @@ for e=1:mesh.numE
                 matGI(idChar,idIntU) = - eta;
                 rhsG(idChar) = -2*solUR;
             case 'ABC'
-                % (nothing to do)
+%                 matGI(idChar,idIntP) = 0;
+%                 matGI(idChar,idIntU) = 0;
+%                 rhsG(idChar) = solPR - eta * solUR;
             otherwise
                 warning('Error - No valid BC has been set on the left.')
         end
