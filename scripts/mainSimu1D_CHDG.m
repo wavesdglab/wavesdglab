@@ -63,6 +63,17 @@ mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
 
+j=0;
+for i=1:size(eigenval)
+    norm = abs(eigenval(i,1));
+    if norm>1
+        eigenval(i,1);
+        j=j+1;
+    end
+end
+j
+size(eigenval)-j
+
 fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 
 % rankEigenVec = rank(eigenvec);

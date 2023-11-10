@@ -20,7 +20,7 @@ if x_C < 1/2
     c = 2;
 else
     rho = 1;
-    c = 3;
+    c = 1;
 end
 
 eta = rho * c;

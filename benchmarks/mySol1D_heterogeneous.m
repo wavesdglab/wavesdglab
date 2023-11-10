@@ -31,7 +31,7 @@ rho1 = 1;
 c1 = 2;
 
 rho2 = 1;
-c2 = 3;
+c2 = 1;
 
 k1 = omega / c1;
 k2 = omega / c2;
