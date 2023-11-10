@@ -7,12 +7,13 @@ global omega BCLeft BCRight
 % Setup benchmark and parameters
 degree = 1;
 % k = 20;
-omega = 20;
-numE = 300;
+omega = 10;
+numE = 200;
 h = 1/numE;
 tau = 1; % 1i
 BCLeft = 'DIR';
-BCRight = 'ABC';
+BCRight = 'DIR';
+PREC = 0;
 
 % Build mesh and DOF manager
 mesh = buildMesh1D(0, 1, numE);
@@ -33,7 +34,7 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % [solA, sysA] =  computeSolNum1D_CHDG(mesh, dofm, tau);
-[solA, sysA] = computeSolNum1D_CHDG_heterogeneous(mesh, dofm, tau);
+[solA, sysA] = computeSolNum1D_CHDG_heterogeneous(mesh, dofm, PREC);
 %[solA, sysA] =  computeSolNum1D_CHDGb(mesh, dofm, tau);
 % errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
@@ -72,11 +73,11 @@ fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
 % Plot spectrum
-% figure;
-% hold off; scatter(real(eigenval),imag(eigenval));
-% % hold on; plot(fovals(mat,100));
-% hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-% grid on; box on; axis equal;
+figure;
+hold off; scatter(real(eigenval),imag(eigenval));
+% hold on; plot(fovals(mat,100));
+hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+grid on; box on; axis equal;
 % 
 % % Compute condition number
 % condestMat = condest(mat);

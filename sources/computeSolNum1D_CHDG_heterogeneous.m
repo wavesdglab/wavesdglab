@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solA, sysA] = computeSolNum1D_CHDG_heterogeneous(mesh, dofm, ~)
+function [solA, sysA] = computeSolNum1D_CHDG_heterogeneous(mesh, dofm, PREC)
 
 global omega BCLeft BCRight
 
@@ -104,6 +104,8 @@ for e=1:mesh.numE
     matIIinv(glo,glo) = inv(matIIloc);
     rhsI(glo) = rhsI(glo) + [rhsPloc ; rhsUloc];
 
+    coefP = max(c,1/c);
+
     % -------------------------------------------------------------------------
     % Build characteristic variables
     % -------------------------------------------------------------------------
@@ -138,9 +140,9 @@ for e=1:mesh.numE
                 matGI(idChar,idIntU) = eta;
                 rhsG(idChar) = 2*solUL;
             case 'ABC'
-%                 matGI(idChar,idIntP) = 0;
-%                 matGI(idChar,idIntU) = 0;
-%                 rhsG(idChar) = solPL - eta * solUL;
+                matGI(idChar,idIntP) = 0;
+                matGI(idChar,idIntU) = 0;
+                rhsG(idChar) = solPL + eta * solUL;
             otherwise
                 warning('Error - No valid BC has been set on the left.')
         end
@@ -176,13 +178,18 @@ for e=1:mesh.numE
                 matGI(idChar,idIntU) = - eta;
                 rhsG(idChar) = -2*solUR;
             case 'ABC'
-%                 matGI(idChar,idIntP) = 0;
-%                 matGI(idChar,idIntU) = 0;
-%                 rhsG(idChar) = solPR - eta * solUR;
+                matGI(idChar,idIntP) = 0;
+                matGI(idChar,idIntU) = 0;
+                rhsG(idChar) = solPR - eta * solUR;
             otherwise
                 warning('Error - No valid BC has been set on the left.')
         end
     end
+
+    matPP(2*e-1,2*e-1) = coefP;
+    matPP(2*e,2*e) = coefP;
+    matPPInv(2*e-1,2*e-1) = inv(coefP);
+    matPPInv(2*e,2*e) = inv(coefP);
 
 end
 
@@ -221,7 +228,13 @@ sysA.matS = matS;
 sysA.rhsS = rhsS;
 sysA.matPhy = matPhy;
 sysA.rhsPhy = rhsPhy;
-sysA.matP = matPP;
-sysA.matPinv = inv(matPP);
+
+if PREC == 0
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+else
+    sysA.matP = matPP;
+    sysA.matPinv = inv(matPP);
+end
 
 end

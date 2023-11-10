@@ -17,7 +17,7 @@ for e=1:mesh.numE
     plot(x,imag(solP),'-r','LineWidth',1.5);
 end
 title('Exact solution');
-legend('Real part', 'Imaginary part','FontSize',15);
+legend('Real part', 'Imaginary part','FontSize',12);
 grid on;
 axis equal;
 

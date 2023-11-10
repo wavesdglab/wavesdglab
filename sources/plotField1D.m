@@ -23,6 +23,6 @@ hold on
 plot(vizuCoord(:),imag(vizuVal(:)),'r','LineWidth',2,'DisplayName','Imaginary part');
 title(nameTitle);
 lgd = legend;
-lgd.FontSize = 14;
+lgd.FontSize = 12;
 
 end

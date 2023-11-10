@@ -27,11 +27,11 @@ elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'DIR'))
 %     sou = 16 * pi^2 * rho * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
 
 % The solution is continuous, but it is defined piecewise
-rho1 = 0.1;
-c1 = 1;
+rho1 = 1;
+c1 = 2;
 
-rho2 = 0.1;
-c2 = 0.9;
+rho2 = 1;
+c2 = 3;
 
 k1 = omega / c1;
 k2 = omega / c2;
@@ -57,11 +57,11 @@ elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'ABC'))
 %     sou  = k^2*ones(size(x,1),size(x,2));
 
 % The solution is continuous, but it is defined piecewise
-rho1 = 0.1;
-c1 = 1;
+rho1 = 1;
+c1 = 0.1;
 
-rho2 = 0.1;
-c2 = 0.9;
+rho2 = 1;
+c2 = 2;
 
 k1 = omega / c1;
 k2 = omega / c2;
@@ -90,11 +90,11 @@ elseif(strcmp(BCLeft,'ABC') && strcmp(BCRight,'ABC'))
 %     sou = 0*x;
 
 % The solution is continuous, but it is defined piecewise
-rho1 = 0.1;
-c1 = 1;
+rho1 = 1;
+c1 = 0.1;
 
-rho2 = 0.1;
-c2 = 0.9;
+rho2 = 1;
+c2 = 2;
 
 k1 = omega / c1;
 k2 = omega / c2;
