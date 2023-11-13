@@ -53,10 +53,11 @@ resVec(1) = 1;
 %%%%%%% HRV
 
 %%%%%% Initialisation
-% hrvArray = zeros(iMax, size(A,2));
-% rvArray = zeros(iMax, size(A,2));
-% distArrayHRV = zeros(iMax, 3);
-% distArrayRV = zeros(iMax, 3);
+smallEig = 5;
+hrvArray = zeros(iMax, size(A,2));
+rvArray = zeros(iMax, size(A,2));
+distArrayHRV = zeros(iMax, smallEig);
+distArrayRV = zeros(iMax, smallEig);
 %%%%%%
 
 
@@ -141,7 +142,7 @@ while(i <= iMax)
         %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
 
         %%%%%% Compute harmonic Ritz values and Ritz values
-        % [hrv, dist_hrv] = computeHRV(H,cs, sn, i, P\A, 5);
+        % [hrv, dist_hrv] = computeHRV(H,cs, sn, i, P\A, smallEig);
         % hrvArray(i, 1:length(hrv)) = hrv';
         
         %%%%%% Compute the distance to the eigenvalues

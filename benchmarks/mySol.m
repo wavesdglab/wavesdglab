@@ -40,6 +40,15 @@ switch TAGbench
         solDy = -1i*k*sin(theta) * exp(1i*k*(cos(theta)*x+sin(theta)*y));
         solVx = 0*x;
         solVy = 0*x;
+    case 'scattering_square'
+        % no solU 
+        theta = 4*pi/10;
+        solU = exp(1i*k*(cos(theta)*x+sin(theta)*y));
+        solF = 0*x;
+        solDx = -1i*k*cos(theta) * exp(1i*k*(cos(theta)*x+sin(theta)*y));
+        solDy = -1i*k*sin(theta) * exp(1i*k*(cos(theta)*x+sin(theta)*y));
+        solVx = 0*x;
+        solVy = 0*x;
     otherwise
         warning('Error - No valid benchmark has been set.')
 end

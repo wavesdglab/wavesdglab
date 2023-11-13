@@ -7,6 +7,7 @@ function [solA, sysA] = computeSolNum2DPML_CG(mesh, dofm, PREC)
 global k
 global L_PML
 global L
+global l
 
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
@@ -47,9 +48,9 @@ for tri=1:mesh.numTri
 
 
     sigma_x = zeros(size(xQ)) + ((L <= abs(xQ)) .* (abs(xQ) <= L + L_PML) ./ (L + L_PML-abs(xQ))) ;
-    sigma_y = zeros(size(yQ)) + ((L <= abs(yQ)) .* (abs(yQ) <= L + L_PML) ./ (L + L_PML-abs(yQ))) ;
+    sigma_y = zeros(size(yQ)) + ((l <= abs(yQ)) .* (abs(yQ) <= l + L_PML) ./ (l + L_PML-abs(yQ))) ;
     gamma_x = ones(size(xQ)) + 1i*sigma_x/k .* (L <= abs(xQ)) .* (abs(xQ) <= L + L_PML);
-    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (L <= abs(yQ)) .* (abs(yQ) <= L + L_PML);
+    gamma_y = ones(size(yQ)) + 1i*sigma_y/k .* (l <= abs(yQ)) .* (abs(yQ) <= l + L_PML);
     alpha_PML = gamma_x .* gamma_y;
 
     

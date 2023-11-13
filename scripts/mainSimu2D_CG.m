@@ -1,9 +1,18 @@
 clear all;
 %close all;
 
-global k L L_PML R_disk;
+global k L L_PML R_disk l;
 L_PML = 0;
 R_disk = 0;
+l = 0;
+
+
+N=15;
+LASTN = maxNumCompThreads(N);
+disp(['---------------------------------------------------------']);
+disp(['Previous maximum number of threads ' num2str(LASTN) ]);
+disp(['Current maximum number of threads ' num2str(N) ]);
+disp(['---------------------------------------------------------']);
 
 computeSolNum2D = @computeSolNum2D_CG;
 
@@ -28,19 +37,20 @@ switch benchmark
         L_PML = 0.2;
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'scattering_rect'
-        k = 64;
-        h = 0.015;
-        tol = 1e-10; maxit = 5000; itout = 5000;
-        L = 1.5;
+        k = 5*pi;
+        h = 0.1;
+        tol = 1e-7; maxit = 5000; itout = 10;
+        L = 0.95;
         L_PML = 0.2;
+        l = 0.5;
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;
         tol = 1e-10; maxit = 4000; itout = 200;
 end
-degree = 1; % P1
-PREC = 1; % for preconditioner
+degree = 3; % P1
+PREC = 0; % for preconditioner
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
