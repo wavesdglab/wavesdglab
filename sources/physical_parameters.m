@@ -1,5 +1,6 @@
 function [eta, rho, c] = physical_parameters(mesh, tri)
 
+global omega
 verTri = mesh.mapTriToVer(tri,:);
 V1 = mesh.coord(verTri(1),:);
 V2 = mesh.coord(verTri(2),:);
@@ -9,16 +10,19 @@ x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
 
 % % Cavity / Open
 if (x_C<0.5)
-    rho = 50;
-%     eta = 1;
-    c = 0.1;
+%     rho = 1;
+    k = 20;   
+    eta = 1;
+%     c = 0.01;
 else
-    rho = 50;
-%     eta = 8;
-    c = 0.1;
+%     rho = 1;
+    k = 10;
+    eta = 8;
+%     c = 200;
 end
-eta = rho * c;
-% rho = eta / c;
+% eta = rho * c;
+c = omega / k;
+rho = eta / c;
 
 % % Waveguide
 % if (x_C<2)

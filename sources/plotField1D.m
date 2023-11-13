@@ -6,7 +6,7 @@ function plotField1D(mesh, dofm, vecSol, nameTitle)
 
 numVizuPntPerE = 30;
 coordLoc  = linspace(-1,1,numVizuPntPerE)';
-shapeFunc = functionsShape1D(coordLoc,dofm.degree);
+shapeFunc = functionsShapeLIN(coordLoc,dofm.degree);
 
 vizuCoord = zeros(numVizuPntPerE,mesh.numE);
 vizuVal   = zeros(numVizuPntPerE,mesh.numE);

@@ -20,14 +20,19 @@ kL = omega / cL;
 kR = omega / cR;
 [solPR, ~, solUR] = mySol1D_heterogeneous(mesh.coordV(mesh.numV),kR,etaR);
 
+[~, ~, c1] = physical_parameters_1D(mesh, 1);
+[~, ~, c2] = physical_parameters_1D(mesh, mesh.numE);
+
+coefP = max(c1/c2,c2/c1);    % = min(c1,c2)/max(c1,c2) < 1
+
 % -------------------------------------------------------------------------
 % Quadrature and shape functions
 % -------------------------------------------------------------------------
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
-shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+shapeQ = functionsShapeLIN(nodes,dofm.degree);
+shapeDerQ = functionsShapeDerLIN(nodes,dofm.degree);
 matMelem = shapeQ' * (weights .* shapeQ);
 matDelem = shapeQ' * (weights .* shapeDerQ);
 
@@ -104,7 +109,7 @@ for e=1:mesh.numE
     matIIinv(glo,glo) = inv(matIIloc);
     rhsI(glo) = rhsI(glo) + [rhsPloc ; rhsUloc];
 
-    coefP = max(c,1/c);
+%     coefP = max(c,1/c);
 
     % -------------------------------------------------------------------------
     % Build characteristic variables

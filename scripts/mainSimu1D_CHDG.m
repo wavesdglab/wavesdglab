@@ -62,17 +62,21 @@ plotFieldExact1D(mesh);
 mat = sysA.matPinv*sysA.matS;
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
-
-j=0;
+A=0;
+B=0;
+m=0;
+n=0;
 for i=1:size(eigenval)
     norm = abs(eigenval(i,1));
     if norm>1
-        eigenval(i,1);
-        j=j+1;
+        m=m+1;
+        A(m)=eigenval(i,1);
+    else
+        n=n+1;
+        B(n)=eigenval(i,1);
     end
 end
-j
-size(eigenval)-j
+
 
 fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 
@@ -82,14 +86,26 @@ fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
 % disp(['    Size                ' num2str(size(mat,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-% 
+
 % Plot spectrum
-figure;
-hold off; scatter(real(eigenval),imag(eigenval));
-% hold on; plot(fovals(mat,100));
-hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-grid on; box on; axis equal;
-% 
+if A==0
+    figure;
+    hold off;scatter(real(eigenval),imag(eigenval));
+    % hold on; plot(fovals(mat,100));
+    hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+    grid on; box on; axis equal;
+else
+    % Plot spectrum
+    figure;
+    hold off;
+    plot(real(A),imag(A),'xr');
+    hold on
+    plot(real(B),imag(B),'ob');
+    plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+    grid on; box on; axis equal;
+    legend('|\lambda|>1','|\lambda|<1','FontSize',12);
+end
+
 % % Compute condition number
 % condestMat = condest(mat);
 % 
