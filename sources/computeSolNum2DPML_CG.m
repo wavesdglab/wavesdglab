@@ -173,23 +173,23 @@ end
 
 % Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
-dofG = 1:numDofTRIred;
+dofG = 1:numDofTRIred; % noeuds qu'on garde : noeuds des vertex + arètes
 dofI = (numDofTRIred+1):dofm.numDofTRI;
-sysA.matII = matA(dofI,dofI);
+sysA.matII = matA(dofI,dofI); % ddl intérieurs 
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
-sysA.matIIinv = inv(sysA.matII);
+% sysA.matIIinv = inv(sysA.matII);
 
 % Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
 
 % Reduced system
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
-sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
+% sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
+% sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
