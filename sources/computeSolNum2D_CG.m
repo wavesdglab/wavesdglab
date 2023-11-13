@@ -185,10 +185,10 @@ else
 end
 
 % Compute solution
-solG = sysA.matS\sysA.rhsS;
-solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
-solA = [ solG ; solI ];
-% solA = 0;
+% solG = sysA.matS\sysA.rhsS;
+% solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
+% solA = [ solG ; solI ];
+solA = 0;
 
 end
 
