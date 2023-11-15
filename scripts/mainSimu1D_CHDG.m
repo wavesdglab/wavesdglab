@@ -59,10 +59,10 @@ plotFieldExact1D(mesh);
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = matrix of the reduced system w.r.t. incoming characteristic variable
+% Matrix of the reduced system w.r.t. incoming characteristic variable
 mat = sysA.matPinv*sysA.matS;
 
-% mat = matrix of the reduced system w.r.t. physical variables
+% Matrix of the reduced system w.r.t. physical variables
 % mat = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
 
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
