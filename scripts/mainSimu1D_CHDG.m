@@ -10,7 +10,7 @@ degree = 1;
 omega = 10;
 numE = 200;
 h = 1/numE;
-tau = 1; % 1i
+% tau = 1; % 1i
 BCLeft = 'DIR';
 BCRight = 'DIR';
 PREC = 0;
@@ -30,7 +30,7 @@ disp(['---------------------------------------------------------']);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['    numE                ' num2str(numE)]);
-disp(['    tau                 ' num2str(tau)]);
+%disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % [solA, sysA] =  computeSolNum1D_CHDG(mesh, dofm, tau);
@@ -59,7 +59,12 @@ plotFieldExact1D(mesh);
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
+% mat = matrix of the reduced system w.r.t. incoming characteristic variable
 mat = sysA.matPinv*sysA.matS;
+
+% mat = matrix of the reduced system w.r.t. physical variables
+% mat = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
+
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
 A=0;
@@ -77,8 +82,9 @@ for i=1:size(eigenval)
     end
 end
 
-
 fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
+fprintf('Number of eigenvalues outside the unit circle = %i\n', m);
+fprintf('Number of eigenvalues = %i\n', i);
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -105,6 +111,13 @@ else
     grid on; box on; axis equal;
     legend('|\lambda|>1','|\lambda|<1','FontSize',12);
 end
+
+% Eigenvectors (physical variables)
+% for i=1:size(eigenvec)
+%     figure(4);
+%     plot(real(eigenvec(1:size(eigenvec)/2,i)));
+%     pause(0.05);
+% end
 
 % % Compute condition number
 % condestMat = condest(mat);

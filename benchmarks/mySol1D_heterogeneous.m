@@ -5,33 +5,18 @@ if(strcmp(BCLeft,'PER') && strcmp(BCRight,'PER'))
     solP = exp(1i*20*pi*x);
     derP = 1i*20*pi* exp(1i*20*pi*x);
     sou  = ((20*pi)^2-k^2) * exp(1i*20*pi*x);
+
 elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'DIR'))
 %     solP = 2*sin(k/2)/sin(k) * cos(k*(x-1/2)) - 1;
 %     derP = -k * 2*sin(k/2)/sin(k) * sin(k*(x-1/2));
 %     sou  = k^2*ones(size(x,1),size(x,2));
 
-%     c = omega / k;
-%     solP = exp(1i*2*pi*x)-1;
-%     derP = 1i*2*pi*exp(1i*2*pi*x);
-%     sou =  k^2 * (solP * (c^2 - 1) + c^2);
-
-%     c = omega / k;
-%     solP = eta * (exp(1i*4*pi*x)-1);
-%     derP = eta * 1i * 4 * pi * exp(1i*4*pi*x);
-%     sou = 16 * pi^2 * eta * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
-
-%     c = omega / k;
-%     rho = eta / c;
-%     solP = rho * (exp(1i*4*pi*x)-1);
-%     derP = rho * 1i * 4 * pi * exp(1i*4*pi*x);
-%     sou = 16 * pi^2 * rho * (exp(1i*4*pi*x)-1/c^2*exp(1i*4*pi*x)+1/c^2);
-
 % The solution is continuous, but it is defined piecewise
 rho1 = 1;
-c1 = 1;
+c1 = 1.2;
 
 rho2 = 1;
-c2 = 1;
+c2 = 0.9;
 
 k1 = omega / c1;
 k2 = omega / c2;
@@ -58,10 +43,10 @@ elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'ABC'))
 
 % The solution is continuous, but it is defined piecewise
 rho1 = 1;
-c1 = 0.1;
+c1 = 1;
 
 rho2 = 1;
-c2 = 2;
+c2 = 1.5;
 
 k1 = omega / c1;
 k2 = omega / c2;
@@ -85,16 +70,12 @@ elseif(strcmp(BCLeft,'ABC') && strcmp(BCRight,'ABC'))
 %     derP = -k * exp(1i*k/2) * sin(k*(x-1/2));
 %     sou  = k^2*ones(size(x,1),size(x,2));
 
-%     solP = exp(1i*k*x)-1/(1i*k);
-%     derP = 1i*k*exp(1i*k*x);
-%     sou = 0*x;
-
 % The solution is continuous, but it is defined piecewise
 rho1 = 1;
-c1 = 0.1;
+c1 = 1;
 
 rho2 = 1;
-c2 = 2;
+c2 = 1.5;
 
 k1 = omega / c1;
 k2 = omega / c2;
