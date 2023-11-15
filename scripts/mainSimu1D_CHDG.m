@@ -116,7 +116,7 @@ end
 % disp(['---------------------------------------------------------']);
 
 % Matrix of the reduced system w.r.t. physical variables
-mat = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
+mat = sysA.matPhy;
 [eigenvec, ~] = eigs(mat,size(mat,1));
 
 % Eigenvectors (physical variables)
