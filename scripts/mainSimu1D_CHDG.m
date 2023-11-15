@@ -62,9 +62,6 @@ plotFieldExact1D(mesh);
 % Matrix of the reduced system w.r.t. incoming characteristic variable
 mat = sysA.matPinv*sysA.matS;
 
-% Matrix of the reduced system w.r.t. physical variables
-% mat = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
-
 [eigenvec, eigenval] = eigs(mat,size(mat,1));
 eigenval = 1-diag(eigenval);
 A=0;
@@ -112,18 +109,23 @@ else
     legend('|\lambda|>1','|\lambda|<1','FontSize',12);
 end
 
-% Eigenvectors (physical variables)
-% for i=1:size(eigenvec)
-%     figure(4);
-%     plot(real(eigenvec(1:size(eigenvec)/2,i)));
-%     pause(0.05);
-% end
-
 % % Compute condition number
 % condestMat = condest(mat);
 % 
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
+
+% Matrix of the reduced system w.r.t. physical variables
+mat = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
+[eigenvec, ~] = eigs(mat,size(mat,1));
+
+% Eigenvectors (physical variables)
+for i=1:size(eigenvec)
+    figure(4);
+    plot(real(eigenvec(1:2:size(eigenvec)/2,i)));
+    title('Pressure - eigenvector', i);
+    pause(0.05);
+end
 
 % -------------------------------------------------------------------------
 % Compute iterative solution
