@@ -13,7 +13,7 @@ elseif(strcmp(BCLeft,'DIR') && strcmp(BCRight,'DIR'))
 
 % The solution is continuous, but it is defined piecewise
 rho1 = 1;
-c1 = 1;
+c1 = 1.2;
 
 rho2 = 1;
 c2 = 1;

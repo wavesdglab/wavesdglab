@@ -21,11 +21,11 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/8;  % 1/16
+        h = 1/16;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity_heterogeneous'
-        omega = 7.1*sqrt(2)*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
-        h = 1/10; %1/10;
+        omega = 15*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
+        h = 1/8; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
@@ -67,15 +67,15 @@ disp(['---------------------------------------------------------']);
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, BASIS, PREC);
 
 % Compute numerical error
-% errorL2 = computeNormError2D_DG(mesh, dofm, solA);
+errorL2 = computeNormError2D_DG(mesh, dofm, solA);
 
-% Compute projection solution/errormesh.numTri*3*dofm.numDofPerTRI
-% solP = computeSolProjL2_2D_DG(mesh, dofm);
-% errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
+% Compute projection solution
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 
 % figure()
 % loglog(H,err(:,1),'-r','LineWidth',2);
@@ -95,11 +95,16 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% % % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% % % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+% % % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% system('gmsh output/solNum.pos&');
+
 writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-system('gmsh output/solNum.pos&');
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
 % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
@@ -110,19 +115,20 @@ system('gmsh output/solNum.pos&');
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
+% 
+% mat = sysA.matPinv*sysA.matS;
+% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% % eigenval = diag(eigenval);
+% 
+% alpha_min = 1 ;
 
-mat = sysA.matPinv*sysA.matS;
-[eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-
-alpha_min = 1 ;
-% f = 2.*real(eigenval)./(abs(eigenval)).^2;
-% if min(f) < 1
-%     alpha_min = min(f) / 2;
-% end
-
-eigenval = 1 - alpha_min * diag(eigenval);
-max(abs(eigenval))
+% % f = 2.*real(eigenval)./(abs(eigenval)).^2;
+% % if min(f) < 1
+% %     alpha_min = min(f) / 2;
+% % end
+% 
+% eigenval = 1 - alpha_min * diag(eigenval);
+% max(abs(eigenval))
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -131,15 +137,15 @@ max(abs(eigenval))
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 
-figure;
-hold off; scatter(real(eigenval),imag(eigenval),"blue");
-axis equal
-% hold on; plot(fovals(mat,100));
-hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
-plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
-grid on; box on;
-set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
-print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+% figure;
+% hold off; scatter(real(eigenval),imag(eigenval),"blue");
+% axis equal
+% % hold on; plot(fovals(mat,100));
+% hold on; %plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+% plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+% grid on; box on;
+% set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
+% print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
 
 % % Compute condition number
 % condestMat = condest(mat);

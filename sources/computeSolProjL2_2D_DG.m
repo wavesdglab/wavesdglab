@@ -29,7 +29,8 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Reference solution
-    [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+%     [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+    [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol2D_heterogeneous(xQ,yQ,1);
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);

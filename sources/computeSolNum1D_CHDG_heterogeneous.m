@@ -23,7 +23,7 @@ kR = omega / cR;
 [~, ~, c1] = physical_parameters_1D(mesh, 1);
 [~, ~, c2] = physical_parameters_1D(mesh, mesh.numE);
 
-coefP = max(c1/c2,c2/c1);    % = min(c1,c2)/max(c1,c2) < 1
+coefP = max(c1/c2,c2/c1);    % -> min(c1,c2)/max(c1,c2) < 1
 
 % -------------------------------------------------------------------------
 % Quadrature and shape functions

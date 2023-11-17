@@ -61,7 +61,8 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Physical parameters on the element
-    [eta, ~, c] = physical_parameters(mesh, tri);
+%     [eta, ~, c] = physical_parameters(mesh, tri);
+    [eta, ~, c] = physical_parameters_2D(mesh, tri);
     k = omega / c;
 
     % Orientation
@@ -83,7 +84,8 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
+%     [~, ~, ~, rhsQ, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
+    [~, ~, ~, rhsQ, ~, ~] = mySol2D_heterogeneous(xQ, yQ, k);
 
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -158,7 +160,8 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
 
         if(triNeigh>0)
-            [etaNeigh, ~, ~] = physical_parameters(mesh, triNeigh);
+%             [etaNeigh, ~, ~] = physical_parameters(mesh, triNeigh);
+            [etaNeigh, ~, ~] = physical_parameters_2D(mesh, triNeigh);
         else
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = tagToBC(mesh.tagEdg(edgGlo));
@@ -201,8 +204,6 @@ for tri=1:mesh.numTri
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta/(eta + etaNeigh)               * ny * matM_IGel;
 
         coefP = 1;
-%         coefP = max(c,1/c);
-%         coefP = (eta + etaNeigh)/2;
 
         % -----------------------------------------------------------------
         % Incoming characteristics
@@ -240,10 +241,11 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;             % IT SHOULD BE OKAY
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);  % MAY NEED SOME CHANGES WHEN B.C. IS NOT DIRICHLET
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k);  % MAY NEED SOME CHANGES WHEN B.C. IS NOT DIRICHLET
+%             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
+            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol2D_heterogeneous(xQ, yQ, k);
+            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;          
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k*eta);
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k*eta);
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -254,13 +256,13 @@ for tri=1:mesh.numTri
             switch BC
                 case 'DIR'
                     matGIel = [matM_GIel, eta*nx*matM_GIel, eta*ny*matM_GIel];
-                    rhsGel  = +2*tau*rhsPel;
+                    rhsGel  = +2*rhsPel;
                 case 'NEU'
                     matGIel = [-matM_GIel, -eta*nx*matM_GIel, -eta*ny*matM_GIel];
                     rhsGel  = -2*eta*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - (nx*rhsUel  + ny*rhsVel)) * (2*tau)/(1+tau);
+                    rhsGel  = (rhsPel - (nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

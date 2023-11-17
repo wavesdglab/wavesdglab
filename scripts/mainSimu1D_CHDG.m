@@ -115,17 +115,17 @@ end
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
-% Matrix of the reduced system w.r.t. physical variables
-mat = sysA.matPhy;
-[eigenvec, ~] = eigs(mat,size(mat,1));
-
-% Eigenvectors (physical variables)
-for i=1:size(eigenvec)
-    figure(4);
-    plot(real(eigenvec(1:2:size(eigenvec)/2,i)));
-    title('Pressure - eigenvector', i);
-    pause(0.05);
-end
+% % Matrix of the reduced system w.r.t. physical variables
+% mat = sysA.matPhy;
+% [eigenvec, ~] = eigs(mat,size(mat,1));
+% 
+% % Eigenvectors (physical variables)
+% for i=1:size(eigenvec)
+%     figure(4);
+%     plot(real(eigenvec(1:2:size(eigenvec)/2,i)));
+%     title('Pressure - eigenvector', i);
+%     pause(0.05);
+% end
 
 % -------------------------------------------------------------------------
 % Compute iterative solution

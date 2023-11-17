@@ -50,14 +50,15 @@ for tri=1:mesh.numTri
     solQ   = shapeOrQ * vecSol(dofU);
     solVxQ = shapeOrQ * vecSol(dofVx);
     solVyQ = shapeOrQ * vecSol(dofVy);
-    
+  
     % Reference solution (and derivatives)
     if (exist('vecRef','var'))
         refQ   = shapeOrQ * vecRef(dofU);
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+%         [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol2D_heterogeneous(xQ, yQ, 1);
     end
     
     % Error fields
