@@ -37,7 +37,7 @@ switch benchmark
         L_PML = 0.2;
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'scattering_rect'
-        k = 5*pi;
+        k = 7.5*pi;
         h = 0.1;
         tol = 1e-7; maxit = 5000; itout = 10;
         L = 0.95;
