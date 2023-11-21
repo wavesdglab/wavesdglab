@@ -38,7 +38,7 @@ switch benchmark
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'scattering_rect'
         k = 7.5*pi;
-        h = 0.1;
+        h = 0.4;
         tol = 1e-7; maxit = 5000; itout = 10;
         L = 0.95;
         L_PML = 0.2;
@@ -122,17 +122,19 @@ disp(['---------------------------------------------------------']);
 % disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
 % disp(['---------------------------------------------------------']);
 
+eigtool(sysA.matA)
+
 % -------------------------------------------------------------------------
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES';
-switch solver
-    case 'CGNR'
-        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-    case 'GMRES'
-        [resVec, ~, ~, ~, ~, X] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-end
+% solver = 'GMRES';
+% switch solver
+%     case 'CGNR'
+%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+%     case 'GMRES'
+%         [resVec, ~, ~, ~, ~, X] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+% end
 
 % solGMRES = X(:,end);
 % writeField2D(dofm, mesh, solGMRES, 'output/solGMRES.pos', "solGMRES");
