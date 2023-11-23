@@ -4,8 +4,8 @@ global TAGbench omega;
 
 % Physical parameters
 rho1 = 1;
-c1 = 1;
-rho2 = 1;
+c1 = 2;
+rho2 = 2;
 c2 = 1;
 
 eta1 = rho1 * c1;
@@ -21,6 +21,7 @@ else
     c = c2;
 end
 eta = rho * c;
+% k = omega / c;
 
 switch TAGbench
     case 'cavity'
@@ -45,7 +46,7 @@ switch TAGbench
         solVy = sin(theta) * solU;
     case 'cavity (heterogeneous)'
 
-        thetaI = pi/4;                           % thetaI \in [0, \pi/2]
+        thetaI = pi/6;                           % thetaI \in [0, \pi/2]
         sinI = sin(thetaI);
         cosI = cos(thetaI);
         sinT = c2 / c1 * sinI;
@@ -84,7 +85,7 @@ switch TAGbench
         solVy = solDy/(1i*eta*k);
     case 'open (heterogeneous)'
 
-        thetaI = pi/4;                           % thetaI \in [0, \pi/2]
+        thetaI = pi/6;                           % thetaI \in [0, \pi/2]
         sinI = sin(thetaI);
         cosI = cos(thetaI);
         sinT = c2 / c1 * sinI;

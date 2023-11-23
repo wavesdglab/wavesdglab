@@ -98,7 +98,6 @@ if A==0
     hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
     grid on; box on; axis equal;
 else
-    % Plot spectrum
     figure;
     hold off;
     plot(real(A),imag(A),'xr');

@@ -21,7 +21,7 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open (heterogeneous)'
         omega = 15*pi; %15*pi;
-        h = 1/32;  % 1/16
+        h = 1/16;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity (heterogeneous)'
         omega = 15*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
@@ -101,20 +101,33 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
-% 
+
 % mat = sysA.matPinv*sysA.matS;
 % [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);
 % 
-% alpha_min = 1 ;
-
-% % f = 2.*real(eigenval)./(abs(eigenval)).^2;
-% % if min(f) < 1
-% %     alpha_min = min(f) / 2;
-% % end
-% 
-% eigenval = 1 - alpha_min * diag(eigenval);
 % max(abs(eigenval))
+
+% eigenval = 1 - diag(eigenval);
+
+% A=0;
+% B=0;
+% m=0;
+% n=0;
+% for i=1:size(eigenval)
+%     norm = abs(eigenval(i,1));
+%     if norm>1
+%         m=m+1;
+%         A(m)=eigenval(i,1);
+%     else
+%         n=n+1;
+%         B(n)=eigenval(i,1);
+%     end
+% end
+
+% fprintf('Spectral radius = %.16f\n', max(abs(eigenval)));
+% fprintf('Number of eigenvalues outside the unit circle = %i\n', m);
+% fprintf('Number of eigenvalues = %i\n', i);
 
 % rankEigenVec = rank(eigenvec);
 % condEigenVec = cond(eigenvec);
@@ -132,6 +145,25 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % grid on; box on;
 % set(gcf, 'PaperUnits', 'points','PaperPosition', [0 0 500 500]);
 % print(['output/Eigenvalues-' benchmark '-CHDG.png'],'-dpng');
+
+% % Plot spectrum
+% if A==0
+%     figure;
+%     hold off;scatter(real(eigenval),imag(eigenval));
+%     % hold on; plot(fovals(mat,100));
+%     hold on; plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+%     grid on; box on; axis equal;
+% else
+%     % Plot spectrum
+%     figure;
+%     hold off;
+%     plot(real(A),imag(A),'xr');
+%     hold on
+%     plot(real(B),imag(B),'ob');
+%     plot(cos(0:0.01:2*pi),sin(0:0.01:2*pi),'k');
+%     grid on; box on; axis equal;
+%     legend('|\lambda|>1','|\lambda|<1','FontSize',12);
+% end
 
 % % Compute condition number
 % condestMat = condest(mat);
@@ -159,12 +191,10 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % 
 % end
 
-
-% alpha = alpha_min;
+% alpha = 1;
 % [resRedVec_Rich, resPhyVec_Rich, errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
 % [resRedVec_CGNR, resPhyVec_CGNR, errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 % [resRedVec_GMRES, resPhyVec_GMRES, errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -222,18 +252,19 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % ylim([0.005 1]);
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
-
+% 
 % figure;
 % hold off
 % semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
 % hold on
-% semilogy(0:itout:maxit,errorVec_CGNR,'-ob','DisplayName','CHDG - CGN');
-% semilogy(0:itout:maxit,errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
+% semilogy(0:itout:maxit,errorVec_CGNR,'-or','DisplayName','CHDG - CGN');
+% semilogy(0:itout:maxit,errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','CHDG - GMRES');
 % semilogy(0:itout:maxit,errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
 % box on;
 % grid on;
-% legend('Location','southwest');
-% title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% % legend('Location','southwest');
+% legend('Location','best');
+% % title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
 % xlim([0 maxit]);
 % ylim([0.005 1]);
 % xlabel('Iteration');
