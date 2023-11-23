@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'cavity_heterogeneous';
+benchmark = 'open (heterogeneous)';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -19,23 +19,22 @@ switch benchmark
         k = 6*pi; %6*pi
         h = 1/6; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
-    case 'open_heterogeneous'
+    case 'open (heterogeneous)'
         omega = 15*pi; %15*pi;
-        h = 1/16;  % 1/16
+        h = 1/32;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
-    case 'cavity_heterogeneous'
+    case 'cavity (heterogeneous)'
         omega = 15*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
-        h = 1/8; %1/10;
+        h = 1/32; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
-    case 'waveguide_heterogeneous'
+    case 'waveguide (heterogeneous)'
         omega = 6*pi; %6*pi
         h = 1/4; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
 end
-degree = 5;
-tau = 1;
+degree = 3;
 BASIS = 0;
-PREC = 0;
+PREC = 1;
 order=[1,1];  
 % [1,1] or [1,2] first order transmission conditions and characteristic variables: standard CHDG
 % [1,2]          first order transmission conditions and second order characteristic variables
@@ -56,15 +55,13 @@ disp(['---------------------------------------------------------']);
 disp(['Method CHDG']);
 disp(['---------------------------------------------------------']);
 % disp(['    k                   ' num2str(k)]);
-% disp(['    omega               ' num2str(omega)]);
+disp(['    omega               ' num2str(omega)]);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
-disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-% [solA, sysA] = computeSolNum2D_CHDG_new(mesh, dofm, tau, BASIS, PREC, order);
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 
 % Compute numerical error
 errorL2 = computeNormError2D_DG(mesh, dofm, solA);
@@ -95,21 +92,10 @@ disp('---------------------------------------------------------');
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% % % writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% % % writeField2D(dofm, mesh, solA_1(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% % % system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-% system('gmsh output/solNum.pos&');
-
 writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-
-% writeField2D(dofm, mesh, solA_2, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA_2(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 %%
 % -------------------------------------------------------------------------
@@ -158,20 +144,27 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'Rich';
+% solver = 'GMRES';
 % switch solver
 %     case 'Rich'
 %         alpha = alpha_min;
-%         [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
-% %         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+% %         [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
+%         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
 %     case 'CGNR'
-%         [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
-% %         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+% %         [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
+%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 %     case 'GMRES'
-%         [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
-% %         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+% %         [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
+%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 % 
 % end
+
+
+% alpha = alpha_min;
+% [resRedVec_Rich, resPhyVec_Rich, errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+% [resRedVec_CGNR, resPhyVec_CGNR, errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+% [resRedVec_GMRES, resPhyVec_GMRES, errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -229,3 +222,19 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % ylim([0.005 1]);
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
+
+% figure;
+% hold off
+% semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
+% hold on
+% semilogy(0:itout:maxit,errorVec_CGNR,'-ob','DisplayName','CHDG - CGN');
+% semilogy(0:itout:maxit,errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
+% semilogy(0:itout:maxit,errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([0.005 1]);
+% xlabel('Iteration');
+% ylabel('Relative error');

@@ -11,7 +11,7 @@ switch tag
         BCSouth = 'DIR';
         linkMsh = 'benchmarks/cavity/cavity.msh';
         linkGeo = 'benchmarks/cavity/cavity.geo';
-    case 'cavity_heterogeneous'
+    case 'cavity (heterogeneous)'
         BCWest  = 'DIR';
         BCNorth = 'DIR';
         BCEast  = 'DIR';
@@ -25,7 +25,7 @@ switch tag
         BCSouth = 'DIR';
         linkMsh = 'benchmarks/waveguide/waveguide.msh';
         linkGeo = 'benchmarks/waveguide/waveguide.geo';
-    case 'waveguide_heterogeneous'
+    case 'waveguide (heterogeneous)'
         BCWest  = 'DIR';
         BCNorth = 'DIR';
         BCEast  = 'ABC';
@@ -39,7 +39,7 @@ switch tag
         BCSouth = 'ABC';
         linkMsh = 'benchmarks/open/open.msh';
         linkGeo = 'benchmarks/open/open.geo';
-    case 'open_heterogeneous'
+    case 'open (heterogeneous)'
         BCWest  = 'ABC';
         BCNorth = 'ABC';
         BCEast  = 'ABC';

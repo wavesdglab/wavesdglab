@@ -57,8 +57,7 @@ for tri=1:mesh.numTri
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);
     else
-%         [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
-        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol2D_heterogeneous(xQ, yQ, 1);
+        [refQ, ~, ~, ~, refVxQ, refVyQ, ~, ~, ~] = mySol2D_heterogeneous(xQ,yQ);
     end
     
     % Error fields
