@@ -252,7 +252,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % ylim([0.005 1]);
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
-% 
+
 % figure;
 % hold off
 % semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
