@@ -34,7 +34,7 @@ switch benchmark
 end
 degree = 3;
 BASIS = 0;
-PREC = 1;
+PREC = 0;
 order=[1,1];  
 % [1,1] or [1,2] first order transmission conditions and characteristic variables: standard CHDG
 % [1,2]          first order transmission conditions and second order characteristic variables
@@ -191,10 +191,10 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % 
 % end
 
-% alpha = 1;
-% [resRedVec_Rich, resPhyVec_Rich, errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-% [resRedVec_CGNR, resPhyVec_CGNR, errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% [resRedVec_GMRES, resPhyVec_GMRES, errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+alpha = 1;
+[resRedVec_Rich, resPhyVec_Rich, errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+[resRedVec_CGNR, resPhyVec_CGNR, errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+[resRedVec_GMRES, resPhyVec_GMRES, errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -252,20 +252,20 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % ylim([0.005 1]);
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
-
-% figure;
-% hold off
-% semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
-% hold on
-% semilogy(0:itout:maxit,errorVec_CGNR,'-or','DisplayName','CHDG - CGN');
-% semilogy(0:itout:maxit,errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','CHDG - GMRES');
-% semilogy(0:itout:maxit,errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
-% box on;
-% grid on;
-% % legend('Location','southwest');
-% legend('Location','best');
-% % title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Relative error');
+% 
+figure;
+hold off
+semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
+hold on
+semilogy(0:itout:maxit,errorVec_CGNR,'-or','DisplayName','CHDG - CGN');
+semilogy(0:itout:maxit,errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','CHDG - GMRES');
+semilogy(0:itout:maxit,errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
+box on;
+grid on;
+% legend('Location','southwest');
+legend('Location','best');
+% title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.005 1]);
+xlabel('Iteration');
+ylabel('Relative error');

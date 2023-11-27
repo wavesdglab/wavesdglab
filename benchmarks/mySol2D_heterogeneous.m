@@ -6,7 +6,7 @@ global TAGbench omega;
 rho1 = 1;
 c1 = 2;
 rho2 = 1;
-c2 = 1.5;
+c2 = 0.8;
 
 eta1 = rho1 * c1;
 eta2 = rho2 * c2;
