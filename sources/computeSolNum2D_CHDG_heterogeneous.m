@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, tau, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC)
 
-global  omega;
+global omega
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -28,7 +28,6 @@ matIIv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matIGx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIGy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIGv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
-
 matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
@@ -61,8 +60,10 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Physical parameters on the element
-%     [eta, ~, c] = physical_parameters(mesh, tri);
-    [eta, ~, c] = physical_parameters_2D(mesh, tri);
+    x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
+    y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
+    [~, ~, ~, ~, ~, ~, ~, c, eta] = mySol2D_heterogeneous(x_C,y_C);
+
     k = omega / c;
 
     % Orientation
@@ -84,8 +85,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-%     [~, ~, ~, rhsQ, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
-    [~, ~, ~, rhsQ, ~, ~] = mySol2D_heterogeneous(xQ, yQ, k);
+    [~, ~, ~, rhsQ, ~, ~, ~, ~, ~] = mySol2D_heterogeneous(xQ,yQ);
 
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -148,7 +148,6 @@ for tri=1:mesh.numTri
         % Mass matrices (physical space)
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-
         matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
         matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
 
@@ -160,18 +159,21 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
 
         if(triNeigh>0)
-%             [etaNeigh, ~, ~] = physical_parameters(mesh, triNeigh);
-            [etaNeigh, ~, ~] = physical_parameters_2D(mesh, triNeigh);
+            verTri = mesh.mapTriToVer(triNeigh,:);
+            V1 = mesh.coord(verTri(1),:);
+            V2 = mesh.coord(verTri(2),:);
+            V3 = mesh.coord(verTri(3),:);
+
+            % Physical parameters on the neighboring element
+            x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
+            y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
+            [~, ~, ~, ~, ~, ~, ~, ~, etaNeigh] = mySol2D_heterogeneous(x_C,y_C);
         else
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = tagToBC(mesh.tagEdg(edgGlo));
             switch BC
-                case {'DIR', 'NEU'}
+                case {'DIR', 'NEU', 'ABC'}
                     etaNeigh = eta;
-                case 'ABC'
-                    rho_ext = 1;
-                    c_ext = 1;
-                    etaNeigh = rho_ext * c_ext;
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -203,6 +205,10 @@ for tri=1:mesh.numTri
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta/(eta + etaNeigh) * ny * ny * matM_IIel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta/(eta + etaNeigh)               * ny * matM_IGel;
 
+        [~, ~, ~, ~, ~, ~, ~, c, ~] = mySol2D_heterogeneous(x_C,y_C);
+        c1 = 2;
+        c2 = 0.8;
+%         coefP = max(c1,c2)/c;
         coefP = 1;
 
         % -----------------------------------------------------------------
@@ -241,8 +247,7 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-%             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol_heterogeneous(xQ, yQ, k);
-            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol2D_heterogeneous(xQ, yQ, k);
+            [solQ, solDxQ, solDyQ, ~, ~, ~, ~, ~, ~] = mySol2D_heterogeneous(xQ,yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;          
             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k*eta);
             rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k*eta);
@@ -262,7 +267,7 @@ for tri=1:mesh.numTri
                     rhsGel  = -2*eta*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = (rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
