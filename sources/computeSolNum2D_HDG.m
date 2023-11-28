@@ -290,7 +290,7 @@ sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
 
-% Preconditionning
+% Preconditioning
 if (PREC == 1)
     sysA.matP = matGG;
     sysA.matPinv = sysA.matGGinv;

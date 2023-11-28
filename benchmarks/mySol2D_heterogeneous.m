@@ -4,9 +4,9 @@ global TAGbench omega;
 
 % Physical parameters
 rho1 = 1;
-c1 = 2;
+c1 = 1;
 rho2 = 1;
-c2 = 0.8;
+c2 = 1;
 
 eta1 = rho1 * c1;
 eta2 = rho2 * c2;
@@ -85,7 +85,7 @@ switch TAGbench
         solVy = solDy/(1i*eta*k);
     case 'open (heterogeneous)'
 
-        thetaI = pi/6;                           % thetaI \in [0, \pi/2]
+        thetaI = pi/4;                           % thetaI \in [0, \pi/2]
         sinI = sin(thetaI);
         cosI = cos(thetaI);
         sinT = c2 / c1 * sinI;
