@@ -262,19 +262,19 @@ alpha = 1;
 
 figure;
 hold off
-semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
-hold on
 semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
+hold on
 semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
 semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
 semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
 semilogy(0:itout:maxit,CHDG_errorVec_CGNR,'-ob','MarkerFaceColor','w','DisplayName','CHDG - CGN');
 semilogy(0:itout:maxit,CHDG_errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
 semilogy(0:itout:maxit,CHDG_errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
+semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
 box on;
 grid on;
 % legend('Location','southwest');
-legend('Location','best');
+legend('Location','northoutside','NumColumns',4);
 % title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
 xlim([0 maxit]);
 ylim([0.005 1]);
