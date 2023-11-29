@@ -240,7 +240,7 @@ for tri=1:mesh.numTri
                     rhsGel = -eta*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = -1/2 * [matM_GIel, eta*nx*matM_GIel, eta*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta * (nx*rhsUel + ny*rhsVel)) / 2;
+                    rhsGel = (rhsPel - etaNeigh * (nx*rhsUel + ny*rhsVel)) / 2;
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

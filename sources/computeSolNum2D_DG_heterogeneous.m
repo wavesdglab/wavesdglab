@@ -189,7 +189,7 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
 
-        if(triNeigh>0)
+        if (triNeigh>0)
             verTri = mesh.mapTriToVer(triNeigh,:);
             V1 = mesh.coord(verTri(1),:);
             V2 = mesh.coord(verTri(2),:);
@@ -218,26 +218,26 @@ for tri=1:mesh.numTri
             idExtU = idExtP + numDofTRI;
             idExtV = idExtU + numDofTRI;
             
-            matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5             * matMel;
-            matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5*nx          * matMel;
-            matA(idIntP,idIntV) = matA(idIntP,idIntV) + 0.5*ny          * matMel;
-            matA(idIntP,idExtP) = matA(idIntP,idExtP) - 0.5             * matMel;
-            matA(idIntP,idExtU) = matA(idIntP,idExtU) + 0.5*nx          * matMel;
-            matA(idIntP,idExtV) = matA(idIntP,idExtV) + 0.5*ny          * matMel;
+            matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/(eta+etaNeigh)                     * matMel;
+            matA(idIntP,idIntU) = matA(idIntP,idIntU) + eta/(eta+etaNeigh)           *nx     * matMel;
+            matA(idIntP,idIntV) = matA(idIntP,idIntV) + eta/(eta+etaNeigh)           *ny     * matMel;
+            matA(idIntP,idExtP) = matA(idIntP,idExtP) - 1/(eta+etaNeigh)                     * matMel;
+            matA(idIntP,idExtU) = matA(idIntP,idExtU) + etaNeigh/(eta+etaNeigh)      *nx     * matMel;
+            matA(idIntP,idExtV) = matA(idIntP,idExtV) + etaNeigh/(eta+etaNeigh)      *ny     * matMel;
             
-            matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5*nx                * matMel;
-            matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5           * nx*nx * matMel;
-            matA(idIntU,idIntV) = matA(idIntU,idIntV) + 0.5           * nx*ny * matMel;
-            matA(idIntU,idExtP) = matA(idIntU,idExtP) + 0.5*nx                * matMel;
-            matA(idIntU,idExtU) = matA(idIntU,idExtU) - 0.5           * nx*nx * matMel;
-            matA(idIntU,idExtV) = matA(idIntU,idExtV) - 0.5           * nx*ny * matMel;
+            matA(idIntU,idIntP) = matA(idIntU,idIntP) + etaNeigh/(eta+etaNeigh)      *nx     * matMel;
+            matA(idIntU,idIntU) = matA(idIntU,idIntU) + eta*etaNeigh/(eta+etaNeigh)  *nx*nx  * matMel;
+            matA(idIntU,idIntV) = matA(idIntU,idIntV) + eta*etaNeigh/(eta+etaNeigh)  *nx*ny  * matMel;
+            matA(idIntU,idExtP) = matA(idIntU,idExtP) + eta/(eta+etaNeigh)           *nx     * matMel;
+            matA(idIntU,idExtU) = matA(idIntU,idExtU) - eta*etaNeigh/(eta+etaNeigh)  *nx*nx  * matMel;
+            matA(idIntU,idExtV) = matA(idIntU,idExtV) - eta*etaNeigh/(eta+etaNeigh)  *nx*ny  * matMel;
             
-            matA(idIntV,idIntP) = matA(idIntV,idIntP) + 0.5*ny                * matMel;
-            matA(idIntV,idIntU) = matA(idIntV,idIntU) + 0.5           * nx*ny * matMel;
-            matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5           * ny*ny * matMel;
-            matA(idIntV,idExtP) = matA(idIntV,idExtP) + 0.5*ny                * matMel;
-            matA(idIntV,idExtU) = matA(idIntV,idExtU) - 0.5           * nx*ny * matMel;
-            matA(idIntV,idExtV) = matA(idIntV,idExtV) - 0.5           * ny*ny * matMel;
+            matA(idIntV,idIntP) = matA(idIntV,idIntP) + etaNeigh/(eta+etaNeigh)      *ny     * matMel;
+            matA(idIntV,idIntU) = matA(idIntV,idIntU) + eta*etaNeigh/(eta+etaNeigh)  *nx*ny  * matMel;
+            matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta*etaNeigh/(eta+etaNeigh)  *ny*ny  * matMel;
+            matA(idIntV,idExtP) = matA(idIntV,idExtP) + eta/(eta+etaNeigh)           *ny     * matMel;
+            matA(idIntV,idExtU) = matA(idIntV,idExtU) - eta*etaNeigh/(eta+etaNeigh)  *nx*ny  * matMel;
+            matA(idIntV,idExtV) = matA(idIntV,idExtV) - eta*etaNeigh/(eta+etaNeigh)  *ny*ny  * matMel;
             
         else
             
@@ -250,9 +250,9 @@ for tri=1:mesh.numTri
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + ny        * matMel;
                     
                     gp = rhsPel;
-                    rhsA(idIntP) = rhsA(idIntP) + gp;
-                    rhsA(idIntU) = rhsA(idIntU) - gp / eta * nx;
-                    rhsA(idIntV) = rhsA(idIntV) - gp / eta * ny;
+                    rhsA(idIntP) = rhsA(idIntP) + gp / eta;
+                    rhsA(idIntU) = rhsA(idIntU) - gp * nx;
+                    rhsA(idIntV) = rhsA(idIntV) - gp * ny;
                     
                 case 'NEU'
                     
@@ -265,9 +265,9 @@ for tri=1:mesh.numTri
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta * ny           * ny * matMel;
                     
                     gnu = nx*rhsUel + ny*rhsVel;
-                    rhsA(idIntP) = rhsA(idIntP) - eta * gnu;
-                    rhsA(idIntU) = rhsA(idIntU) + gnu * nx;
-                    rhsA(idIntV) = rhsA(idIntV) + gnu * ny;
+                    rhsA(idIntP) = rhsA(idIntP) - gnu;
+                    rhsA(idIntU) = rhsA(idIntU) + eta * gnu * nx;
+                    rhsA(idIntV) = rhsA(idIntV) + eta * gnu * ny;
                     
                 case 'ABC'
                     

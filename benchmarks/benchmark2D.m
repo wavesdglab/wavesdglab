@@ -44,8 +44,10 @@ switch tag
         BCNorth = 'ABC';
         BCEast  = 'ABC';
         BCSouth = 'ABC';
-        linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
-        linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
+%         linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
+%         linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
+        linkMsh = 'benchmarks/open/open.msh';
+        linkGeo = 'benchmarks/open/open.geo';
     case 'square'
         BCWest  = 'DIR';
         BCNorth = 'DIR';
