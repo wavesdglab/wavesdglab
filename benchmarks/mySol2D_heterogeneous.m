@@ -3,10 +3,10 @@ function [solU, solDx, solDy, solF, solVx, solVy, rho, c, eta] = mySol2D_heterog
 global TAGbench omega;
 
 % Physical parameters
-rho1 = 1;
-c1 = 1;
-rho2 = 1;
-c2 = 1;
+rho1 = 0.5;
+c1 = 2;
+rho2 = 0.5;
+c2 = 2;
 
 eta1 = rho1 * c1;
 eta2 = rho2 * c2;
@@ -21,7 +21,7 @@ else
     c = c2;
 end
 eta = rho * c;
-% k = omega / c;
+k = omega / c;
 
 switch TAGbench
     case 'cavity'
@@ -46,7 +46,7 @@ switch TAGbench
         solVy = sin(theta) * solU;
     case 'cavity (heterogeneous)'
 
-        thetaI = pi/6;                           % thetaI \in [0, \pi/2]
+        thetaI = pi/4;                           % thetaI \in [0, \pi/2]
         sinI = sin(thetaI);
         cosI = cos(thetaI);
         sinT = c2 / c1 * sinI;

@@ -22,7 +22,7 @@ end
 degree = 3;
 tau = 1;
 theta = 1;
-PREC = 1;
+PREC = 0;
 
 % Build mesh and DOF manager
 mesh = benchmark2D(benchmark,h);
@@ -98,26 +98,45 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGNR';
-switch solver
-    case 'CGNR'
-        [resVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-    case 'GMRES'
-        [resVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-end
+% solver = 'CGNR';
+% switch solver
+%     case 'CGNR'
+%         [resVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+%     case 'GMRES'
+%         [resVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+% end
+
+[resVec1, errorVec1] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+[resVec2, errorVec2] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
 
 figure;
 hold off
-semilogy(0:itout:maxit,resVec,'r','DisplayName','Relative residual');
+semilogy(0:itout:maxit,errorVec1,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
 hold on
-semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+semilogy(0:itout:maxit,errorVec2,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
+semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
 box on;
 grid on;
-legend('Location','southwest');
-title(['DG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% legend('Location','southwest');
+legend('Location','northoutside','NumColumns',4);
+% title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
 xlim([0 maxit]);
 ylim([0.005 1]);
 xlabel('Iteration');
-ylabel('Value');
+ylabel('Relative error');
+
+% figure;
+% hold off
+% semilogy(0:itout:maxit,resVec,'r','DisplayName','Relative residual');
+% hold on
+% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% title(['DG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([0.005 1]);
+% xlabel('Iteration');
+% ylabel('Value');
