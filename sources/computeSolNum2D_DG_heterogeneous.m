@@ -25,7 +25,9 @@ shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 % Global matrices
 matXv  = zeros(numDofTRI, numDofPerTRI);
 matYv  = zeros(numDofTRI, numDofPerTRI);
-matMv  = zeros(numDofTRI, numDofPerTRI);
+% matMv  = zeros(numDofTRI, numDofPerTRI);
+matMv1  = zeros(numDofTRI, numDofPerTRI);
+matMv2  = zeros(numDofTRI, numDofPerTRI);
 matMvInv = zeros(numDofTRI, numDofPerTRI);
 matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
@@ -42,8 +44,8 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
-    % Physical parameters on the element
+
+    %     Physical parameters on the element
     x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
     y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
     [~, ~, ~, ~, ~, ~, ~, c, eta] = mySol2D_heterogeneous(x_C,y_C);
@@ -81,36 +83,52 @@ for tri=1:mesh.numTri
     dof = dofm.locToGloTRI(tri,:);
     matXv(dof,:) = dof'*ones(1,size(dof,2));
     matYv(dof,:) = ones(size(dof,2),1)*dof;
-    matMv(dof,:) = matMel;
-    matMvInv(dof,:) = inv(matMel);
+%     matMv(dof,:) = matMel;
+%     matMvInv(dof,:) = inv(matMel);
     matDXv(dof,:) = matDXel;
     matDYv(dof,:) = matDYel;
-    rhsP(dof) = vecRHSel;
+%     rhsP(dof) = vecRHSel;
+
+    matMv1(dof,:) = -1i*k/eta  * matMel;
+    matMv2(dof,:) = -1i*k*eta  * matMel;
+    rhsP(dof) = -1/(1i*k*eta) * vecRHSel;
     
 end
 
-matM  = sparse(matXv,matYv,matMv);   % Mass matrix
-matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (inverse)
+% matM  = sparse(matXv,matYv,matMv);   % Mass matrix
+matM1 = sparse(matXv,matYv,matMv1);
+matM2 = sparse(matXv,matYv,matMv2);
+% matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (inverse)
 matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
 matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
 
-matP = [
-    matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) matM sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
+% matP = [
+%     matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
+%     sparse(numDofTRI,numDofTRI) matM sparse(numDofTRI,numDofTRI) ;
+%     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
+% 
+% matPinv = [
+%     matMinv sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
+%     sparse(numDofTRI,numDofTRI) matMinv sparse(numDofTRI,numDofTRI) ;
+%     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matMinv ];
 
-matPinv = [
-    matMinv sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) matMinv sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matMinv ];
+% matA = [
+%     -1i*k/eta*matM   -matDX                        -matDY                      ;
+%     -matDX           -1i*k*eta*matM                sparse(numDofTRI,numDofTRI) ;
+%     -matDY           sparse(numDofTRI,numDofTRI)   -1i*k*eta*matM              ];
+
+% rhsA = [
+%     -1/(1i*k*eta)*rhsP ;
+%     zeros(numDofTRI,1) ;
+%     zeros(numDofTRI,1) ];
 
 matA = [
-    -1i*k/eta*matM   -matDX                        -matDY                      ;
-    -matDX           -1i*k*eta*matM                sparse(numDofTRI,numDofTRI) ;
-    -matDY           sparse(numDofTRI,numDofTRI)   -1i*k*eta*matM              ];
+    matM1           -matDX                        -matDY                      ;
+    -matDX           matM2                         sparse(numDofTRI,numDofTRI) ;
+    -matDY           sparse(numDofTRI,numDofTRI)   matM2                        ];
 
 rhsA = [
-    -1/(1i*k*eta)*rhsP ;
+    rhsP ;
     zeros(numDofTRI,1) ;
     zeros(numDofTRI,1) ];
 
@@ -147,7 +165,14 @@ for tri=1:mesh.numTri
     
     n1 = mesh.mapTriToVer(tri,:);
     n2 = [n1(2) n1(3) n1(1)]';
-    
+
+    %     Physical parameters on the element
+    x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
+    y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
+    [~, ~, ~, ~, ~, ~, ~, c, eta] = mySol2D_heterogeneous(x_C,y_C);
+
+    k = omega / c;
+
     % Loop over faces
     for fac = 1:3
         
@@ -256,13 +281,13 @@ for tri=1:mesh.numTri
                     
                 case 'NEU'
                     
-                    matA(idIntU,idIntP) = matA(idIntU,idIntP) +                      nx * matMel;
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + eta * nx           * nx * matMel;
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + eta * ny           * nx * matMel;
+                    matA(idIntU,idIntP) = matA(idIntU,idIntP) +                  nx * matMel;
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + eta * nx       * nx * matMel;
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + eta * ny       * nx * matMel;
                     
-                    matA(idIntV,idIntP) = matA(idIntV,idIntP) +                      ny * matMel;
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + eta * nx           * ny * matMel;
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta * ny           * ny * matMel;
+                    matA(idIntV,idIntP) = matA(idIntV,idIntP) +                  ny * matMel;
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + eta * nx       * ny * matMel;
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta * ny       * ny * matMel;
                     
                     gnu = nx*rhsUel + ny*rhsVel;
                     rhsA(idIntP) = rhsA(idIntP) - gnu;

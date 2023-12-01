@@ -3,9 +3,9 @@ function [solU, solDx, solDy, solF, solVx, solVy, rho, c, eta] = mySol2D_heterog
 global TAGbench omega;
 
 % Physical parameters
-rho1 = 0.5;
+rho1 = 1;
 c1 = 2;
-rho2 = 0.5;
+rho2 = 1;
 c2 = 2;
 
 eta1 = rho1 * c1;
