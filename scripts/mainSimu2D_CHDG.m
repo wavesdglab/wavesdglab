@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'open (heterogeneous)';
+benchmark = 'cavity (heterogeneous)';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -25,7 +25,7 @@ switch benchmark
         tol = 1e-10; maxit = 1000; itout = 50;   
     case 'cavity (heterogeneous)'
         omega = 15*pi; %7.01*sqrt(2)*pi, 7.1*sqrt(2)*pi;
-        h = 1/16; %1/10;
+        h = 1/20; %1/10;
         tol = 1e-10; maxit = 2000; itout = 100;
     case 'waveguide (heterogeneous)'
         omega = 6*pi; %6*pi
@@ -71,6 +71,7 @@ PREC = 0;
 errorL2_A = computeNormError2D_DG(mesh, dofm, solA)
 errorL2_B = computeNormError2D_DG(mesh, dofm, solB)
 errorL2_C = computeNormError2D_DG(mesh, dofm, solC)
+errorL2 = errorL2_A;
 
 % Compute projection solution
 solP = computeSolProjL2_2D_DG(mesh, dofm);
@@ -197,14 +198,14 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % 
 % end
 % 
-% alpha = 1;
-% [CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-% [CHDG_resRedVec_CGNR, CHDG_resPhyVec_CGNR, CHDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% [CHDG_resRedVec_GMRES, CHDG_resPhyVec_GMRES, CHDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% [HDG_resRedVec_CGNR, HDG_resPhyVec_CGNR, HDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
-% [HDG_resRedVec_GMRES, HDG_resPhyVec_GMRES, HDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
-% [DG_resVec_CGNR, DG_errorVec_CGNR] = solverCGNR(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
-% [DG_resVec_GMRES, DG_errorVec_GMRES] = solverGMRES(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
+alpha = 1;
+[CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+[CHDG_resRedVec_CGNR, CHDG_resPhyVec_CGNR, CHDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+[CHDG_resRedVec_GMRES, CHDG_resPhyVec_GMRES, CHDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+[HDG_resRedVec_CGNR, HDG_resPhyVec_CGNR, HDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
+[HDG_resRedVec_GMRES, HDG_resPhyVec_GMRES, HDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
+[DG_resVec_CGNR, DG_errorVec_CGNR] = solverCGNR(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
+[DG_resVec_GMRES, DG_errorVec_GMRES] = solverGMRES(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -263,23 +264,23 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % xlabel('Iteration');
 % ylabel('Relative L^2-error');
 
-% figure;
-% hold off
-% semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
-% hold on
-% semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
-% semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
-% semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
-% semilogy(0:itout:maxit,CHDG_errorVec_CGNR,'-ob','MarkerFaceColor','w','DisplayName','CHDG - CGN');
-% semilogy(0:itout:maxit,CHDG_errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
-% semilogy(0:itout:maxit,CHDG_errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
-% semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
-% box on;
-% grid on;
-% % legend('Location','southwest');
-% legend('Location','northoutside','NumColumns',4);
-% % title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Relative error');
+figure;
+hold off
+semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
+hold on
+semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
+semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
+semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
+semilogy(0:itout:maxit,CHDG_errorVec_CGNR,'-ob','MarkerFaceColor','w','DisplayName','CHDG - CGN');
+semilogy(0:itout:maxit,CHDG_errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
+semilogy(0:itout:maxit,CHDG_errorVec_Rich,'-xb','DisplayName','CHDG - Fixed-point');
+semilogy([0 maxit],[errorL2 errorL2],'k--','DisplayName','Direct solver');
+box on;
+grid on;
+% legend('Location','southwest');
+legend('Location','northoutside','NumColumns',4);
+% title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.05 1]);
+xlabel('Iteration');
+ylabel('Relative error');

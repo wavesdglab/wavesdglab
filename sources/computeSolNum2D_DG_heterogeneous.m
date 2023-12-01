@@ -243,7 +243,7 @@ for tri=1:mesh.numTri
             switch tagToBC(mesh.tagEdg(edgGlo))
                 case 'DIR'
                     
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/eta     * matMel;
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/eta * matMel;
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + nx        * matMel;
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + ny        * matMel;
                     
