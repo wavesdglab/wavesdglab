@@ -25,10 +25,8 @@ shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 % Global matrices
 matXv  = zeros(numDofTRI, numDofPerTRI);
 matYv  = zeros(numDofTRI, numDofPerTRI);
-% matMv  = zeros(numDofTRI, numDofPerTRI);
 matMv1  = zeros(numDofTRI, numDofPerTRI);
 matMv2  = zeros(numDofTRI, numDofPerTRI);
-matMvInv = zeros(numDofTRI, numDofPerTRI);
 matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
 rhsP   = zeros(numDofTRI, 1);
@@ -83,11 +81,8 @@ for tri=1:mesh.numTri
     dof = dofm.locToGloTRI(tri,:);
     matXv(dof,:) = dof'*ones(1,size(dof,2));
     matYv(dof,:) = ones(size(dof,2),1)*dof;
-%     matMv(dof,:) = matMel;
-%     matMvInv(dof,:) = inv(matMel);
     matDXv(dof,:) = matDXel;
     matDYv(dof,:) = matDYel;
-%     rhsP(dof) = vecRHSel;
 
     matMv1(dof,:) = -1i*k/eta  * matMel;
     matMv2(dof,:) = -1i*k*eta  * matMel;
@@ -95,32 +90,10 @@ for tri=1:mesh.numTri
     
 end
 
-% matM  = sparse(matXv,matYv,matMv);   % Mass matrix
 matM1 = sparse(matXv,matYv,matMv1);
 matM2 = sparse(matXv,matYv,matMv2);
-% matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (inverse)
 matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
 matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
-
-% matP = [
-%     matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
-%     sparse(numDofTRI,numDofTRI) matM sparse(numDofTRI,numDofTRI) ;
-%     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
-% 
-% matPinv = [
-%     matMinv sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
-%     sparse(numDofTRI,numDofTRI) matMinv sparse(numDofTRI,numDofTRI) ;
-%     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matMinv ];
-
-% matA = [
-%     -1i*k/eta*matM   -matDX                        -matDY                      ;
-%     -matDX           -1i*k*eta*matM                sparse(numDofTRI,numDofTRI) ;
-%     -matDY           sparse(numDofTRI,numDofTRI)   -1i*k*eta*matM              ];
-
-% rhsA = [
-%     -1/(1i*k*eta)*rhsP ;
-%     zeros(numDofTRI,1) ;
-%     zeros(numDofTRI,1) ];
 
 matA = [
     matM1           -matDX                        -matDY                      ;
@@ -296,9 +269,9 @@ for tri=1:mesh.numTri
                     
                 case 'ABC'
                     
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5                 * matMel;
-                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5 * eta * nx      * matMel;
-                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + 0.5 * eta * ny      * matMel;
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5 / eta           * matMel;
+                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5       * nx      * matMel;
+                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + 0.5       * ny      * matMel;
                     
                     matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5            * nx * matMel;
                     matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5 * eta * nx * nx * matMel;
@@ -309,7 +282,7 @@ for tri=1:mesh.numTri
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5 * eta * ny * ny * matMel;
                     
                     gchar = rhsPel - etaNeigh * (nx*rhsUel + ny*rhsVel);
-                    rhsA(idIntP) = rhsA(idIntP) + gchar * 0.5;
+                    rhsA(idIntP) = rhsA(idIntP) + gchar * 0.5 / eta;
                     rhsA(idIntU) = rhsA(idIntU) - gchar * 0.5 * nx;
                     rhsA(idIntV) = rhsA(idIntV) - gchar * 0.5 * ny;
                     
