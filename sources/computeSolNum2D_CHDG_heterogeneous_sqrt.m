@@ -180,6 +180,7 @@ for tri=1:mesh.numTri
         end
 
         etaF = sqrt(eta*etaNeigh);
+        % etaF = (eta + etaNeigh)/2;
 
         % -----------------------------------------------------------------
         % Physical equations
