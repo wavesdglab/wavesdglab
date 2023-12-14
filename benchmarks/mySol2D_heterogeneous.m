@@ -4,7 +4,7 @@ global TAGbench omega;
 
 % Physical parameters
 rho1 = 1;
-c1 = 2;
+c1 = 4;
 rho2 = 1;
 c2 = 0.8;
 
