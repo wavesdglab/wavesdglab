@@ -70,10 +70,10 @@ disp(['---------------------------------------------------------']);
 
 %%
 % Compute numerical error
-errorL2_A = computeNormError2D_DG(mesh, dofm, solA)
+errorL2_A = computeNormError2D_DG(mesh, dofm, solA);
 % errorL2_B = computeNormError2D_DG(mesh, dofm, solB)
 % errorL2_C = computeNormError2D_DG(mesh, dofm, solC)
-errorL2 = errorL2_A;
+errorL2 = errorL2_A
 
 % Compute projection solution
 solP = computeSolProjL2_2D_DG(mesh, dofm);
