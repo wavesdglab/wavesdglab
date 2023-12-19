@@ -6,6 +6,8 @@ function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous_sum(mesh, dofm, BASIS
 
 global omega
 
+p = 150; % exponent of the power mean for the definition of \eta_F
+
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -178,14 +180,16 @@ for tri=1:mesh.numTri
                     error('BAD BOUNDARY CONDITION.');
             end
         end
-
-%         etaF = (eta+etaNeigh)/2;
-
-%         p=100;
-%         etaF = ((eta^p+etaNeigh^p)/2)^(1/p);
-%         etaF = (2*eta*etaNeigh)/(eta+etaNeigh);
-
-        etaF = max(eta,etaNeigh);
+        
+        if p > 100
+            etaF = max(eta,etaNeigh);
+        elseif p < -100
+            etaF = min(eta,etaNeigh);
+        elseif p == 0
+            etaF = sqrt(eta*etaNeigh);
+        else
+            etaF = ((eta^p+etaNeigh^p)/2)^(1/p);
+        end
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -268,14 +272,14 @@ for tri=1:mesh.numTri
             matGGel = matM_GGel;
             switch BC
                 case 'DIR'
-                    matGIel = [matM_GIel, eta*nx*matM_GIel, eta*ny*matM_GIel];
+                    matGIel = [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
                     rhsGel  = +2*rhsPel;
                 case 'NEU'
-                    matGIel = [-matM_GIel, -eta*nx*matM_GIel, -eta*ny*matM_GIel];
-                    rhsGel  = -2*eta*(nx*rhsUel + ny*rhsVel);
+                    matGIel = [-matM_GIel, -etaF*nx*matM_GIel, -etaF*ny*matM_GIel];
+                    rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = (rhsPel - etaF * (nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
