@@ -9,7 +9,7 @@ tau = 1;
 BASIS = 1;
 PREC = 0;
 
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 h = mesh.hmax;
 

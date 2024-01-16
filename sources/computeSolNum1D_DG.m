@@ -35,7 +35,7 @@ for e=1:mesh.numE
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
     % Local RHS vector
-    [~, ~, ~, ~, souP, souU] = mySol1D(coordGlo);
+    [~, ~, ~, ~, souP, souU] = mySol(coordGlo);
     rhsPloc = (shapeQ .* souP).' * weights * (length/2);
     rhsUloc = (shapeQ .* souU).' * weights * (length/2);
     
@@ -58,8 +58,8 @@ rhsA = [ rhsP ; rhsU ];
 % Surface terms
 % -------------------------------------------------------------------------
 
-[solPL, ~, solUL] = mySol1D(0);
-[solPR, ~, solUR] = mySol1D(mesh.coordV(mesh.numV));
+[solPL, ~, solUL] = mySol(0);
+[solPR, ~, solUR] = mySol(mesh.coordV(mesh.numV));
 
 for e=1:mesh.numE
     

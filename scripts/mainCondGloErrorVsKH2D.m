@@ -52,7 +52,7 @@ for i = 1:size(hList,2)
     tic
     k = kList;
     h = hList(i);
-    mesh = benchmark2D(benchmark,h);
+    mesh = setupBenchmark2D(benchmark,h);
     mesh = buildConnectivity2D(mesh);
     hEff(i) = mesh.hmax;
     fprintf('%i/%i (h=%i ; heff=%i)\n', i, size(hList,2), h, hEff(i));

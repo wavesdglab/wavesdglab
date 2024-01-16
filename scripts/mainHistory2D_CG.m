@@ -20,7 +20,7 @@ benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Build mesh and dofManager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree);
 

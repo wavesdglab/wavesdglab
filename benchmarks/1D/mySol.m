@@ -1,4 +1,4 @@
-function [solP, derP, solV, sou, souP, souV] = mySol1D(x)
+function [solP, derP, solV, sou, souP, souV] = mySol(x)
 global k BCLeft BCRight
 
 if(strcmp(BCLeft,'PER') && strcmp(BCRight,'PER'))

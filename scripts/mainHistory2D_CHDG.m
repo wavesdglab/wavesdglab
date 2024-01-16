@@ -38,7 +38,7 @@ function run(benchmark,degree,h,tau,BASIS,PREC,tol,iMax,iOut)
 global k;
 
 % Build mesh and dofManager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
