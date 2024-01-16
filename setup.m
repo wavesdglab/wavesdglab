@@ -9,7 +9,7 @@ addpath(genpath('scripts/'));
 addpath(genpath('sources/'));
 addpath(genpath('tools/'));
 
-% directoryGmsh = ':/Applications/Gmsh.app/Contents/MacOS/';
+directoryGmsh = ':/Applications/Gmsh.app/Contents/MacOS/';
 % directoryGmsh = ':/home/pescuma/Desktop/gmsh-4.11.1-Linux64/bin';
 
 if(exist('directoryGmsh'))
