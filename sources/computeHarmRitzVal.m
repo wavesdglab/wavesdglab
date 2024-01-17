@@ -33,7 +33,7 @@ rv = eig(H_i);
 dist_hrv = zeros(1,iEig);
 dist_rv = zeros(1,iEig);
 
-lambdaMin = getMinEigs(A, iEig);
+lambdaMin = eigs(A, iEig, 'smallestabs');
 
 for j = 1:iEig
     dist_hrv(j) = min(abs(hrv - lambdaMin(j)));
