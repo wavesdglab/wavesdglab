@@ -1,8 +1,8 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Authors: Axel Modave, Timothée Raynaud
 
-function [solA, sysA] = computeSolNum2DPML_CG(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_PML_CG(mesh, dofm, PREC)
 
 global k
 global L_PML

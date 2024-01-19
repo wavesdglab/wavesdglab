@@ -1,11 +1,11 @@
-function mesh = myBenchmark(h)
+function mesh = myBenchmark()
 
-global BCWest BCNorth BCEast BCSouth
+global h edgTagToBC
 
-BCWest  = 'ABC';
-BCNorth = 'ABC';
-BCEast  = 'ABC';
-BCSouth = 'ABC';
+% BCWest, BCNorth, BCEast, BCSouth
+edgTag = {1, 2, 3, 4};
+BC = {'ROB', 'ROB', 'ROB', 'ROB'};
+edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'benchmarks/open/open.msh';
 linkGeo = 'benchmarks/open/open.geo';

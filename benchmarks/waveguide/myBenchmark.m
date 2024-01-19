@@ -1,11 +1,11 @@
-function mesh = myBenchmark(h)
+function mesh = myBenchmark()
 
-global BCWest BCNorth BCEast BCSouth
+global h edgTagToBC
 
-BCWest  = 'DIR';
-BCNorth = 'DIR';
-BCEast  = 'ABC';
-BCSouth = 'DIR';
+% BCWest, BCNorth, BCEast, BCSouth
+edgTag = {1, 2, 3, 4};
+BC = {'DIR0', 'DIR0', 'ROB', 'DIR0'};
+edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'benchmarks/waveguide/waveguide.msh';
 linkGeo = 'benchmarks/waveguide/waveguide.geo';

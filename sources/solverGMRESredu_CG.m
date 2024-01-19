@@ -9,7 +9,6 @@ function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverGMRESredu_CG(me
 A = sys.matS;
 b = sys.rhsS;
 P = sys.matP;
-Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 H = zeros(iMax+1,iMax+1);
@@ -18,7 +17,7 @@ sn = zeros(iMax,1);
 cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
 
-r = Pinv*(b-A*x);
+r = P\(b-A*x);
 beta(1) = sqrt(r'*P*r);
 Q(:,1) = r/beta(1);
 
@@ -27,7 +26,7 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
 rPhy = sys.rhsA - sys.matA*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
@@ -47,7 +46,7 @@ while(i <= iMax)
 %     end
 
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    Q(:,i+1) = Pinv*A*Q(:,i);
+    Q(:,i+1) = P\A*Q(:,i);
     for j = 1:i
         H(j,i) = Q(:,j)' * P * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
@@ -79,7 +78,7 @@ while(i <= iMax)
         y = H(1:i,1:i) \ beta(1:i);
         x = Q(:,1:i) * y;
         
-        xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+        xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
         rPhy = sys.rhsA - sys.matA*xPhy;
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = relRes;
@@ -96,6 +95,6 @@ while(i <= iMax)
     i = i+1;
 end
 
-xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
 
 end

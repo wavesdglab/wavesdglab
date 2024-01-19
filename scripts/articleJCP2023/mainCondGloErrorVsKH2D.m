@@ -1,7 +1,7 @@
 close all;
 clear all;
 
-method = 'DG';
+method = 'HDG';
 degree = 3;
 tau = 1;
 BASIS = 1;
@@ -38,7 +38,7 @@ disp(['---------------------------------------------------------']);
 disp(['Method ' method ' - ' benchmark ' - k=' num2str(kList)]);
 disp(['---------------------------------------------------------']);
 
-global k;
+global k h
 
 hEff = zeros(1,size(hList,2));
 invKH = zeros(1,size(hList,2));
@@ -52,7 +52,7 @@ for i = 1:size(hList,2)
     tic
     k = kList;
     h = hList(i);
-    mesh = setupBenchmark2D(benchmark,h);
+    mesh = setupBenchmark2D(benchmark);
     mesh = buildConnectivity2D(mesh);
     hEff(i) = mesh.hmax;
     fprintf('%i/%i (h=%i ; heff=%i)\n', i, size(hList,2), h, hEff(i));
@@ -61,7 +61,8 @@ for i = 1:size(hList,2)
     NdofTRI(i) = dofm.numDofTRI;
     switch method
         case 'DG'
-            [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, BASIS, PREC);
+            theta = 1;
+            [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
         case 'HDG'
             [solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau, BASIS, PREC);
         case 'CHDG'
@@ -98,7 +99,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 % loglog(Dlambda, errorL2, '*-r');
 % hold on;
 % loglog(Dlambda, errorProjL2, '*:r');
-% 
+%
 % figure;
 % loglog(Dlambda, condGlo, '*-b');
 

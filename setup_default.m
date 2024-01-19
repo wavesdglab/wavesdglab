@@ -4,7 +4,7 @@
 
 function setup()
 
-addpath(genpath('scripts/'));
+addpath('scripts/');
 addpath(genpath('sources/'));
 addpath(genpath('tools/'));
 

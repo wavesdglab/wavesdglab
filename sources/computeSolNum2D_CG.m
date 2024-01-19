@@ -4,13 +4,12 @@
 
 function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
-global k
+global k edgTagToBC
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matShiftedLaplacian = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
-
 
 % -------------------------------------------------------------------------
 % Quadrature
@@ -82,6 +81,7 @@ end
 % -------------------------------------------------------------------------
 
 dofDIR = [];
+cacheDIR = zeros(dofm.numDofTRI);
 for edgBnd=1:mesh.numEdgBnd
     edg = mesh.listEdgBnd(edgBnd);
     dof = dofm.locToGloBND(edgBnd,:);
@@ -124,12 +124,19 @@ for edgBnd=1:mesh.numEdgBnd
     rhsNel = shapeOrQ' * (weightsLinQ .* neuQ) * Jdxdu;
     
     % Boundary condition
-    switch tagToBC(mesh.tagEdgBnd(edgBnd))
+    switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
+        case 'DIR0'
+            dofDIR = [dofDIR ; dof];
+            cacheDIR(dof) = zeros(size(dof,1),size(dof,2));
         case 'DIR'
             dofDIR = [dofDIR ; dof];
+            cacheDIR(dof) = ones(size(dof,1),size(dof,2));
+        case 'NEU0'
         case 'NEU'
             rhsA(dof) = rhsA(dof) + rhsNel;
         case 'ABC'
+            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel;
+        case 'ROB'
             matA(dof,dof) = matA(dof,dof) - 1i*k * matMel;
             rhsA(dof) = rhsA(dof) + rhsNel - 1i*k * rhsDel;
         otherwise
@@ -138,7 +145,7 @@ for edgBnd=1:mesh.numEdgBnd
 end
 
 if(~isempty(dofDIR))
-    solP = computeSolProjL2_2D_CG(mesh, dofm);
+    solP = computeSolProjL2_2D_CG(mesh, dofm) .* cacheDIR;
     dofDIR = unique(dofDIR);
     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
     rhsA(dofDIR) = solP(dofDIR);
@@ -161,48 +168,27 @@ sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
-% sysA.matIIinv = inv(sysA.matII);
 
 % Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
 
 % Reduced system
-% sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
-% sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
+sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
-    warning('DO NOT USE Pinv : USE P\ INSTEAD');
     % sysA.matP = matM;
     sysA.matP = matShiftedLaplacian;
-    % sysA.matP = 1;
-    sysA.matPinv = 1;
 else
     sysA.matP = 1;
-    sysA.matPinv = 1;
 end
 
 % Compute solution
-% solG = sysA.matS\sysA.rhsS;
-% solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
-% solA = [ solG ; solI ];
-solA = 0;
+solG = sysA.matS\sysA.rhsS;
+solI = sysA.matII\(sysA.rhsI-sysA.matIG*solG);
+solA = [ solG ; solI ];
+% solA = sysA.matA\sysA.rhsA;
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

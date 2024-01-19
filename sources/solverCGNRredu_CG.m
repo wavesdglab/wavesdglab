@@ -8,13 +8,13 @@ function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_CG(mes
 
 A = sys.matS;
 b = sys.rhsS;
-Pinv = sys.matPinv;
+P = sys.matP;
 
 x = zeros(size(A,2),1);
 r = b-A*x;
-s = Pinv*r;  % s=r for left-preconditioning
+s = P\r;  % s=r for left-preconditioning
 y = A'*s;
-z = Pinv*y;
+z = P\y;
 p = z;
 rrini = r'*r;
 zzini = y'*z;
@@ -25,7 +25,7 @@ resPhyVec = zeros(iMax/iOut+1,1);
 errorVec  = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
 rPhy = sys.rhsA - sys.matA*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
@@ -39,13 +39,13 @@ i = 1;
 while(i <= iMax)
     
     v = A*p;
-    w = Pinv*v;  % w=v for left-preconditioning
+    w = P\v;  % w=v for left-preconditioning
     alpha = zzold/(v'*w);
     x = x + alpha*p;
     r = r - alpha*v;
-    s = Pinv*r;  % s=r for left-preconditioning
+    s = P\r;  % s=r for left-preconditioning
     y = A'*s;
-    z = Pinv*y;
+    z = P\y;
     rrnew = r'*r;
     zznew = y'*z;
     p = z + (zznew/zzold)*p;
@@ -53,7 +53,7 @@ while(i <= iMax)
     
     %%%%%%%
     if(mod(i,iOut) == 0)
-        xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+        xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
         rPhy = sys.rhsA - sys.matA*xPhy;
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
@@ -70,6 +70,6 @@ while(i <= iMax)
     i = i+1;
 end
 
-xPhy = [ x ; sys.matIIinv*(sys.rhsI-sys.matIG*x) ];
+xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
 
 end

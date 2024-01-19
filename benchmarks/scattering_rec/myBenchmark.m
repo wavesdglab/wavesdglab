@@ -1,9 +1,12 @@
-function mesh = myBenchmark(h)
+function mesh = myBenchmark()
 
-global BCObstacle L L_PML BCPML l
+global h edgTagToBC
+global L L_PML l
 
-BCPML = 'DIR';
-BCObstacle = 'NEU';
+% BCPML, BCObstacle
+edgTag = {1, 2};
+BC = {'DIR', 'NEU'};
+edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'benchmarks/scattering_rec/rec_cavity.msh';
 linkGeo = 'benchmarks/scattering_rec/rec_cavity.geo';

@@ -1,13 +1,13 @@
 %close all;
 clear all;
 
-global k
+global k h
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % BENCH FREE SPACE
-% benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
-benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
+benchmark = 'open'; degree = 1; k = 10*pi; h = 1/32;
+% benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
 
 % BENCH CAVITY
 % benchmark = 'cavity'; degree = 1; k = (3+1/8)*sqrt(2)*pi; h = 1/32;
@@ -20,7 +20,7 @@ benchmark = 'open'; degree = 3; k = 10*pi; h = 1/8;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Build mesh and dofManager
-mesh = setupBenchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree);
 

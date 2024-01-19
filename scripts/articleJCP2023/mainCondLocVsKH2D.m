@@ -1,7 +1,7 @@
 close all;
 clear all;
 
-global k;
+global k h
 
 benchmark = 'open';
 h = 0.04;
@@ -9,7 +9,7 @@ tau = 1;
 BASIS = 1;
 PREC = 0;
 
-mesh = setupBenchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 h = mesh.hmax;
 

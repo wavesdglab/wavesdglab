@@ -4,7 +4,7 @@
 
 function [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC)
 
-global k
+global k edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -214,19 +214,23 @@ for tri=1:mesh.numTri
         else
             
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            switch tagToBC(mesh.tagEdg(edgGlo))
-                case 'DIR'
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
+            
+            switch BC
+                case {'DIR0','DIR'}
                     
                     matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau*theta * matMel;
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + nx        * matMel;
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + ny        * matMel;
                     
-                    gp = rhsPel;
-                    rhsA(idIntP) = rhsA(idIntP) + gp * tau*theta;
-                    rhsA(idIntU) = rhsA(idIntU) - gp * nx;
-                    rhsA(idIntV) = rhsA(idIntV) - gp * ny;
+                    if strcmp(BC,'DIR')
+                        gp = rhsPel;
+                        rhsA(idIntP) = rhsA(idIntP) + gp * tau*theta;
+                        rhsA(idIntU) = rhsA(idIntU) - gp * nx;
+                        rhsA(idIntV) = rhsA(idIntV) - gp * ny;
+                    end
                     
-                case 'NEU'
+                case {'NEU0','NEU'}
                     
                     matA(idIntU,idIntP) = matA(idIntU,idIntP) + 1            * nx * matMel;
                     matA(idIntU,idIntU) = matA(idIntU,idIntU) + nx/tau*theta * nx * matMel;
@@ -236,12 +240,14 @@ for tri=1:mesh.numTri
                     matA(idIntV,idIntU) = matA(idIntV,idIntU) + nx/tau*theta * ny * matMel;
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + ny/tau*theta * ny * matMel;
                     
-                    gnu = nx*rhsUel + ny*rhsVel;
-                    rhsA(idIntP) = rhsA(idIntP) - gnu;
-                    rhsA(idIntU) = rhsA(idIntU) + gnu * nx/tau*theta;
-                    rhsA(idIntV) = rhsA(idIntV) + gnu * ny/tau*theta;
+                    if strcmp(BC,'NEU')
+                        gnu = nx*rhsUel + ny*rhsVel;
+                        rhsA(idIntP) = rhsA(idIntP) - gnu;
+                        rhsA(idIntU) = rhsA(idIntU) + gnu * nx/tau*theta;
+                        rhsA(idIntV) = rhsA(idIntV) + gnu * ny/tau*theta;
+                    end
                     
-                case 'ABC'
+                case {'ABC','ROB'}
                     
                     matA(idIntP,idIntP) = matA(idIntP,idIntP) + tau/(1+tau)         * matMel;
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + 1/(1+tau) * nx      * matMel;
@@ -255,10 +261,12 @@ for tri=1:mesh.numTri
                     matA(idIntV,idIntU) = matA(idIntV,idIntU) + 1/(1+tau) * nx * ny * matMel;
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + 1/(1+tau) * ny * ny * matMel;
                     
-                    gchar = rhsPel - (nx*rhsUel + ny*rhsVel);
-                    rhsA(idIntP) = rhsA(idIntP) + gchar * tau/(1+tau);
-                    rhsA(idIntU) = rhsA(idIntU) - gchar * 1/(1+tau) * nx;
-                    rhsA(idIntV) = rhsA(idIntV) - gchar * 1/(1+tau) * ny;
+                    if strcmp(BC,'ROB')
+                        gchar = rhsPel - (nx*rhsUel + ny*rhsVel);
+                        rhsA(idIntP) = rhsA(idIntP) + gchar * tau/(1+tau);
+                        rhsA(idIntU) = rhsA(idIntU) - gchar * 1/(1+tau) * nx;
+                        rhsA(idIntV) = rhsA(idIntV) - gchar * 1/(1+tau) * ny;
+                    end
                     
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
@@ -277,7 +285,6 @@ sysA.rhsA = rhsA;
 
 % Preconditionning
 if (PREC == 1)
-    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR DG.')
     sysA.matP = matP;
     sysA.matPinv = matPinv;
 else
@@ -288,20 +295,4 @@ end
 % Compute solution
 solA = matA\rhsA;
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

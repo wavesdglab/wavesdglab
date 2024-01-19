@@ -1,11 +1,10 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Authors: Axel Modave, Timothée Raynaud
 
-function [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
+function [errorL2, errorH1, normL2, normH1] = computeNormError2D_PML_CG(mesh, dofm, vecSol, vecRef)
 
-
-global L;
+global L l
 
 % Quadrature
 degreeQ = 2*dofm.degree;
@@ -27,11 +26,11 @@ for tri=1:mesh.numTri
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
-
+    
     if (max(max(abs(xQ)), max(abs(yQ))) >= L)
         continue;
     end
-
+    
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));

@@ -1,14 +1,16 @@
 clear all;
 %close all;
 
-global k BCLeft BCRight
+global k h BCLeft BCRight
 
 % Setup benchmark and parameters
 degree = 3;
 k = 20;
 numE = 200;
 h = 1/numE;
+theta = 1;
 tau = 1; % 1i
+PREC = 'PrecNone'; % PrecNone PrecMass PrecMass2 PrecDiag
 BCLeft = 'DIR';
 BCRight = 'ABC';
 
@@ -21,17 +23,18 @@ dofm = buildDofManager1D_DG(mesh, degree);
 % -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
-disp(['Method CHDG - Benchmark ' BCLeft '/' BCRight ]);
+disp(['Method DG - Benchmark ' BCLeft '/' BCRight ]);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['    numE                ' num2str(numE)]);
+disp(['    theta               ' num2str(theta)]);
 disp(['    tau                 ' num2str(tau)]);
+disp(['    PREC                ' PREC]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] =  computeSolNum1D_CHDG(mesh, dofm, tau);
-%[solA, sysA] =  computeSolNum1D_CHDGb(mesh, dofm, tau);
+[solA, sysA] = computeSolNum1D_DG(mesh, dofm, theta, tau, PREC);
 errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_1D_DG(mesh, dofm);
@@ -82,23 +85,22 @@ disp(['---------------------------------------------------------']);
 solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
 switch solver
     case 'CGNR'
-        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+        [resPhyVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
     case 'GMRES'
-        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+        [resPhyVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
 end
 
 figure;
 hold off
-semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
 hold on
-semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
 semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
 plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
 plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
 box on;
 grid on;
 legend('Location','southwest');
-title(['CHDG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+title(['DG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
 ylim([1e-3 1]);
 xlabel('Iteration');

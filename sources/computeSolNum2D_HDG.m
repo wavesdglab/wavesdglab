@@ -4,7 +4,7 @@
 
 function [solI, sysA, condLoc] = computeSolNum2D_HDG(mesh, dofm, tau, BASIS, PREC)
 
-global k
+global k edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofLIN = dofm.numDofLIN;
@@ -197,17 +197,22 @@ for tri=1:mesh.numTri
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
             switch BC
+                case 'DIR0'
                 case 'DIR'
                     rhsGel = rhsPel;
+                case 'NEU0'
+                    matGIel = -1/tau * [tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
                 case 'NEU'
                     matGIel = -1/tau * [tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
                     rhsGel = -(nx*rhsUel + ny*rhsVel) / tau;
                 case 'ABC'
+                    matGIel = -1/(1+tau) * [tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                case 'ROB'
                     matGIel = -1/(1+tau) * [tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
                     rhsGel = (rhsPel - nx*rhsUel - ny*rhsVel) / (1+tau);
                 otherwise
@@ -303,20 +308,4 @@ end
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

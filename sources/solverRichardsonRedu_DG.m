@@ -8,6 +8,7 @@ function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardsonRedu_
 
 A = sys.matS;
 b = sys.rhsS;
+P = sys.matP;
 Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
@@ -25,6 +26,7 @@ resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, xPhy);
+fprintf('[%i] %g %g\n', 0, resRedVec(1), errorVec(1));
 %%%%%
 
 flag = 0;

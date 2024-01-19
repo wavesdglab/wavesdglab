@@ -1,67 +1,51 @@
 clear all;
 %close all;
 
-global k
+global k h BCLeft BCRight
 
 % Setup benchmark and parameters
-benchmark = 'open';
-switch benchmark
-    case 'open'
-        k = 15*pi;
-        h = 1/16;
-        tol = 1e-10; maxit = 1000; itout = 50;
-    case 'cavity'
-        k = 7.1*sqrt(2)*pi;
-        h = 1/10;
-        tol = 1e-10; maxit = 2000; itout = 100;
-    case 'waveguide'
-        k = 6*pi;
-        h = 1/8;
-        tol = 1e-10; maxit = 4000; itout = 200;
-end
 degree = 3;
-PREC = 1;
+k = 20;
+numE = 200;
+h = 1/numE;
+tau = 1; % 1i
+BCLeft = 'DIR';
+BCRight = 'ABC';
 
 % Build mesh and DOF manager
-mesh = setupBenchmark2D(benchmark,h);
-mesh = buildConnectivity2D(mesh);
-dofm = buildDofManager2D_CG(mesh, degree);
-
-Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+mesh = setupBenchmark1D(0, 1, numE);
+dofm = buildDofManager1D_DG(mesh, degree);
 
 % -------------------------------------------------------------------------
 % Compute solution and error
 % -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
-disp(['Method CG - Benchmark "' benchmark '"']);
+disp(['Method HDG - Benchmark ' BCLeft '/' BCRight ]);
 disp(['---------------------------------------------------------']);
 disp(['    k                   ' num2str(k)]);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
-disp(['    Dlambda             ' num2str(Dlambda)]);
+disp(['    numE                ' num2str(numE)]);
+disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
-[solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
-errorL2 = computeNormError2D_CG(mesh, dofm, solA);
+[solA, sysA] = computeSolNum1D_HDG(mesh, dofm, tau);
+errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
-solP = computeSolProjL2_2D_CG(mesh, dofm);
-errorProjL2 = computeNormError2D_CG(mesh, dofm, solP);
+solP = computeSolProjL2_1D_DG(mesh, dofm);
+errorProjL2 = computeNormError1D_DG(mesh, dofm, solP);
 
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.6e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.6e')]);
 disp(['---------------------------------------------------------']);
 
-% disp([num2str(k) ' ' num2str(h) ' ' num2str(degree) ' ' num2str(Dlambda) ' ' num2str(errorL2) ' ' num2str(errorProjL2)]);
-
 % -------------------------------------------------------------------------
-% Write and vizu solution
+% Vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% figure;
+% plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -81,6 +65,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % figure;
 % hold off; scatter(real(eigenval),imag(eigenval));
 % % hold on; plot(fovals(mat,100));
+% hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
 % grid on; box on;
 % 
 % % Compute condition number
@@ -93,12 +78,12 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGNR';
+solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
 switch solver
     case 'CGNR'
-        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
     case 'GMRES'
-        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
 end
 
 figure;
@@ -112,8 +97,8 @@ plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (
 box on;
 grid on;
 legend('Location','southwest');
-title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+title(['HDG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-ylim([0.005 1]);
+ylim([1e-3 1]);
 xlabel('Iteration');
 ylabel('Value');
