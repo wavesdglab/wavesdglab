@@ -38,7 +38,7 @@ function run(benchmark,degree,h,tau,theta,PREC,tol,iMax,iOut)
 global k;
 
 % Build mesh and dofManager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
@@ -57,7 +57,7 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
-[normErr] = computeNormError2D_DG(mesh, dofm, solA);
+normErr = computeNormError2D_DG(mesh, dofm, solA);
 
 % [solP] = computeSolProjL2_2D_DG(mesh, dofm);
 % [normProjErr, normProjErrU, normProjErrV] = computeNormError2D_DG(mesh, dofm, solP);

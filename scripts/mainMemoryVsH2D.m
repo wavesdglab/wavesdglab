@@ -19,7 +19,7 @@ numDofPerTRI = zeros(1,size(hList,2));
 for i = 1:size(hList,2)
     h = hList(i);
     fprintf('   %i/%i (h=%i)\n', i, size(hList,2), hList(i));
-    mesh = benchmark2D(benchmark,h);
+    mesh = setupBenchmark2D(benchmark,h);
     mesh = buildMeshConnectivity(mesh);
     dofm = buildDofManager2D_DG(mesh, degree);
     

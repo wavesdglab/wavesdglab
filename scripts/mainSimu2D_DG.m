@@ -25,7 +25,7 @@ theta = 1;
 PREC = 1;
 
 % Build mesh and DOF manager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 

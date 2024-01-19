@@ -34,7 +34,7 @@ for e=1:mesh.numE
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
     % Local RHS vector
-    [~, ~, ~, rhsVol, ~, ~] = mySol1D(coordGlo);
+    [~, ~, ~, rhsVol, ~, ~] = mySol(coordGlo);
     rhsAloc = (shapeQ .* rhsVol).' * weights * (length/2);
     
     % Local matrices
@@ -69,8 +69,8 @@ end
 % Surface terms
 % -------------------------------------------------------------------------
 
-[solL, derL] = mySol1D(0);
-[solR, derR] = mySol1D(mesh.coordV(mesh.numV));
+[solL, derL] = mySol(0);
+[solR, derR] = mySol(mesh.coordV(mesh.numV));
 
 if(~(strcmp(BCLeft,'PER') && strcmp(BCRight,'PER')))
     

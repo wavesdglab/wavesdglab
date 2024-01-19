@@ -21,7 +21,7 @@ for e=1:mesh.numE
     
     % Numerical solution, reference solution and error
     solQ = shapeQ * vecSol(dofm.locToGlo(e,:));
-    refQ = mySol1D(coordGlo);
+    refQ = mySol(coordGlo);
     errQ = solQ(:) - refQ(:);
     
     % Norms
