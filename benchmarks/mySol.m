@@ -1,6 +1,6 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
-global k TAGbench
+global k TAGbench;
 
 switch TAGbench
     case 'cavity'
