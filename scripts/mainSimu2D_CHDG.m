@@ -4,7 +4,7 @@ clear all;
 global k
 
 % Setup benchmark and parameters
-benchmark = 'waveguide';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 30*pi; %15*pi;
@@ -25,7 +25,7 @@ BASIS = 1;
 PREC = 0;
 
 % Build mesh and DOF manager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 

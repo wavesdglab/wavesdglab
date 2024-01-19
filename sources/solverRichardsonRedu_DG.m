@@ -2,53 +2,44 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-% CGNE with symmetric preconditioning
+% Richardson with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNEredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardsonRedu_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
 Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
-r = b - A*x;
-s = Pinv*r;
-p = A'*s;
-q = Pinv*p;
-rr = real(r'*s);
-rrini = rr;
+r = b-A*x;
+rrini = r'*r;
 
-resRedVec = zeros(iMax/iOut+1,1);
-resPhyVec = zeros(iMax/iOut+1,1);
+resRedVec = zeros(iMax/iOut+1,1); 
+resPhyVec = zeros(iMax/iOut+1,1); 
 errorVec  = zeros(iMax/iOut+1,1);
 
-%%%%%%%
+%%%%%
 xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
 rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, xPhy);
-fprintf('[%i] %g %g\n', 0, resRedVec(1), errorVec(1));
-%%%%%%%
+%%%%%
 
 flag = 0;
 i = 1;
 while(i <= iMax)
     
-    pp = real(p'*q);
-    alpha = rr/pp;
-    x = x + alpha*q;
-    r = r - alpha*A*q;
-    s = Pinv*r;
-    rrnew = real(r'*s);
-    beta = rrnew/rr;
-    rr = rrnew;
-    p = A'*s + beta*p;
-    q = Pinv*p;
+    % xNew = Pinv * (P*x - A*x + b);
+    % x = alpha*xNew + (1-alpha)*x;
+    
+    x = alpha*Pinv*r + x;
+    r = b-A*x;
+    rrnew = r'*r;
     
     %%%%%%%
-    if(mod(i,iOut) == 0)
+    if(mod(i,iOut)==0)
         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
         rPhy = sys.rhsPhy - sys.matPhy*xPhy;
         resPhyNew = rPhy'*rPhy;
@@ -59,9 +50,9 @@ while(i <= iMax)
     end
     %%%%%%%
     
-    if (sqrt(rrnew/rrini) <= tol)
+    if(sqrt(rrnew/rrini) < tol)
         flag = 1;
-        break;
+        return;
     end
     i = i+1;
 end

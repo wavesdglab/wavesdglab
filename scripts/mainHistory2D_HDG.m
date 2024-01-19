@@ -1,4 +1,4 @@
-%close all;
+close all;
 clear all;
 
 global k;
@@ -6,8 +6,8 @@ global k;
 degree = 3;
 tau = 1;
 tol = 1e-100;
-BASIS = 0;
-PREC = 1;
+BASIS = 1;
+PREC = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -38,7 +38,7 @@ function run(benchmark,degree,h,tau,BASIS,PREC,tol,iMax,iOut)
 global k;
 
 % Build mesh and dofManager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark,h);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
@@ -100,16 +100,16 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver GMRES']);
-% [resRedVec, resPhyVec, error] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error));
-% 
-% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
-% name = sprintf('output/historyGMRES_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+disp(['--- Solver GMRES']);
+[resRedVec, resPhyVec, error] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+
+iterVec = (0:iOut:iMax)';
+errorRef = normErr*ones(size(error));
+
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error, errorRef];
+name = sprintf('output/historyGMRES_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

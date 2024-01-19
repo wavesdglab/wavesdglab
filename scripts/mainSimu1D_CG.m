@@ -14,7 +14,7 @@ BCLeft = 'DIR';
 BCRight = 'ABC';
 
 % Build mesh and DOF manager
-mesh = buildMesh1D(0, 1, numE);
+mesh = setupBenchmark1D(0, 1, numE);
 dofm = buildDofManager1D_CG(mesh, degree);
 
 % -------------------------------------------------------------------------

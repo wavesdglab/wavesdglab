@@ -25,7 +25,7 @@ for e=1:mesh.numE
     % Numerical solution, reference solution, error + all the derivatives
     solQ = shapeQ * vecSol(dofm.locToGlo(e,:));
     solDerQ = shapeDerQ * vecSol(dofm.locToGlo(e,:)) * (2/length);
-    [refQ, refDerQ] = mySol1D(coordGlo);
+    [refQ, refDerQ] = mySol(coordGlo);
     errQ = solQ - refQ;
     errDerQ = solDerQ - refDerQ;
     

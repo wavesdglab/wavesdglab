@@ -23,7 +23,7 @@ for e=1:mesh.numE
     coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
     
     % Reference solution
-    refQ = mySol1D(coordGlo);
+    refQ = mySol(coordGlo);
     
     % Local matrix and RHS vector
     matLocP = shapeQ' * (weights .* shapeQ) * length/2;
