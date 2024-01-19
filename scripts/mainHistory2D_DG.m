@@ -1,4 +1,4 @@
-close all;
+% close all;
 clear all;
 
 global k;
@@ -7,7 +7,7 @@ degree = 3;
 tau = 1;
 theta = 1;
 tol = 1e-100;
-PREC = 0;
+PREC = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
