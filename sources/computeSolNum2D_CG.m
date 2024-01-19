@@ -7,7 +7,10 @@ function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 global k
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
+matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
+matShiftedLaplacian = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
+
 
 % -------------------------------------------------------------------------
 % Quadrature
@@ -38,7 +41,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -64,11 +67,13 @@ for tri=1:mesh.numTri
     matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
     matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
     rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-    
+
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
+    matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
+    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
     
 end
 
@@ -148,28 +153,30 @@ end
 
 % Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
-dofG = 1:numDofTRIred;
+dofG = 1:numDofTRIred; % noeuds qu'on garde : noeuds des vertex + arètes
 dofI = (numDofTRIred+1):dofm.numDofTRI;
-sysA.matII = matA(dofI,dofI);
+sysA.matII = matA(dofI,dofI); % ddl intérieurs 
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
-sysA.matIIinv = inv(sysA.matII);
+% sysA.matIIinv = inv(sysA.matII);
 
 % Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
 
 % Reduced system
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
-sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
+% sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
+% sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
-    warning('NO PRECONDITIONNING TECHNIQUE CODED YET FOR CG.')
-    sysA.matP = 1;
+    warning('DO NOT USE Pinv : USE P\ INSTEAD');
+    % sysA.matP = matM;
+    sysA.matP = matShiftedLaplacian;
+    % sysA.matP = 1;
     sysA.matPinv = 1;
 else
     sysA.matP = 1;
@@ -177,9 +184,10 @@ else
 end
 
 % Compute solution
-solG = sysA.matS\sysA.rhsS;
-solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
-solA = [ solG ; solI ];
+% solG = sysA.matS\sysA.rhsS;
+% solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
+% solA = [ solG ; solI ];
+solA = 0;
 
 end
 
