@@ -8,7 +8,6 @@ addpath(genpath('benchmarks/'));
 addpath(genpath('scripts/'));
 addpath(genpath('sources/'));
 addpath(genpath('tools/'));
-addpath(genpath('tools/eigtool/'));
 
 path1 = getenv('PATH');
 if(~contains(path1, ':/Applications/Gmsh.app/Contents/MacOS/'))
