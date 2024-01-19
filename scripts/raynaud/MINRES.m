@@ -36,7 +36,7 @@ switch benchmark
         L = 1.1;
         R_disk = 1;
         L_PML = 0.2;
-        computeSolNum2D = @computeSolNum2DPML_CG;
+        computeSolNum2D = @computeSolNum2D_PML_CG;
     case 'scattering_rect'
         k = 7.5*pi;
         h = 0.4;
@@ -44,7 +44,7 @@ switch benchmark
         L = 0.95;
         L_PML = 0.2;
         l = 0.5;
-        computeSolNum2D = @computeSolNum2DPML_CG;
+        computeSolNum2D = @computeSolNum2D_PML_CG;
     case 'waveguide'
         k = 6*pi;
         h = 1/8;

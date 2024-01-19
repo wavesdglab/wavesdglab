@@ -8,6 +8,7 @@ global k
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
+matShiftedLaplacian = sparse(dofm.numDofTRI,dofm.numDofTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
 
@@ -36,12 +37,11 @@ for tri=1:mesh.numTri
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3); 
+    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
 
-    
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -68,13 +68,12 @@ for tri=1:mesh.numTri
     matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
     rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
 
-    
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
     matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
-    % matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
+    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
     
 end
 
@@ -176,8 +175,8 @@ sysA.rhsA = rhsA;
 if (PREC == 1)
     warning('DO NOT USE Pinv : USE P\ INSTEAD');
     % sysA.matP = matM;
-    % sysA.matP = matShiftedLaplacian;
-    sysA.matP = 1;
+    sysA.matP = matShiftedLaplacian;
+    % sysA.matP = 1;
     sysA.matPinv = 1;
 else
     sysA.matP = 1;
