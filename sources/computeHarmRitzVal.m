@@ -3,7 +3,7 @@
 % Author: Timothee Raynaud, Axel Modave, Pierre Marchand
 
 % This function computes the HRV (reps. RV) at step i and the distance between the iEig smallest eigenvalues and the HRV (resp. RV)
-function [hrv, dist_hrv, rv, dist_rv] = computeHRV(H, cs, sn, i, A, iEig)
+function [hrv, dist_hrv, rv, dist_rv] = computeHarmRitzVal(H, cs, sn, i, A, iEig)
 
 % HRV and RV
 matQ = eye(i+1,i+1);
