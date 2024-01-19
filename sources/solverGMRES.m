@@ -9,6 +9,7 @@ function [resVec, errorVec, i, flag, x] = solverGMRES(mesh, dofm, sys, tol, iMax
 A = sys.matA;
 b = sys.rhsA;
 P = sys.matP;
+Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 H = zeros(iMax+1,iMax+1);
@@ -17,7 +18,7 @@ sn = zeros(iMax,1);
 cs = zeros(iMax,1);
 beta = zeros(iMax+1,1);
 
-r = P\(b-A*x);
+r = Pinv*(b-A*x);
 beta(1) = sqrt(r'*P*r);
 Q(:,1) = r/beta(1);
 
@@ -25,7 +26,6 @@ resVec = zeros(iMax/iOut+1,1);
 errorVec = zeros(iMax/iOut+1,1);
 
 %%%%%%%
-resInit = abs(beta(1));
 resVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, x);
 fprintf('[%i] %g %g\n', 0, resVec(1), errorVec(1));
@@ -36,7 +36,7 @@ i = 1;
 while(i <= iMax)
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    Q(:,i+1) = P\A*Q(:,i);
+    Q(:,i+1) = Pinv*A*Q(:,i);
     for j = 1:i
         H(j,i) = Q(:,j)' * P * Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
@@ -61,7 +61,7 @@ while(i <= iMax)
     beta(i:i+1) = matGivens * beta(i:i+1);
     
     % Update the residual vector
-    relRes = abs(beta(i+1)) / resInit;
+    relRes = abs(beta(i+1)) / norm(beta(1));
     
     %%%%%%%
     if(mod(i,iOut) == 0)
