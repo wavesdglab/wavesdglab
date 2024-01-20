@@ -4,9 +4,9 @@
 
 function setup()
 
-addpath('scripts/');
 addpath(genpath('sources/'));
 addpath(genpath('tools/'));
+addpath('scripts/');
 
 % directoryGmsh = ':/Applications/Gmsh.app/Contents/MacOS/';
 % directoryGmsh = ':/home/pescuma/Desktop/gmsh-4.11.1-Linux64/bin';
