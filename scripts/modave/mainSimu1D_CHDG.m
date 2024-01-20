@@ -1,5 +1,5 @@
 clear all;
-%close all;
+close all;
 
 global k h BCLeft BCRight
 
@@ -31,7 +31,6 @@ disp(['    tau                 ' num2str(tau)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] =  computeSolNum1D_CHDG(mesh, dofm, tau);
-%[solA, sysA] =  computeSolNum1D_CHDGb(mesh, dofm, tau);
 errorL2 = computeNormError1D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_1D_DG(mesh, dofm);
@@ -52,7 +51,7 @@ disp(['---------------------------------------------------------']);
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = sysA.matA;
+% mat = sysA.matS;
 % [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
@@ -61,6 +60,7 @@ disp(['---------------------------------------------------------']);
 % disp(['    Size                ' num2str(size(mat,1))]);
 % disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+% disp(['    specRad(mat) = 1-   ' num2str(1-max(abs(eigenval-1)),'%1.2e')]);
 % 
 % % Plot spectrum
 % figure;
@@ -79,27 +79,30 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
-switch solver
-    case 'CGNR'
-        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
-    case 'GMRES'
-        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
-end
-
-figure;
-hold off
-semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
-hold on
-semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
-semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-box on;
-grid on;
-legend('Location','southwest');
-title(['CHDG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-xlim([0 maxit]);
-ylim([1e-3 1]);
-xlabel('Iteration');
-ylabel('Value');
+% solver = 'Rich'; tol = 0; maxit = 300; itout = 1;
+% switch solver
+%     case 'Rich'
+%         alpha = 1;
+%         [resRedVec, resPhyVec, errorVec] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError1D_DG);
+%     case 'CGNR'
+%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+%     case 'GMRES'
+%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+% end
+% 
+% figure;
+% hold off
+% semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+% hold on
+% semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
+% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% title(['CHDG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([1e-3 1]);
+% xlabel('Iteration');
+% ylabel('Value');

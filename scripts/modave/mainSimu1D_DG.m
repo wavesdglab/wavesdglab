@@ -82,26 +82,26 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'GMRES'; tol = 1e-10; maxit = 300; itout = 1;
-switch solver
-    case 'CGNR'
-        [resPhyVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
-    case 'GMRES'
-        [resPhyVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
-end
-
-figure;
-hold off
-semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
-hold on
-semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-box on;
-grid on;
-legend('Location','southwest');
-title(['DG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-xlim([0 maxit]);
-ylim([1e-3 1]);
-xlabel('Iteration');
-ylabel('Value');
+% solver = 'CGNR'; tol = 1e-10; maxit = 300; itout = 1;
+% switch solver
+%     case 'CGNR'
+%         [resPhyVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+%     case 'GMRES'
+%         [resPhyVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
+% end
+% 
+% figure;
+% hold off
+% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
+% hold on
+% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% title(['DG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+% xlim([0 maxit]);
+% ylim([1e-3 1]);
+% xlabel('Iteration');
+% ylabel('Value');

@@ -100,7 +100,7 @@ for e=1:mesh.numE
             case 'DIR'
                 matGG(idPstar,idPstar) = matGG(idPstar,idPstar) + 1;
                 rhsG(idPstar) = solPL;
-            case 'DIRu'
+            case 'NEU'
                 matGI(idPstar,idIntP)  = matGI(idPstar,idIntP)  + tau;
                 matGI(idPstar,idIntU)  = matGI(idPstar,idIntU)  - 1;
                 matGG(idPstar,idPstar) = matGG(idPstar,idPstar) - tau;
@@ -134,7 +134,7 @@ for e=1:mesh.numE
             case 'DIR'
                 matGG(idPstar,idPstar) = matGG(idPstar,idPstar) + 1;
                 rhsG(idPstar) = solPR;
-            case 'DIRu'
+            case 'NEU'
                 matGI(idPstar,idIntP)  = matGI(idPstar,idIntP)  + tau;
                 matGI(idPstar,idIntU)  = matGI(idPstar,idIntU)  + 1;
                 matGG(idPstar,idPstar) = matGG(idPstar,idPstar) - tau;

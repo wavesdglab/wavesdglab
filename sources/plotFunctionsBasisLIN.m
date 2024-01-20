@@ -70,4 +70,15 @@ xlabel('$u$','Interpreter','latex','FontSize',16);
 title('Bernstein functions');
 box on
 
+% Current functions
+
+figure(6);
+val = functionsShapeLIN(x,degree);
+plot(x,val,'Linewidth',2);
+ylim([-1 1]);
+legend('$f_0$','$f_1$','$f_2$','$f_3$','$f_4$','Interpreter','latex','FontSize',16);
+xlabel('$u$','Interpreter','latex','FontSize',16);
+title('Current functions');
+box on
+
 end

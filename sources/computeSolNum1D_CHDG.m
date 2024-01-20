@@ -104,7 +104,7 @@ for e=1:mesh.numE
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = -1;
                 rhsG(idChar) = 2*tau*solPL;
-            case 'DIRu'
+            case 'NEU'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = +1;
                 rhsG(idChar) = 2*solUL;
@@ -133,7 +133,7 @@ for e=1:mesh.numE
                 matGI(idChar,idIntP) = +tau;
                 matGI(idChar,idIntU) = +1;
                 rhsG(idChar) = 2*tau*solPR;
-            case 'DIRu'
+            case 'NEU'
                 matGI(idChar,idIntP) = -tau;
                 matGI(idChar,idIntU) = -1;
                 rhsG(idChar) = -2*solUR;

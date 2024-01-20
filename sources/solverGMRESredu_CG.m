@@ -28,10 +28,12 @@ errorVec  = zeros(iMax/iOut+1,1);
 %%%%%%%
 xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
 rPhy = sys.rhsA - sys.matA*xPhy;
-resPhyIni = rPhy'*rPhy;
+resRedIni = abs(beta(1));
+resPhyIni = sqrt(rPhy'*rPhy);
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, xPhy);
+fprintf('[%i] %g %g %g\n', 1, resRedVec(1), resPhyVec(1), errorVec(1));
 %%%%%%%
 
 flag = 0;
@@ -71,7 +73,7 @@ while(i <= iMax)
     beta(i:i+1) = matGivens * beta(i:i+1);
     
     % Update the residual vector
-    relRes = abs(beta(i+1)) / norm(beta(1));
+    relRes = abs(beta(i+1)) / resRedIni;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
@@ -80,11 +82,11 @@ while(i <= iMax)
         
         xPhy = [ x ; sys.matII\(sys.rhsI-sys.matIG*x) ];
         rPhy = sys.rhsA - sys.matA*xPhy;
-        resPhyNew = rPhy'*rPhy;
+        resPhyNew = sqrt(rPhy'*rPhy);
         resRedVec(i/iOut+1) = relRes;
-        resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
+        resPhyVec(i/iOut+1) = resPhyNew/resPhyIni;
         errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
-        fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
+        fprintf('[%i] %g %g %g\n', i, resRedVec(i/iOut+1), resPhyVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
     

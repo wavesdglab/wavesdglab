@@ -137,9 +137,9 @@ end
 % matP = 1;
 
 % Preconditioning (1) — Symmetric
-matP = sqrt(matP);
-matA = matP\(matA/matP);
-rhsA = matP\rhsA;
+% matP = sqrt(matP);
+% matA = matP\(matA/matP);
+% rhsA = matP\rhsA;
 
 % Matrix partition
 dofG = 1:dofm.numDofGam;
@@ -166,7 +166,7 @@ solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
 
 % Preconditioning (2)
-solA = matP\solA;
+% solA = matP\solA;
 
 % TO IMPROVE IN THE FUTURE
 sysA.matP = 1;
