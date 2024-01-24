@@ -6,7 +6,7 @@ function plotField1D(mesh, dofm, vecSol, nameTitle)
 
 numVizuPntPerE = 30;
 coordLoc  = linspace(-1,1,numVizuPntPerE)';
-shapeFunc = functionsShape1D(coordLoc,dofm.degree);
+shapeFunc = functionsShapeLIN(coordLoc,dofm.degree);
 
 vizuCoord = zeros(numVizuPntPerE,mesh.numE);
 vizuVal   = zeros(numVizuPntPerE,mesh.numE);
@@ -23,6 +23,6 @@ hold on
 plot(vizuCoord(:),imag(vizuVal(:)),'r','LineWidth',2,'DisplayName','Imaginary part');
 title(nameTitle);
 lgd = legend;
-lgd.FontSize = 14;
+lgd.FontSize = 12;
 
 end
