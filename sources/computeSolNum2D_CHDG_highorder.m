@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC)
+function [solI, sysA, condLoc] = computeSolNum2D_CHDG_highorder(mesh, dofm, tau, BASIS, PREC)
 
-global k
+global k edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -282,7 +282,7 @@ for tri=1:mesh.numTri
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)    
             matGGel = matM_GGel;
@@ -375,7 +375,7 @@ for tri=1:mesh.numTri
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions) 
             % FIX WITH B.C. 
@@ -518,20 +518,4 @@ end
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

@@ -4,7 +4,7 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC)
 
-global omega
+global omega edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -170,7 +170,7 @@ for tri=1:mesh.numTri
             [~, ~, ~, ~, ~, ~, ~, ~, etaNeigh] = mySol2D_heterogeneous(x_C,y_C);
         else
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             switch BC
                 case {'DIR', 'NEU', 'ABC'}
                     etaNeigh = eta;
@@ -254,7 +254,7 @@ for tri=1:mesh.numTri
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
@@ -367,20 +367,4 @@ end
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

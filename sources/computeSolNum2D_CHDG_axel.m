@@ -4,7 +4,7 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_axel(mesh, dofm, ~, ~, PREC, order)
 
-global k
+global k edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -246,7 +246,7 @@ for tri=1:mesh.numTri
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = tagToBC(mesh.tagEdg(edgGlo));
+            BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
             switch BC
