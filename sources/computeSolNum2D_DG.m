@@ -83,7 +83,7 @@ for tri=1:mesh.numTri
 end
 
 matM  = sparse(matXv,matYv,matMv);   % Mass matrix
-matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (anverse)
+matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (onverse)
 matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
 matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
 
