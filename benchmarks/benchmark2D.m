@@ -11,13 +11,6 @@ switch tag
         BCSouth = 'DIR';
         linkMsh = 'benchmarks/cavity/cavity.msh';
         linkGeo = 'benchmarks/cavity/cavity.geo';
-    case 'cavity (heterogeneous)'
-        BCWest  = 'DIR';
-        BCNorth = 'DIR';
-        BCEast  = 'DIR';
-        BCSouth = 'DIR';
-        linkMsh = 'benchmarks/cavity_heterogeneous/cavity_heterogeneous.msh';
-        linkGeo = 'benchmarks/cavity_heterogeneous/cavity_heterogeneous.geo';
     case 'waveguide'
         BCWest  = 'DIR';
         BCNorth = 'DIR';
@@ -25,13 +18,6 @@ switch tag
         BCSouth = 'DIR';
         linkMsh = 'benchmarks/waveguide/waveguide.msh';
         linkGeo = 'benchmarks/waveguide/waveguide.geo';
-    case 'waveguide (heterogeneous)'
-        BCWest  = 'DIR';
-        BCNorth = 'DIR';
-        BCEast  = 'ABC';
-        BCSouth = 'DIR';
-        linkMsh = 'benchmarks/waveguide_heterogeneous/waveguide_heterogeneous.msh';
-        linkGeo = 'benchmarks/waveguide_heterogeneous/waveguide_heterogeneous.geo';    
     case 'open'
         BCWest  = 'ABC';
         BCNorth = 'ABC';
@@ -39,20 +25,6 @@ switch tag
         BCSouth = 'ABC';
         linkMsh = 'benchmarks/open/open.msh';
         linkGeo = 'benchmarks/open/open.geo';
-    case 'open (heterogeneous)'
-        BCWest  = 'ABC';
-        BCNorth = 'ABC';
-        BCEast  = 'ABC';
-        BCSouth = 'ABC';
-        linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
-        linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
-    case 'square'
-        BCWest  = 'DIR';
-        BCNorth = 'DIR';
-        BCEast  = 'DIR';
-        BCSouth = 'DIR';
-        linkMsh = 'benchmarks/square/square.msh';
-        linkGeo = 'benchmarks/square/square.geo';
     otherwise
         warning('Error - No valid benchmark has been set.')
 end

@@ -9,14 +9,14 @@ switch TAGbench
         solVx = solDx/(1i*k);
         solVy = solDy/(1i*k);
     case 'waveguide'
-        L = 4.;
+        L = 1.;
         theta = 30.*(pi/180.);
         [solU, solDx, solDy] = waveguide(x,y,k,L,theta);
         solF = 0*x;
         solVx = solDx/(1i*k);
         solVy = solDy/(1i*k);
     case 'open'
-        theta = pi/4; %pi/4
+        theta = pi/4;
         solU  = exp(1i*k*(cos(theta)*x+sin(theta)*y));
         solF  = 0*x;
         solDx = 1i*k*cos(theta) * solU;
@@ -26,5 +26,4 @@ switch TAGbench
     otherwise
         warning('Error - No valid benchmark has been set.')
 end
-
 end
