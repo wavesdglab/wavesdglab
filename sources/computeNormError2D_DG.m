@@ -57,7 +57,7 @@ for tri=1:mesh.numTri
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol2D(xQ,yQ);
+        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     end
     
     % Error fields
