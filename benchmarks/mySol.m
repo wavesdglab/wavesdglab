@@ -10,6 +10,7 @@ switch TAGbench
         solVy = solDy/(1i*k);
     case 'waveguide'
         L = 1.;
+        L = 4.;
         theta = 30.*(pi/180.);
         [solU, solDx, solDy] = waveguide(x,y,k,L,theta);
         solF = 0*x;
