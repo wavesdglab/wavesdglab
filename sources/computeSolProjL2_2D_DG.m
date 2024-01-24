@@ -30,7 +30,7 @@ for tri=1:mesh.numTri
     
     % Reference solution
     [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
-
+    
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
