@@ -1,8 +1,10 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Authors: Axel Modave, Timothée Raynaud
 
 function [errorL2, errorH1, normL2, normH1] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
+
+global LdomX LdomY
 
 % Quadrature
 degreeQ = 2*dofm.degree;
@@ -27,6 +29,12 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
+    
+    if(~isempty(LdomX) && ~isempty(LdomY))
+        if ((max(abs(xQ)) >= LdomX) || (max(abs(yQ)) >= LdomY))
+            continue;
+        end
+    end
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);

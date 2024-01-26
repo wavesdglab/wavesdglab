@@ -1,8 +1,8 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
-global k R_disk
+global k Rdisk
 
-solU = solScattPlaneWaveHard(k,R_disk,x,y);
+solU = solScattPlaneWaveHard(k,Rdisk,x,y);
 solF = 0*x;
 solDx = -1i*k*exp(1i*k*x);
 solDy = 0*x;

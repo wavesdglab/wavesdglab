@@ -1,18 +1,18 @@
 //Mesh.MshFileVersion = 2.2;
 
-Printf("Parameters : L = %f, L_PML = %f\n", L, L_PML);
+Printf("Parameters : LdomX = %f, LdomY = %f\n", LpmlX = %f, LpmlY = %f, LdomX, LdomY, LpmlX, LpmlY);
 
 // Points de la frontiere exterieure
-Point(1) = {-(L+L_PML), -(L+L_PML), 0, 1.0};
-Point(2) = {(L+L_PML), -(L+L_PML), 0, 1.0};
-Point(3) = {(L+L_PML), (L+L_PML), 0, 1.0};
-Point(4) = {-(L+L_PML), (L+L_PML), 0, 1.0};
+Point(1) = {-(LdomX+LpmlX), -(LdomY+LpmlY), 0, 1.0};
+Point(2) = { (LdomX+LpmlX), -(LdomY+LpmlY), 0, 1.0};
+Point(3) = { (LdomX+LpmlX),  (LdomY+LpmlY), 0, 1.0};
+Point(4) = {-(LdomX+LpmlX),  (LdomY+LpmlY), 0, 1.0};
 
 // Points de la frontiere domaine-PML
-Point(5) = {-L, -L, 0};
-Point(6) = {L, -L, 0};
-Point(7) = {L, L, 0};
-Point(8) = {-L, L, 0};
+Point(5) = {-LdomX, -LdomY, 0};
+Point(6) = { LdomX, -LdomY, 0};
+Point(7) = { LdomX,  LdomY, 0};
+Point(8) = {-LdomX,  LdomY, 0};
 
 // Frontiere exterieure
 Line(1) = {1, 4};

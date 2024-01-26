@@ -1,10 +1,11 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Authors: Axel Modave, Timothée Raynaud
 
 function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
 global k edgTagToBC
+global LdomX LdomY LpmlX LpmlY
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
@@ -40,7 +41,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-
+    
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -63,16 +64,35 @@ for tri=1:mesh.numTri
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices
-    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
-    matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
-    rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-
+    if(isempty(LdomX) && isempty(LdomY))
+        
+        % ... without PML
+        matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
+        matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
+        rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
+        
+    else
+        
+        % ... with PML
+        sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+        sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+        gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+        gammaPmlY = ones(size(xQ)) - sigmaPmlY/(1i*k);
+        alphaPml = gammaPmlX .* gammaPmlY;
+        
+        matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alphaPml) * detJdxdu;
+        matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ .* gammaPmlY ./ gammaPmlX) ...
+            + shapeDyQ' * (weightsTriQ .* shapeDyQ .* gammaPmlX ./ gammaPmlY) ) * detJdxdu;
+        rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
+        
+    end
+    
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
     matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
-    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
+    % matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
     
 end
 
@@ -160,9 +180,9 @@ end
 
 % Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
-dofG = 1:numDofTRIred; % noeuds qu'on garde : noeuds des vertex + arètes
-dofI = (numDofTRIred+1):dofm.numDofTRI;
-sysA.matII = matA(dofI,dofI); % ddl intérieurs 
+dofG = 1:numDofTRIred;                   % DOFs for reduced system
+dofI = (numDofTRIred+1):dofm.numDofTRI;  % DOFs eliminated by static condensation
+sysA.matII = matA(dofI,dofI);
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
