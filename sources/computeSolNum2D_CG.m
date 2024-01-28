@@ -63,29 +63,22 @@ for tri=1:mesh.numTri
     % RHS function
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
-    % Elemental matrices
-    if(isempty(LdomX) && isempty(LdomY))
-        
-        % ... without PML
-        matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
-        matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
-        rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-        
-    else
-        
-        % ... with PML
+    % PML stretching
+    if(~isempty(LdomX) && ~isempty(LdomY))
         sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
         sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
         gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
         gammaPmlY = ones(size(xQ)) - sigmaPmlY/(1i*k);
-        alphaPml = gammaPmlX .* gammaPmlY;
-        
-        matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ .* alphaPml) * detJdxdu;
-        matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ .* gammaPmlY ./ gammaPmlX) ...
-            + shapeDyQ' * (weightsTriQ .* shapeDyQ .* gammaPmlX ./ gammaPmlY) ) * detJdxdu;
-        rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-        
+        detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
+        shapeDxQ = shapeDxQ ./ gammaPmlX;
+        shapeDyQ = shapeDyQ ./ gammaPmlY;
     end
+    
+    % Elemental matrices/vectors
+    weightsQ = weightsTriQ .* detJdxdu;
+    matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    matKel = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
+    rhsPel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
@@ -139,9 +132,10 @@ for edgBnd=1:mesh.numEdgBnd
     shapeOrQ = shapeLinQ * orientation;
     
     % Elemental matrices/vectors
-    matMel = shapeOrQ' * (weightsLinQ .* shapeOrQ) * Jdxdu;
-    rhsDel = shapeOrQ' * (weightsLinQ .* dirQ) * Jdxdu;
-    rhsNel = shapeOrQ' * (weightsLinQ .* neuQ) * Jdxdu;
+    weightsQ = weightsLinQ * Jdxdu;
+    matMel = shapeOrQ' * (weightsQ .* shapeOrQ);
+    rhsDel = shapeOrQ' * (weightsQ .* dirQ);
+    rhsNel = shapeOrQ' * (weightsQ .* neuQ);
     
     % Boundary condition
     switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
