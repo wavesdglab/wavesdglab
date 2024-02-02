@@ -5,7 +5,7 @@
 function plotFunctionsShapeLIN()
 
 x = -1:0.01:1;
-degree = 10;
+degree = 5;
 
 % Shape functions
 
@@ -19,15 +19,6 @@ xlabel('$u$','Interpreter','latex','FontSize',16);
 title('Shape Functions');
 box on
 
-Q = 10;
-[nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,degree);
-for i=1:degree+1
-    L2norm(i) = weights(:)' * abs(shapeFunc(:,i));
-end
-L2norm = sqrt(L2norm);
-L2norm'
-
 % Derivative of the shape functions
 
 figure(2);
@@ -38,15 +29,5 @@ legend('$d\phi_0$','$d\phi_1$','$d\phi_2$','$d\phi_3$','$d\phi_4$','Interpreter'
 xlabel('$u$','Interpreter','latex','FontSize',16);
 title('Shape Functions (derivative)');
 box on
-% 
-
-Q = 10;
-[nodes, weights] = quadratureGaussLIN(Q);
-shapeFunc = functionsShape1D(nodes,degree);
-for i=1:degree+1
-    L2norm(i) = weights(:)' * abs(shapeFunc(:,i));
-end
-L2norm = sqrt(L2norm);
-L2norm'
 
 end

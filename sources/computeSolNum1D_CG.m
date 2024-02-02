@@ -11,11 +11,11 @@ global k BCLeft BCRight
 % -------------------------------------------------------------------------
 
 Q = 16;
-[nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
-shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
-matMelem = shapeQ' * (weights .* shapeQ);
-matKelem = shapeDerQ' * (weights .* shapeDerQ);
+[uQ, weightsQ] = quadratureGaussLIN(Q);
+shapeQ = functionsShapeLIN(uQ, dofm.degree);
+shapeDerQ = functionsShapeDerLIN(uQ, dofm.degree);
+matMelem = transpose(shapeQ) * (weightsQ .* shapeQ);
+matKelem = transpose(shapeDerQ) * (weightsQ .* shapeDerQ);
 
 % -------------------------------------------------------------------------
 % Volume terms
@@ -28,14 +28,14 @@ rhsA = zeros(dofm.numDof,1);
 for e=1:mesh.numE
     
     % Mapping
-    coord1 = mesh.coordV(mesh.listE(e,1));
-    coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2 - coord1);
-    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    V1 = mesh.coordV(mesh.listE(e,1));
+    V2 = mesh.coordV(mesh.listE(e,2));
+    length = abs(V2 - V1);
+    xQ = V1*(1-uQ)/2 + V2*(1+uQ)/2;
     
     % Local RHS vector
-    [~, ~, ~, rhsVol, ~, ~] = mySol(coordGlo);
-    rhsAloc = (shapeQ .* rhsVol).' * weights * (length/2);
+    [~, ~, ~, rhsVol, ~, ~] = mySol(xQ);
+    rhsAloc = (shapeQ .* rhsVol).' * weightsQ * (length/2);
     
     % Local matrices
     matMloc = matMelem * length/2;
@@ -56,9 +56,9 @@ matA = matK - k^2 * matM;
 
 switch PREC
     case 'PrecMass'
-        matP = inv(matM);
+        matP = matM;
     case 'PrecDiag'
-        matP = matA/diag(diag(matA));
+        matP = diag(diag(matA));
     case 'PrecShiftLap'
         matP = matK - shiftPrec*k^2 * matM;
     otherwise
@@ -143,33 +143,35 @@ end
 
 % Matrix partition
 dofG = 1:dofm.numDofGam;
-dofI = (1:dofm.numDofInt) + dofm.numDofGam;
+dofI = (dofm.numDofGam+1):(dofm.numDofGam+dofm.numDofInt);
 sysA.matII = matA(dofI,dofI);
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);
 sysA.rhsI = rhsA(dofI);
 sysA.rhsG = rhsA(dofG);
-sysA.matIIinv = inv(sysA.matII);
 
 % Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
 
 % Reduced system
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
-sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
+sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
+sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
+
+% Preconditionning
+if (strcmp(PREC,'PrecNone'))
+    sysA.matP = 1;
+else
+    sysA.matP = matP;
+end
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;
-solI = sysA.matIIinv*(sysA.rhsI-sysA.matIG*solG);
+solI = sysA.matII\(sysA.rhsI-sysA.matIG*solG);
 solA = [ solG ; solI ];
 
 % Preconditioning (2)
 % solA = matP\solA;
-
-% TO IMPROVE IN THE FUTURE
-sysA.matP = 1;
-sysA.matPinv = 1;
 
 end
