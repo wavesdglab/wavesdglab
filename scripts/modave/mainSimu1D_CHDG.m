@@ -5,10 +5,10 @@ global k h BCLeft BCRight
 
 % Setup benchmark and parameters
 degree = 3;
-k = 25;
-numE = 50;
+k = 10;
+numE = 30;
 h = 1/numE;
-tau = 1i; % 1i
+tau = 1; % 1i
 BCLeft = 'DIR';
 BCRight = 'DIR';
 
@@ -51,38 +51,40 @@ disp(['---------------------------------------------------------']);
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = full(sysA.matS);
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-% rankEigenVec = rank(eigenvec);
-% condEigenVec = cond(eigenvec);
-% 
-% disp(['    Size                ' num2str(size(mat,1))]);
-% disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
-% disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
-% disp(['    specRad(mat) = 1-   ' num2str(1-max(abs(eigenval-1)),'%1.2e')]);
-% 
-% % Plot spectrum
-% figure(1);
-% hold off; scatter(real(eigenval),imag(eigenval));
-% % hold on; plot(fovals(mat,100));
-% hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
-% grid on; box on;
-% 
-% % Compute condition number
-% condestMat = condest(mat);
-% 
-% disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
-% disp(['---------------------------------------------------------']);
+alpha = 0.7;
+mat = full(sysA.matS);
+mat = (1-alpha)*eye(size(sysA.matS,1)) + alpha*mat;
+[eigenvec, eigenval] = eigs(mat,size(mat,1));
+eigenval = diag(eigenval);
+rankEigenVec = rank(eigenvec);
+condEigenVec = cond(eigenvec);
+
+disp(['    Size                ' num2str(size(mat,1))]);
+disp(['    Rank(eigenvectors)  ' num2str(rankEigenVec)]);
+disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
+disp(['    specRad(mat) = 1-   ' num2str(1-max(abs(eigenval-1)),'%1.2e')]);
+
+% Plot spectrum
+figure(1);
+hold off; scatter(real(eigenval),imag(eigenval));
+% hold on; plot(fovals(mat,100));
+hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
+grid on; box on;
+
+% Compute condition number
+condestMat = condest(mat);
+
+disp(['    Cond(mat)           ' num2str(condestMat,'%1.2e')]);
+disp(['---------------------------------------------------------']);
 
 % -------------------------------------------------------------------------
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'CGNR'; tol = 1e-6; maxit = 300; itout = 1;
+solver = 'Rich'; tol = 1e-6; maxit = 300; itout = 1;
 switch solver
     case 'Rich'
-        alpha = 0.9;
+        alpha = 0.7;
         [resRedVec, resPhyVec, errorVec] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError1D_DG);
     case 'CGNR'
         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
@@ -90,7 +92,7 @@ switch solver
         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_DG);
 end
 
-figure;
+figure(2);
 hold off
 semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
 hold on

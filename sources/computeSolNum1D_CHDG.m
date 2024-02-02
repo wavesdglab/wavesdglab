@@ -182,7 +182,7 @@ sysA.rhsS = rhsS;
 sysA.matPhy = matPhy;
 sysA.rhsPhy = rhsPhy;
 
-% TO IMPROVE IN THE FUTURE
+% No preconditioning
 sysA.matP = 1;
 sysA.matPinv = 1;
 
