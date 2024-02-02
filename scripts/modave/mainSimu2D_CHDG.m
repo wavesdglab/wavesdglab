@@ -4,7 +4,7 @@ clear all;
 global k h
 
 % Setup benchmark and parameters
-benchmark = 'scattering_disk';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 15*pi; h = 1/16;
@@ -26,7 +26,7 @@ end
 tau = 1;
 degree = 3;
 BASIS = 0;
-PREC = 0;
+PREC = 1;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -65,10 +65,10 @@ disp('---------------------------------------------------------');
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -102,30 +102,30 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'CGNR';
-% switch solver
-%     case 'Rich'
-%         alpha = 1;
-%         [resRedVec, resPhyVec, errorVec] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-%     case 'CGNR'
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-%     case 'GMRES'
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% end
-% 
-% figure;
-% hold off
-% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
-% hold on
-% semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
-% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Value');
+solver = 'Rich';
+switch solver
+    case 'Rich'
+        alpha = 1.;
+        [resRedVec, resPhyVec, errorVec] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+    case 'GMRES'
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
+end
+
+figure;
+hold off
+semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
+hold on
+semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+box on;
+grid on;
+legend('Location','southwest');
+title(['CHDG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.005 1]);
+xlabel('Iteration');
+ylabel('Value');
