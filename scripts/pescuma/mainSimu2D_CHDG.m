@@ -5,7 +5,7 @@ clear all;
 global omega      % if the medium is heterogeneous
 
 % Setup benchmark and parameters
-benchmark = 'open (heterogeneous)';
+benchmark = 'cavity_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -19,29 +19,28 @@ switch benchmark
         k = 6*pi; %6*pi
         h = 1/6; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
-    case 'open (heterogeneous)'
+    case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
         h = 1/16;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;   
-    case 'cavity (heterogeneous)'
+    case 'cavity_heterogeneous'
         omega = 15*pi; 
         h = 1/16;
         tol = 1e-10; maxit = 2000; itout = 100;
-    case 'waveguide (heterogeneous)'
+    case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
         h = 1/4; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 3;
-BASIS = 0;
+BASIS = 1;
 PREC = 1;
-order=[1,1];
-% [1,1] or [1,2] first order transmission conditions and characteristic variables: standard CHDG
-% [1,2]          first order transmission conditions and second order characteristic variables
-% [2,2]          second order transmission conditions and characteristic variables
+A = 1;              % order of numerical fluxes
+B = 2;              % order of transmission variables
+% order = [1,2];
 
 % Build mesh and DOF manager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
@@ -61,9 +60,11 @@ disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
+
+% [solA, sysA] = computeSolNum2D_CHDG_highorder(mesh, dofm, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_sqrt(mesh, dofm, BASIS, PREC);
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_sum(mesh, dofm, BASIS, PREC);
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
@@ -101,10 +102,10 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 % 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 %%
 % -------------------------------------------------------------------------
@@ -185,20 +186,20 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'GMRES';
-% switch solver
-%     case 'Rich'
-%         alpha = alpha_min;
-% %         [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
+solver = 'Rich';
+switch solver
+    case 'Rich'
+        alpha = 1;
+        [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
 %         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-%     case 'CGNR'
-% %         [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
+    case 'CGNR'
+        [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
 %         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-%     case 'GMRES'
-% %         [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
+    case 'GMRES'
+        [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
 %         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% 
-% end
+
+end
 % 
 % alpha = 1;
 % [CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);

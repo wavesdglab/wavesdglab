@@ -5,6 +5,7 @@
 function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, BASIS, PREC)
 
 global omega edgTagToBC
+global rho c eta k
 
 p = 0; % exponent of the power mean for the definition of \eta_F
 
@@ -62,11 +63,10 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Physical parameters on the element
-    x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
-    y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
-    [~, ~, ~, ~, ~, ~, ~, c, eta] = mySol2D_heterogeneous(x_C,y_C);
+    c_K   = c(tri);
+    eta_K = eta(tri);
 
-    k = omega / c;
+    k_K   = omega / c_K;
 
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -87,7 +87,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~, ~, ~, ~] = mySol2D_heterogeneous(xQ,yQ);
+    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ,yQ);
 
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -96,12 +96,12 @@ for tri=1:mesh.numTri
     rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     matIIel = [
-        -1i*k/eta*matMel  -matDXel                          -matDYel                          ;
-        -matDXel          -1i*k*eta*matMel                  zeros(numDofPerTRI,numDofPerTRI)  ;
-        -matDYel          zeros(numDofPerTRI,numDofPerTRI)  -1i*k*eta*matMel                  ];
+        -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                          ;
+        -matDXel                    -1i*k(tri)*eta(tri)*matMel        zeros(numDofPerTRI,numDofPerTRI)  ;
+        -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel                  ];
     
     rhsIel = [
-        -1/(1i*k*eta)*rhsPel  ; 
+        -1/(1i*k(tri)*eta(tri))*rhsPel ; 
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -161,34 +161,26 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
 
         if(triNeigh>0)
-            verTri = mesh.mapTriToVer(triNeigh,:);
-            V1 = mesh.coord(verTri(1),:);
-            V2 = mesh.coord(verTri(2),:);
-            V3 = mesh.coord(verTri(3),:);
-
-            % Physical parameters on the neighboring element
-            x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
-            y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
-            [~, ~, ~, ~, ~, ~, ~, ~, etaNeigh] = mySol2D_heterogeneous(x_C,y_C);
+            etaNeigh = eta(triNeigh);
         else
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
             switch BC
-                case {'DIR', 'NEU', 'ABC'}
-                    etaNeigh = eta;
+                case {'DIR', 'NEU', 'ABC', 'ROB'}
+                    etaNeigh = eta(tri);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
         end
         
         if p > 100
-            etaF = max(eta,etaNeigh);
+            etaF = max(eta_K,etaNeigh);
         elseif p < -100
-            etaF = min(eta,etaNeigh);
+            etaF = min(eta_K,etaNeigh);
         elseif p == 0
-            etaF = sqrt(eta*etaNeigh);
+            etaF = sqrt(eta_K*etaNeigh);
         else
-            etaF = ((eta^p+etaNeigh^p)/2)^(1/p);
+            etaF = ((eta(tri)^p+eta(triNeigh)^p)/2)^(1/p);
         end
 
         % -----------------------------------------------------------------
@@ -217,10 +209,7 @@ for tri=1:mesh.numTri
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaF/2                        * ny * ny * matM_IIel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 1/2                                * ny * matM_IGel;
 
-%         [~, ~, ~, ~, ~, ~, ~, c, ~] = mySol2D_heterogeneous(x_C,y_C);
-%         c1 = 2;
-%         c2 = 0.8;
-% %         coefP = max(c1,c2)/c;
+%         coefP = max(c1,c2)/c;
         coefP = 1;
 
         % -----------------------------------------------------------------
@@ -259,10 +248,10 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~, ~, ~, ~, ~] = mySol2D_heterogeneous(xQ,yQ);
+            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ,yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;          
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k*eta);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k*eta);
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k_K*eta_K);
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k_K*eta_K);
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -278,6 +267,9 @@ for tri=1:mesh.numTri
                     matGIel = [-matM_GIel, -etaF*nx*matM_GIel, -etaF*ny*matM_GIel];
                     rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
+                    matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
+                    rhsGel  = (rhsPel - etaF * (nx*rhsUel  + ny*rhsVel));
+                case 'ROB'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
                     rhsGel  = (rhsPel - etaF * (nx*rhsUel  + ny*rhsVel));
                 otherwise

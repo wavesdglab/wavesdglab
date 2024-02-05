@@ -2,9 +2,12 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_axel(mesh, dofm, PREC, order)
+function [solI, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B)
 
 global k edgTagToBC
+global rho c eta k
+
+p = 0; % exponent of the power mean for the definition of \eta_F
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -126,14 +129,14 @@ for tri=1:mesh.numTri
     rhsPel = shapeLinQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     matIIel = [
-        -1i*k(tri)*matMel  -matDXel                          -matDYel                         ;
-        -matDXel           -1i*k(tri)*matMel                 zeros(numDofPerTRI,numDofPerTRI) ;
-        -matDYel           zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*matMel                ];
+        -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                         ;
+        -matDXel                    -1i*k(tri)*eta(tri)*matMel        zeros(numDofPerTRI,numDofPerTRI) ;
+        -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel       ];
     
     rhsIel = [
-        -1/(1i*k(tri))*rhsPel ;
-        zeros(numDofPerTRI,1) ;
-        zeros(numDofPerTRI,1) ];
+        -1/(1i*k(tri)*eta(tri))*rhsPel ;
+        zeros(numDofPerTRI,1)          ;
+        zeros(numDofPerTRI,1)          ];
     
     % ---------------------------------------------------------------------
     % Surface terms
@@ -155,6 +158,27 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
 
+        triNeigh = mesh.mapTriToTri(tri,fac);
+
+        if (triNeigh>0)
+            if p > 100
+                etaF = max(eta(tri),eta(triNeigh));
+                kF = max(k(tri),k(triNeigh));
+            elseif p < -100
+                etaF = min(eta(tri),eta(triNeigh));
+                kF = min(k(tri),k(triNeigh));
+            elseif p == 0
+                etaF = sqrt(eta(tri)*eta(triNeigh));
+                kF = sqrt(k(tri)*k(triNeigh));
+            else
+                etaF = ((eta(tri)^p+eta(triNeigh)^p)/2)^(1/p);
+                kF = ((k(tri)^p+k(triNeigh)^p)/2)^(1/p);
+            end
+        else
+            etaF = eta(tri);
+            kF = k(tri);
+        end
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -175,13 +199,13 @@ for tri=1:mesh.numTri
         % Mass matrices (physical space)
         matM_Lin = shapeLinQ' * (weightsLinQ .* shapeLinQ) * Jdxdu;
         matK_Lin = shapeLinDsQ' * (weightsLinQ .* shapeLinDsQ) / (Jdxdu);
-        matC_Lin = 0*matM_Lin; matC_Lin(1,1) = 1; matC_Lin(2,2) = 1;
+%         matC_Lin = 0*matM_Lin; matC_Lin(1,1) = 1; matC_Lin(2,2) = 1;
         
-        if (order(1) == 1)
+        if (A == 1)
             matB_Lin = matM_Lin;
         end
-        if (order(1) == 2)
-            matB_Lin = matM_Lin + 0.5/(k(tri)^2) * matK_Lin;
+        if (A == 2)
+            matB_Lin = matM_Lin + 0.5/(kF^2) * matK_Lin;
         end
         
         % Exterior normal
@@ -201,8 +225,8 @@ for tri=1:mesh.numTri
         idLocF = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         
         % Element matrices (local element-wise system)
-        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0.5 * matM_Lin;
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 * matM_Lin;
+        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0.5/etaF * matM_Lin;
+        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5/etaF * matM_Lin;
         
         matIFel(idLocU,idLocF) = matIFel(idLocU,idLocF) + nx  * matM_Lin;
         matIFel(idLocV,idLocF) = matIFel(idLocV,idLocF) + ny  * matM_Lin;
@@ -241,8 +265,8 @@ for tri=1:mesh.numTri
             % Source terms    
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
             rhsPel = shapeLinQ' * (weightsLinQ .* solQ) * Jdxdu; 
-            rhsUel = shapeLinQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri));  
-            rhsVel = shapeLinQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri));
+            rhsUel = shapeLinQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);  
+            rhsVel = shapeLinQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -257,11 +281,11 @@ for tri=1:mesh.numTri
                 case 'NEU'
                     matGGel = matM_Lin;
                     matGHel = -matM_Lin;
-                    rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
+                    rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGGel = matB_Lin + matM_Lin;                         % ====================================
                     matGHel = matB_Lin - matM_Lin;                         % ====================================
-                    rhsGel  = +2*(rhsPel - (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -288,15 +312,15 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        if (order(2) == 1)  % Upwind conditions (CHDG 1 & CHDG 3)
+        if (B == 1)  % Upwind conditions (CHDG 1 & CHDG 3)
             matHHel = matM_Lin;
             matHIel = 2 * [ -matM_Lin, -nx*matM_Lin, -ny*matM_Lin ];
             matHGel = - matM_Lin;
             matHFel = 2 * matM_Lin;
         end
-        if (order(2) == 2)  % High-order conditions (CHDG 2)
+        if (B == 2)  % High-order conditions (CHDG 2)
             matHHel = matB_Lin;
-            matHIel = [ -matM_Lin, -nx*matB_Lin, -ny*matB_Lin ];
+            matHIel = [ -matM_Lin, -nx*etaF*matB_Lin, -ny*etaF*matB_Lin ];
             matHGel = 0 * matM_Lin;
             matHFel = 0 * matM_Lin;
         end
