@@ -64,11 +64,11 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% global PML_HIDE; PML_HIDE = 1;
-% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+global PML_HIDE; PML_HIDE = 1;
+writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
