@@ -7,8 +7,8 @@ edgTag = {1, 2, 3, 4};
 BC = {'ROB', 'ROB', 'ROB', 'ROB'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/cavity/open_heterogeneous.msh';
-linkGeo = 'benchmarks/cavity/open_heterogeneous.geo';
+linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
+linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
 system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h)]);
 mesh = readMesh2D(linkMsh);
 

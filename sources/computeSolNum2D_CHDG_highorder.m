@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA, condLoc] = computeSolNum2D_CHDG_highorder(mesh, dofm, tau, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG_highorder(mesh, dofm, BASIS, PREC)
 
 global k edgTagToBC
 
@@ -115,12 +115,12 @@ for tri=1:mesh.numTri
     rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
     
     matIIel = [
-        -1i*k*matMel  -matDXel                          -matDYel                          ; 
-        -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI)  ;
-        -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                      ];
+        -1i*k(tri)*matMel  -matDXel                          -matDYel                          ; 
+        -matDXel           -1i*k(tri)*matMel                 zeros(numDofPerTRI,numDofPerTRI)  ;
+        -matDYel           zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*matMel                 ];
     
     rhsIel = [
-        -1/(1i*k)*rhsPel      ;
+        -1/(1i*k(tri))*rhsPel ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -170,6 +170,7 @@ for tri=1:mesh.numTri
             shapeFluDsQ = shapeFluLinDuQ * orientation2 / sqrt(Jdxdu);         % NEW
         else
             shapeAuxQ = shapePhyQ;
+            % shapeAuxDsQ = 
             shapeFluQ = shapePhyQ;                                             % NEW
         end
         
@@ -206,10 +207,10 @@ for tri=1:mesh.numTri
         idLocF = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;                          % NEW
         
         % Element matrices (local element-wise system)
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matM_IIel;
+        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5               * matM_IIel;
         matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matM_IIel;
         matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matM_IIel;
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) - 0.5*0.5/(k^2)     * matK_IIel;     % NEW
+        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) - 0.5*0.5/(k(tri)^2)* matK_IIel;     % NEW
 
         matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matM_IGel;
 
@@ -247,7 +248,7 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
-            matGIel = [-tau*matM_GIel + 0.5/(k^2)*matK_GIel, nx*matM_GIel, ny*matM_GIel];        % UPDATED
+            matGIel = [-matM_GIel + 0.5/(k(tri)^2)*matK_GIel, nx*matM_GIel, ny*matM_GIel];   % UPDATED
             matGFel = matM_GFel;                                                                 % NEW
 
             % Global ID for auxiliary and exterior unknowns
@@ -277,8 +278,8 @@ for tri=1:mesh.numTri
             % Source terms
             [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k);
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri));
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri));
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -291,14 +292,14 @@ for tri=1:mesh.numTri
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR'
-                    matGIel = [+tau*matM_GIel - 0.5/(k^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel];    % UPDATED
-                    rhsGel  = +2*tau*rhsPel;
+                    matGIel = [matM_GIel - 0.5/(k(tri)^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel];    % UPDATED
+                    rhsGel  = +2*rhsPel;
                 case 'NEU'
-                    matGIel = [-tau*matM_GIel + 0.5/(k^2)*matK_GIel, -nx*matM_GIel, -ny*matM_GIel];    % UPDATED
+                    matGIel = [-matM_GIel + 0.5/(k(tri)^2)*matK_GIel, -nx*matM_GIel, -ny*matM_GIel];    % UPDATED
                     rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = [+tau*matM_GIel - 0.5/(k^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);  % = 0, UPDATED
-                    rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    matGIel = [matM_GIel - 0.5/(k(tri)^2)*matK_GIel, +nx*matM_GIel, +ny*matM_GIel] * 0;  % = 0, UPDATED
+                    rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -339,8 +340,8 @@ for tri=1:mesh.numTri
         if (triNeigh > 0)
             
             % Elemental matrices (interface condition)
-            matFFel = matM_FFel - 0.5/(k^2)*matK_FFel;                                                    % NEW
-            matFIel = [-0.5*matM_FIel + 0.5*0.5/(k^2)*matK_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel];   % NEW
+            matFFel = matM_FFel - 0.5/(k(tri)^2)*matK_FFel;                                                    % NEW
+            matFIel = [-0.5*matM_FIel + 0.5*0.5/(k(tri)^2)*matK_FIel, -0.5*nx*matM_FIel, -0.5*ny*matM_FIel];   % NEW
             matFGel = -0.5*matM_FGel;                                                                     % NEW
 
             % Global ID for flux and exterior unknowns 
@@ -386,14 +387,17 @@ for tri=1:mesh.numTri
             rhsFel = zeros(dofm.numDofPerLIN,1);                              % NEW
             switch BC
                 case 'DIR'
-                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel];
-                    rhsFel  = +2*tau*rhsPel;
+                    matFIel = [matM_FIel, +nx*matM_FIel, +ny*matM_FIel];
+                    rhsFel  = +2*rhsPel;
                 case 'NEU'
                     matFIel = [-tau*matM_FIel, -nx*matM_FIel, -ny*matM_FIel];
                     rhsFel  = -2*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel] * (1-tau)/(1+tau);  % = 0
-                    rhsFel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel] * 0;  % = 0
+                    rhsFel  = +(rhsPel - (nx*rhsUel + ny*rhsVel));
+                case 'ROB'
+                    matFIel = [+tau*matM_FIel, +nx*matM_FIel, +ny*matM_FIel] * 0;  % = 0
+                    rhsFel  = +(rhsPel - (nx*rhsUel + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -502,8 +506,6 @@ sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 % Physical system
 sysA.matPhy = matII - matIG*(matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
-
-spy(sysA.matA)
 
 % Preconditionning
 if (PREC == 1)
