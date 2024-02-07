@@ -9,7 +9,7 @@ N = dofm.degree+1;
 Q = ceil((2*(N-1)+1)/2);
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShapeLIN(nodes,dofm.degree);
 
 % Compute (element-wise) L2-projection of the solution
 solP = zeros(dofm.numDof,1);

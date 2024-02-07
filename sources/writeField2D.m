@@ -4,6 +4,8 @@
 
 function writeField2D(dofm, mesh, field, nameFile, nameField)
 
+global LdomX LdomY PML_HIDE
+
 % Open file
 
 file = fopen(nameFile,'w');
@@ -110,8 +112,20 @@ fprintf(file,'1\n');
 fprintf(file,'%i\n',mesh.numTri);
 fprintf(file,'0\n');
 for tri=1:mesh.numTri
+    
     fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
     fieldTri = real(field(dofm.locToGloTRI(tri,:)));
+    
+    if(PML_HIDE == 1)
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        if(~isempty(LdomX) && ~isempty(LdomY))
+            if ((abs(mean(VX)) >= LdomX) || (abs(mean(VY)) >= LdomY))
+                fieldTri = NaN*fieldTri;
+            end
+        end
+    end
     
     % Orientation
     ver = mesh.mapTriToVer(tri,:);
@@ -149,8 +163,20 @@ fprintf(file,'1\n');
 fprintf(file,'%i\n',mesh.numTri);
 fprintf(file,'0\n');
 for tri=1:mesh.numTri
+    
     fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
     fieldTri = imag(field(dofm.locToGloTRI(tri,:)));
+    
+    if(PML_HIDE == 1)
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        if(~isempty(LdomX) && ~isempty(LdomY))
+            if ((abs(mean(VX)) >= LdomX) || (abs(mean(VY)) >= LdomY))
+                fieldTri = NaN*fieldTri;
+            end
+        end
+    end
     
     % Orientation
     ver = mesh.mapTriToVer(tri,:);

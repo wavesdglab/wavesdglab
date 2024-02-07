@@ -1,17 +1,17 @@
 clear all;
-close all;
+%close all;
 
 global k h BCLeft BCRight
 
 % Setup benchmark and parameters
 degree = 3;
-k = 20;
-numE = 200;
+k = 25;
+numE = 50;
 h = 1/numE;
 PREC = 'PrecNone'; % PrecNone PrecMass PrecDiag PrecShiftLap
-shiftPrec = 1; % 1+1i
+shiftPrec = 1+1i;
 BCLeft = 'DIR';
-BCRight = 'ABC';
+BCRight = 'DIR';
 
 % Build mesh and DOF manager
 mesh = setupBenchmark1D(0, 1, numE);
@@ -44,14 +44,18 @@ disp(['---------------------------------------------------------']);
 % Vizu solution
 % -------------------------------------------------------------------------
 
-% figure;
-% plotField1D(mesh, dofm, solA, 'Numerical solution');
+%figure;
+%plotField1D(mesh, dofm, solA, 'Numerical solution');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-% mat = sysA.matA;
+% %mat = sysA.matA;
+% %mat = sysA.matS;
+% mat = sysA.matP\sysA.matA;
+% %mat = sysA.matA'*sysA.matA;
+% %mat = sqrt(sysA.matP)\sysA.matA/sqrt(sysA.matP);
 % [eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
 % rankEigenVec = rank(eigenvec);
@@ -62,7 +66,7 @@ disp(['---------------------------------------------------------']);
 % disp(['    Cond(eigenvectors)  ' num2str(condEigenVec)]);
 % 
 % % Plot spectrum
-% figure;
+% figure(1);
 % hold off; scatter(real(eigenval),imag(eigenval));
 % % hold on; plot(fovals(mat,100));
 % hold on; plot(cos(0:0.01:2*pi)+1,sin(0:0.01:2*pi),'k');
@@ -78,29 +82,29 @@ disp(['---------------------------------------------------------']);
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'CGNR'; tol = 1e-10; maxit = 300; itout = 1;
-% switch solver
-%     case 'CGNR'
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
-%         %[resPhyVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
-%     case 'GMRES'
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
-%         %[resPhyVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
-% end
-% 
-% figure;
-% hold off
-% semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
-% hold on
-% semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
-% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% title(['CG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([1e-3 1]);
-% xlabel('Iteration');
-% ylabel('Value');
+solver = 'CGNR'; tol = 1e-6; maxit = 300; itout = 1;
+switch solver
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+        %[resPhyVec, errorVec] = solverCGNR(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+    case 'GMRES'
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+        %[resPhyVec, errorVec] = solverGMRES(mesh, dofm, sysA, tol, maxit, itout, @computeNormError1D_CG);
+end
+
+figure;
+hold off
+semilogy(0:itout:maxit,resPhyVec,'r','DisplayName','Relative residual (Phy)');
+hold on
+semilogy(0:itout:maxit,resRedVec,'b','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+%plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+box on;
+grid on;
+legend('Location','southwest');
+title(['CG - ' BCLeft '/' BCRight ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+ylim([1e-3 1]);
+xlabel('Iteration');
+ylabel('Value');
