@@ -22,7 +22,6 @@ switch benchmark
         k = 2*pi; h = 1/10;
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
-        global PML_TYPE; PML_TYPE = 'Rectangular';
 end
 tau = 1;
 degree = 3;

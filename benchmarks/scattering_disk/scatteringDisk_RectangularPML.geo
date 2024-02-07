@@ -26,28 +26,29 @@ Line(1) = {1, 4};
 Line(2) = {4, 3};
 Line(3) = {3, 2};
 Line(4) = {2, 1};
-Curve Loop(1) = {1, 2, 3, 4};
 
 // Boundary of the disk
 Circle(5) = {6, 9, 7};
 Circle(6) = {7, 9, 8};
 Circle(7) = {8, 9, 5};
 Circle(8) = {5, 9, 6};
-Curve Loop(2) = {5, 6, 7, 8};
 
 // PML/domain interface
 Line(9) = {10, 11};
 Line(10) = {11, 12};
 Line(11) = {12, 13};
 Line(12) = {13, 10};
-Curve Loop(3) = {11, 12, 9, 10};
 
-// Definition of the surfaces
-Plane Surface(1) = {3, 2};
-Plane Surface(2) = {1, 3};
+// Domain
+Curve Loop(1) = {5, 6, 7, 8, 11, 12, 9, 10};
+Plane Surface(1) = {1};
+
+// Layer
+Curve Loop(2) = {-1, -2, -3, -4, 11, 12, 9, 10};
+Plane Surface(2) = {2};
 
 // Definition of the physical regions
-Physical Curve("bd_obstacle", 201) = {5,6,7,8};
-Physical Curve("bd_pml", 202) = {1,2,3,4};
-Physical Surface("domain", 301) = {1};
-Physical Surface("pml", 302) = {2};
+Physical Curve(201) = {5,6,7,8};  // Boundary of scattering disk
+Physical Curve(202) = {1,2,3,4};  // Exterior boundary of the layer
+Physical Surface(301) = {1};      // Domain
+Physical Surface(302) = {2};      // Layer

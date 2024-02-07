@@ -4,7 +4,9 @@ global h edgTagToBC
 global LdomX LdomY LpmlX LpmlY Rdisk Rdom Rpml
 
 global PML_TYPE
-if(isempty(PML_TYPE)) PML_TYPE = 'Circular'; end
+if(isempty(PML_TYPE))
+    PML_TYPE = 'Circular';
+end
 
 switch PML_TYPE
     case 'Rectangular'
@@ -17,7 +19,7 @@ switch PML_TYPE
         
         % BCPML, BCObstacle
         edgTag = {201, 202};
-        BC = {'NEU', 'DIR0'};
+        BC = {'NEU', 'NEU0'};
         edgTagToBC = containers.Map(edgTag,BC);
         
         linkMsh = 'benchmarks/scattering_disk/scatteringDisk_RectangularPML.msh';
@@ -36,7 +38,7 @@ switch PML_TYPE
         
         % BCPML, BCObstacle
         edgTag = {201, 202};
-        BC = {'NEU', 'DIR0'};
+        BC = {'NEU', 'NEU0'};
         edgTagToBC = containers.Map(edgTag,BC);
         
         linkMsh = 'benchmarks/scattering_disk/scatteringDisk_CircularPML.msh';

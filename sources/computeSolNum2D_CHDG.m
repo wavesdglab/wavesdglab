@@ -135,7 +135,6 @@ for tri=1:mesh.numTri
                 -1i*k*matMelP  -matDXel        -matDYel       ;
                 -matDXel       -1i*k*matMelXX  -1i*k*matMelXY ;
                 -matDYel       -1i*k*matMelXY  -1i*k*matMelYY ];
-            
         end
     end
     
@@ -193,6 +192,12 @@ for tri=1:mesh.numTri
         
         weightsQ = weightsLinQ .* detJdxdu;
         
+        % Mass matrices (physical space)
+        matM_IIel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
+        matM_IGel = transpose(shapePhyQ) * (weightsQ .* shapeAuxQ);
+        matM_GIel = transpose(shapeAuxQ) * (weightsQ .* shapePhyQ);
+        matM_GGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
+        
         % -----------------------------------------------------------------
         % Physical equations
         % -----------------------------------------------------------------
@@ -204,20 +209,20 @@ for tri=1:mesh.numTri
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         
         % Element matrices (local element-wise system)
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau * transpose(shapePhyQ) * (weightsQ .*     shapePhyQ);
-        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * transpose(shapePhyQ) * (weightsQ .* nx.*shapePhyQ);
-        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * transpose(shapePhyQ) * (weightsQ .* ny.*shapePhyQ);
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5     * transpose(shapePhyQ) * (weightsQ .*     shapeAuxQ);
+        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matM_IIel;
+        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matM_IIel;
+        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matM_IIel;
+        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matM_IGel;
         
-        matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5     * transpose(nx.*shapePhyQ) * (weightsQ .*     shapePhyQ);
-        matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5/tau * transpose(nx.*shapePhyQ) * (weightsQ .* nx.*shapePhyQ);
-        matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5/tau * transpose(nx.*shapePhyQ) * (weightsQ .* ny.*shapePhyQ);
-        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau * transpose(nx.*shapePhyQ) * (weightsQ .*     shapeAuxQ);
+        matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matM_IIel;
+        matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5/tau * nx * nx * matM_IIel;
+        matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5/tau * nx * ny * matM_IIel;
+        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matM_IGel;
         
-        matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5     * transpose(ny.*shapePhyQ) * (weightsQ .*     shapePhyQ);
-        matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5/tau * transpose(ny.*shapePhyQ) * (weightsQ .* nx.*shapePhyQ);
-        matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5/tau * transpose(ny.*shapePhyQ) * (weightsQ .* ny.*shapePhyQ);
-        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau * transpose(ny.*shapePhyQ) * (weightsQ .*     shapeAuxQ);
+        matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matM_IIel;
+        matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5/tau * nx * ny * matM_IIel;
+        matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5/tau * ny * ny * matM_IIel;
+        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matM_IGel;
         
         % -----------------------------------------------------------------
         % Auxiliary equations
@@ -230,10 +235,8 @@ for tri=1:mesh.numTri
         if (triNeigh > 0)
             
             % Elemental matrices (interface condition)
-            matGGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
-            matGIel = [ -tau*transpose(shapeAuxQ) * (weightsQ .* shapePhyQ), ...
-                transpose(shapeAuxQ) * (weightsQ .* nx.*shapePhyQ), ...
-                transpose(shapeAuxQ) * (weightsQ .* ny.*shapePhyQ)];
+            matGGel = matM_GGel;
+            matGIel = [-tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
             
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -268,27 +271,21 @@ for tri=1:mesh.numTri
             matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
-                case {'DIR0','DIR'}
-                    matGIel = [tau*transpose(shapeAuxQ) * (weightsQ .* shapePhyQ), ...
-                        transpose(shapeAuxQ) * (weightsQ .* nx.*shapePhyQ), ...
-                        transpose(shapeAuxQ) * (weightsQ .* ny.*shapePhyQ)];
-                    if(strcmp(BC,'DIR'))
-                        rhsGel = +2*tau*rhsPel;
-                    end
-                case {'NEU0','NEU'}
-                    matGIel = [-tau*transpose(shapeAuxQ) * (weightsQ .* shapePhyQ), ...
-                        -transpose(shapeAuxQ) * (weightsQ .* nx.*shapePhyQ), ...
-                        -transpose(shapeAuxQ) * (weightsQ .* ny.*shapePhyQ)];
-                    if(strcmp(BC,'NEU'))
-                        rhsGel = -2*rhsNUel;
-                    end
-                case {'ABC','ROB'}
-                    matGIel = [tau*transpose(shapeAuxQ) * (weightsQ .* shapePhyQ), ...
-                        transpose(shapeAuxQ) * (weightsQ .* nx.*shapePhyQ), ...
-                        transpose(shapeAuxQ) * (weightsQ .* ny.*shapePhyQ)] * (1-tau)/(1+tau);
-                    if(strcmp(BC,'ROB'))
-                        rhsGel = +(rhsPel - rhsNUel) * (2*tau)/(1+tau);
-                    end
+                case 'DIR0'
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
+                case 'DIR'
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
+                    rhsGel = +2*tau*rhsPel;
+                case 'NEU0'
+                    matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
+                case 'NEU'
+                    matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
+                    rhsGel = -2*rhsNUel;
+                case 'ABC'
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);
+                case 'ROB'
+                    matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);
+                    rhsGel = +(rhsPel - rhsNUel) * (2*tau)/(1+tau);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

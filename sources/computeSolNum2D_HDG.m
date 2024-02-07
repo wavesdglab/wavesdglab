@@ -134,7 +134,6 @@ for tri=1:mesh.numTri
                 -1i*k*matMelP  -matDXel        -matDYel       ;
                 -matDXel       -1i*k*matMelXX  -1i*k*matMelXY ;
                 -matDYel       -1i*k*matMelXY  -1i*k*matMelYY ];
-            
         end
     end
     
