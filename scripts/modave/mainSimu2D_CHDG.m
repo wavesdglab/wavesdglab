@@ -22,11 +22,12 @@ switch benchmark
         k = 2*pi; h = 1/10;
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
+        global PML_TYPE; PML_TYPE = 'Rectangular';
 end
 tau = 1;
 degree = 3;
-BASIS = 0;
-PREC = 1;
+BASIS = 1;
+PREC = 0;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -52,24 +53,23 @@ disp(['---------------------------------------------------------']);
 % Compute numerical solution/error
 [solA, sysA] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC);
 errorL2 = computeNormError2D_DG(mesh, dofm, solA);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 
 % Compute projection solution/error
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
-
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-disp('---------------------------------------------------------');
+disp(['---------------------------------------------------------']);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% global PML_HIDE; PML_HIDE = 1;
+% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors

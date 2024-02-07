@@ -5,7 +5,7 @@
 function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC)
 
 global k edgTagToBC
-global LdomX LdomY LpmlX LpmlY
+global LdomX LdomY LpmlX LpmlY Rdom Rpml
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -78,7 +78,7 @@ for tri=1:mesh.numTri
     shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
-    % RHS function
+    % Source terms
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices/vectors
@@ -93,22 +93,50 @@ for tri=1:mesh.numTri
         -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI) ;
         -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                     ];
     
-    % PML stretching
+    % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
-        sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
-        sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-        gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-        gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
-        coefP = gammaPmlX.*gammaPmlY;
-        coefU = gammaPmlX./gammaPmlY;
-        coefV = gammaPmlY./gammaPmlX;
-        matMelP = transpose(shapePhyQ) * (weightsQ .* coefP .* shapePhyQ);
-        matMelU = transpose(shapePhyQ) * (weightsQ .* coefU .* shapePhyQ);
-        matMelV = transpose(shapePhyQ) * (weightsQ .* coefV .* shapePhyQ);
-        matIIel = [
-            -1i*k*matMelP  -matDXel                          -matDYel                         ;
-            -matDXel      -1i*k*matMelU                      zeros(numDofPerTRI,numDofPerTRI) ;
-            -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMelV                     ];
+        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+            sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+            sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            coefPml = gammaPmlX.*gammaPmlY;
+            tensPmlInvXX = gammaPmlX./gammaPmlY;
+            tensPmlInvYY = gammaPmlY./gammaPmlX;
+            matMelP = transpose(shapePhyQ) * (weightsQ .* coefPml .* shapePhyQ);
+            matMelU = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXX .* shapePhyQ);
+            matMelV = transpose(shapePhyQ) * (weightsQ .* tensPmlInvYY .* shapePhyQ);
+            matIIel = [
+                -1i*k*matMelP  -matDXel                          -matDYel                         ;
+                -matDXel      -1i*k*matMelU                      zeros(numDofPerTRI,numDofPerTRI) ;
+                -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMelV                     ];
+        end
+    end
+    
+    % PML stretching (circular PML)
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            coefPml = gammaPmlR.*gammaPmlT;
+            tensPmlInvXX = (gammaPmlR./gammaPmlT) .* cosT.*cosT + (gammaPmlT./gammaPmlR) .* (sinT.*sinT);
+            tensPmlInvXY = (gammaPmlR./gammaPmlT) .* cosT.*sinT - (gammaPmlT./gammaPmlR) .* (cosT.*sinT);
+            tensPmlInvYY = (gammaPmlR./gammaPmlT) .* sinT.*sinT + (gammaPmlT./gammaPmlR) .* (cosT.*cosT);
+            matMelP = transpose(shapePhyQ) * (weightsQ .* coefPml .* shapePhyQ);
+            matMelXX = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXX .* shapePhyQ);
+            matMelXY = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXY .* shapePhyQ);
+            matMelYY = transpose(shapePhyQ) * (weightsQ .* tensPmlInvYY .* shapePhyQ);
+            matIIel = [
+                -1i*k*matMelP  -matDXel        -matDYel       ;
+                -matDXel       -1i*k*matMelXX  -1i*k*matMelXY ;
+                -matDYel       -1i*k*matMelXY  -1i*k*matMelYY ];
+            
+        end
     end
     
     rhsIel = [

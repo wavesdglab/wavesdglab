@@ -5,7 +5,7 @@
 function [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC)
 
 global k edgTagToBC
-global LdomX LdomY LpmlX LpmlY
+global LdomX LdomY LpmlX LpmlY Rdom Rpml
 
 numDofTRI = dofm.numDofTRI;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -29,8 +29,9 @@ matXv  = zeros(numDofTRI, numDofPerTRI);
 matYv  = zeros(numDofTRI, numDofPerTRI);
 matMv  = zeros(numDofTRI, numDofPerTRI);
 matMPv = zeros(numDofTRI, numDofPerTRI);
-matMUv = zeros(numDofTRI, numDofPerTRI);
-matMVv = zeros(numDofTRI, numDofPerTRI);
+matMXXv = zeros(numDofTRI, numDofPerTRI);
+matMXYv = zeros(numDofTRI, numDofPerTRI);
+matMYYv = zeros(numDofTRI, numDofPerTRI);
 matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
 rhsP   = zeros(numDofTRI, 1);
@@ -71,26 +72,49 @@ for tri=1:mesh.numTri
     % Elemental matrices
     weightsQ = weightsTriQ .* detJdxdu;
     matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    matMPel = matMel;
+    matMXXel = matMel;
+    matMXYel = zeros(size(matMel));
+    matMYYel = matMel;
     matDXel = transpose(shapeDxQ) * (weightsQ .* shapeOrQ);
     matDYel = transpose(shapeDyQ) * (weightsQ .* shapeOrQ);
     vecRHSel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
     
-    % PML stretching
+    % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
-        sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
-        sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-        gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-        gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
-        coefP = gammaPmlX.*gammaPmlY;
-        coefU = gammaPmlX./gammaPmlY;
-        coefV = gammaPmlY./gammaPmlX;
-        matMPel = transpose(shapeOrQ) * (weightsQ .* coefP .* shapeOrQ);
-        matMUel = transpose(shapeOrQ) * (weightsQ .* coefU .* shapeOrQ);
-        matMVel = transpose(shapeOrQ) * (weightsQ .* coefV .* shapeOrQ);
-    else
-        matMPel = matMel;
-        matMUel = matMel;
-        matMVel = matMel;
+        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+            sigmaPmlX = 1./(LdomX+LpmlX-abs(xQ));
+            sigmaPmlY = 1./(LdomY+LpmlY-abs(yQ));
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            coefPml = gammaPmlX.*gammaPmlY;
+            tensPmlInvXX = gammaPmlX./gammaPmlY;
+            tensPmlInvYY = gammaPmlY./gammaPmlX;
+            matMPel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+            matMXXel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXX .* shapeOrQ);
+            matMYYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvYY .* shapeOrQ);
+        end
+    end
+    
+    % PML stretching (circular PML)
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            coefPml = gammaPmlR.*gammaPmlT;
+            tensPmlInvXX = (gammaPmlR./gammaPmlT) .* cosT.*cosT + (gammaPmlT./gammaPmlR) .* (sinT.*sinT);
+            tensPmlInvXY = (gammaPmlR./gammaPmlT) .* cosT.*sinT - (gammaPmlT./gammaPmlR) .* (cosT.*sinT);
+            tensPmlInvYY = (gammaPmlR./gammaPmlT) .* sinT.*sinT + (gammaPmlT./gammaPmlR) .* (cosT.*cosT);
+            matMPel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+            matMXXel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXX .* shapeOrQ);
+            matMXYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXY .* shapeOrQ);
+            matMYYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvYY .* shapeOrQ);
+        end
     end
     
     % Matrix assembling
@@ -99,20 +123,22 @@ for tri=1:mesh.numTri
     matYv(dof,:) = ones(size(dof,2),1)*dof;
     matMv(dof,:) = matMel;
     matMPv(dof,:) = matMPel;
-    matMUv(dof,:) = matMUel;
-    matMVv(dof,:) = matMVel;
+    matMXXv(dof,:) = matMXXel;
+    matMXYv(dof,:) = matMXYel;
+    matMYYv(dof,:) = matMYYel;
     matDXv(dof,:) = matDXel;
     matDYv(dof,:) = matDYel;
     rhsP(dof) = vecRHSel;
     
 end
 
-matM  = sparse(matXv,matYv,matMv);   % Mass matrix
-matMP = sparse(matXv,matYv,matMPv);  % Mass matrix
-matMU = sparse(matXv,matYv,matMUv);  % Mass matrix
-matMV = sparse(matXv,matYv,matMVv);  % Mass matrix
-matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
-matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
+matM  = sparse(matXv,matYv,matMv);     % Mass matrix
+matMP = sparse(matXv,matYv,matMPv);    % Mass matrix
+matMXX = sparse(matXv,matYv,matMXXv);  % Mass matrix
+matMXY = sparse(matXv,matYv,matMXYv);  % Mass matrix
+matMYY = sparse(matXv,matYv,matMYYv);  % Mass matrix
+matDX = sparse(matXv,matYv,matDXv);    % Differentiation matrix (x)
+matDY = sparse(matXv,matYv,matDYv);    % Differentiation matrix (y)
 
 matP = [
     matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
@@ -120,9 +146,9 @@ matP = [
     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
 
 matA = [
-    -1i*k*matMP  -matDX                       -matDY                      ;
-    -matDX      -1i*k*matMU                   sparse(numDofTRI,numDofTRI) ;
-    -matDY      sparse(numDofTRI,numDofTRI)  -1i*k*matMV                  ];
+    -1i*k*matMP  -matDX        -matDY       ;
+    -matDX       -1i*k*matMXX  -1i*k*matMXY ;
+    -matDY       -1i*k*matMXY  -1i*k*matMYY ];
 
 rhsA = [
     -1/(1i*k)*rhsP ;

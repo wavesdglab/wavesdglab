@@ -4,10 +4,10 @@
 
 function [errorL2, normL2] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
 
-global LdomX LdomY
+global LdomX LdomY Rdom
 
 % Quadrature
-degreeQ = 2*dofm.degree;
+degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 
 % Shape functions (f, dfdu, dfdv)
@@ -31,7 +31,20 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     if(~isempty(LdomX) && ~isempty(LdomY))
-        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        if ((mean(abs(VX)) >= LdomX) || (mean(abs(VY)) >= LdomY))
+            continue;
+        end
+    end
+    if(~isempty(Rdom))
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        VZ = VX + 1i*VY;
+        VR = abs(VZ);
+        if (mean(VR) >= Rdom)
             continue;
         end
     end
@@ -75,10 +88,10 @@ for tri=1:mesh.numTri
     % errDyQ = solDyQ(:) - refDyQ(:);
     
     % Error values
-    normL2sol2 = normL2sol2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-    errorL2sol2 = errorL2sol2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-    % normL2der2 = normL2der2 + weights(:)' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
-    % errorL2der2 = errorL2der2 + weights(:)' * (errDxQ .* conj(errDxQ) + errDyQ .* conj(errDyQ)) * detJdxdu;
+    normL2sol2 = normL2sol2 + weights' * (refQ .* conj(refQ)) * detJdxdu;
+    errorL2sol2 = errorL2sol2 + weights' * (errQ .* conj(errQ)) * detJdxdu;
+    % normL2der2 = normL2der2 + weights' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
+    % errorL2der2 = errorL2der2 + weights' * (errDxQ .* conj(errDxQ) + errDyQ .* conj(errDyQ)) * detJdxdu;
 end
 
 normL2 = sqrt(normL2sol2);

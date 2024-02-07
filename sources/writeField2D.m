@@ -4,7 +4,7 @@
 
 function writeField2D(dofm, mesh, field, nameFile, nameField)
 
-global LdomX LdomY PML_HIDE
+global LdomX LdomY Rdom PML_HIDE
 
 % Open file
 
@@ -98,6 +98,31 @@ end
 
 fprintf(file,'$EndInterpolationScheme\n');
 
+% If PML
+
+numTriPml = 0;
+if(PML_HIDE == 1)
+    for tri=1:mesh.numTri
+        ver = mesh.mapTriToVer(tri,:);
+        if(~isempty(LdomX) && ~isempty(LdomY))
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            if ((mean(abs(VX)) >= LdomX) || (mean(abs(VY)) >= LdomY))
+                numTriPml = numTriPml+1;
+            end
+        end
+        if(~isempty(Rdom))
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            VZ = VX + 1i*VY;
+            VR = abs(VZ);
+            if (mean(VR) >= Rdom)
+                numTriPml = numTriPml+1;
+            end
+        end
+    end
+end
+
 % Print element node data (real part)
 
 fprintf(file,'$ElementNodeData\n');
@@ -109,26 +134,34 @@ fprintf(file,'0\n');
 fprintf(file,'4\n');
 fprintf(file,'0\n'); % REAL PART
 fprintf(file,'1\n');
-fprintf(file,'%i\n',mesh.numTri);
+fprintf(file,'%i\n',mesh.numTri-numTriPml);
 fprintf(file,'0\n');
 for tri=1:mesh.numTri
+    ver = mesh.mapTriToVer(tri,:);
     
     fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
     fieldTri = real(field(dofm.locToGloTRI(tri,:)));
     
     if(PML_HIDE == 1)
-        ver = mesh.mapTriToVer(tri,:);
-        VX = mesh.coord(ver,1);
-        VY = mesh.coord(ver,2);
         if(~isempty(LdomX) && ~isempty(LdomY))
-            if ((abs(mean(VX)) >= LdomX) || (abs(mean(VY)) >= LdomY))
-                fieldTri = NaN*fieldTri;
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            if ((mean(abs(VX)) >= LdomX) || (mean(abs(VY)) >= LdomY))
+                continue;
+            end
+        end
+        if(~isempty(Rdom))
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            VZ = VX + 1i*VY;
+            VR = abs(VZ);
+            if (mean(VR) >= Rdom)
+                continue;
             end
         end
     end
     
     % Orientation
-    ver = mesh.mapTriToVer(tri,:);
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
         orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
@@ -160,26 +193,34 @@ fprintf(file,'0\n');
 fprintf(file,'4\n');
 fprintf(file,'1\n'); % IMAG PART
 fprintf(file,'1\n');
-fprintf(file,'%i\n',mesh.numTri);
+fprintf(file,'%i\n',mesh.numTri-numTriPml);
 fprintf(file,'0\n');
 for tri=1:mesh.numTri
-    
-    fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
-    fieldTri = imag(field(dofm.locToGloTRI(tri,:)));
+    ver = mesh.mapTriToVer(tri,:);
     
     if(PML_HIDE == 1)
-        ver = mesh.mapTriToVer(tri,:);
-        VX = mesh.coord(ver,1);
-        VY = mesh.coord(ver,2);
         if(~isempty(LdomX) && ~isempty(LdomY))
-            if ((abs(mean(VX)) >= LdomX) || (abs(mean(VY)) >= LdomY))
-                fieldTri = NaN*fieldTri;
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            if ((mean(abs(VX)) >= LdomX) || (mean(abs(VY)) >= LdomY))
+                continue;
+            end
+        end
+        if(~isempty(Rdom))
+            VX = mesh.coord(ver,1);
+            VY = mesh.coord(ver,2);
+            VZ = VX + 1i*VY;
+            VR = abs(VZ);
+            if (mean(VR) >= Rdom)
+                continue;
             end
         end
     end
     
+    fprintf(file,'%i %i ', tri, dofm.numDofPerTRI);
+    fieldTri = imag(field(dofm.locToGloTRI(tri,:)));
+    
     % Orientation
-    ver = mesh.mapTriToVer(tri,:);
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
         orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);

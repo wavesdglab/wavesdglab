@@ -1,6 +1,4 @@
-//Mesh.MshFileVersion = 2.2;
-
-Printf("Parameters : LdomX = %f, LdomY = %f, LpmlX = %f, LpmlY = %f, Rdisk = %f\n", LdomX, LdomY, LpmlX, LpmlY, Rdisk);
+Printf("Parameters: LdomX = %f, LdomY = %f, LpmlX = %f, LpmlY = %f, Rdisk = %f\n", LdomX, LdomY, LpmlX, LpmlY, Rdisk);
 
 // Points for exterior boundary
 Point(1) = {-(LdomX+LpmlX), -(LdomY+LpmlY), 0};
@@ -49,7 +47,7 @@ Plane Surface(1) = {3, 2};
 Plane Surface(2) = {1, 3};
 
 // Definition of the physical regions
-Physical Curve("bd_pml", 1) = {1,2,3,4};
-Physical Curve("bd_obstacle", 2) = {5,6,7,8};
-Physical Surface("domain", 1) = {1};
-Physical Surface("pml", 2) = {2};
+Physical Curve("bd_obstacle", 201) = {5,6,7,8};
+Physical Curve("bd_pml", 202) = {1,2,3,4};
+Physical Surface("domain", 301) = {1};
+Physical Surface("pml", 302) = {2};

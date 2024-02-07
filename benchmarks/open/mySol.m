@@ -1,8 +1,7 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
-global k
+global k theta
 
-theta = pi/4;
 solU  = exp(1i*k*(cos(theta)*x+sin(theta)*y));
 solF  = 0*x;
 solDx = 1i*k*cos(theta) * solU;

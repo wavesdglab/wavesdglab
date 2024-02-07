@@ -4,7 +4,7 @@
 
 function [normErr, normSol] = computeNormError2D_DG(mesh, dofm, vecSol, vecRef)
 
-global LdomX LdomY
+global LdomX LdomY Rdom
 
 % Quadrature
 degreeQ = 4*dofm.degree;
@@ -29,7 +29,20 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     if(~isempty(LdomX) && ~isempty(LdomY))
-        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        if ((mean(abs(VX)) >= LdomX) || (mean(abs(VY)) >= LdomY))
+            continue;
+        end
+    end
+    if(~isempty(Rdom))
+        ver = mesh.mapTriToVer(tri,:);
+        VX = mesh.coord(ver,1);
+        VY = mesh.coord(ver,2);
+        VZ = VX + 1i*VY;
+        VR = abs(VZ);
+        if (mean(VR) >= Rdom)
             continue;
         end
     end
@@ -50,12 +63,12 @@ for tri=1:mesh.numTri
     % Shape functions (f, dfdx, dfdy) with orientation
     shapeOrQ = shapeQ * orientation;
     
-    dofU  = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofU = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     % dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     % dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     
     % Approximate solution (and derivatives)
-    solQ   = shapeOrQ * vecSol(dofU);
+    solQ = shapeOrQ * vecSol(dofU);
     % solVxQ = shapeOrQ * vecSol(dofVx);
     % solVyQ = shapeOrQ * vecSol(dofVy);
     
@@ -76,10 +89,10 @@ for tri=1:mesh.numTri
     
     % Error values
     
-    normSolU2 = normSolU2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-    normErrU2 = normErrU2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-    % normSolV2 = normSolV2 + weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-    % normErrV2 = normErrV2 + weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+    normSolU2 = normSolU2 + weights' * (refQ .* conj(refQ)) * detJdxdu;
+    normErrU2 = normErrU2 + weights' * (errQ .* conj(errQ)) * detJdxdu;
+    % normSolV2 = normSolV2 + weights' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+    % normErrV2 = normErrV2 + weights' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
     
 end
 
