@@ -19,7 +19,7 @@ switch benchmark
         %k = 12*pi; h = 1/17;
         tol = 1e-6; maxit = 4000; itout = 200;
     case 'scattering_disk'
-        k = 2*pi; h = 1/5;
+        k = 2*pi; h = 1/10;
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
 end

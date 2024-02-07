@@ -68,7 +68,7 @@ for tri=1:mesh.numTri
         sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
         sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
         gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-        gammaPmlY = ones(size(xQ)) - sigmaPmlY/(1i*k);
+        gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
         detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
         shapeDxQ = shapeDxQ ./ gammaPmlX;
         shapeDyQ = shapeDyQ ./ gammaPmlY;

@@ -81,17 +81,6 @@ for tri=1:mesh.numTri
     % RHS function
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
-    % PML stretching
-    if(~isempty(LdomX) && ~isempty(LdomY))
-        sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
-        sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-        gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-        gammaPmlY = ones(size(xQ)) - sigmaPmlY/(1i*k);
-        detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
-        shapeDxQ = shapeDxQ ./ gammaPmlX;
-        shapeDyQ = shapeDyQ ./ gammaPmlY;
-    end
-    
     % Elemental matrices/vectors
     weightsQ = weightsTriQ .* detJdxdu;
     matMel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
@@ -103,6 +92,24 @@ for tri=1:mesh.numTri
         -1i*k*matMel  -matDXel                          -matDYel                         ;
         -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI) ;
         -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                     ];
+    
+    % PML stretching
+    if(~isempty(LdomX) && ~isempty(LdomY))
+        sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+        sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+        gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+        gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+        coefP = gammaPmlX.*gammaPmlY;
+        coefU = gammaPmlX./gammaPmlY;
+        coefV = gammaPmlY./gammaPmlX;
+        matMelP = transpose(shapePhyQ) * (weightsQ .* coefP .* shapePhyQ);
+        matMelU = transpose(shapePhyQ) * (weightsQ .* coefU .* shapePhyQ);
+        matMelV = transpose(shapePhyQ) * (weightsQ .* coefV .* shapePhyQ);
+        matIIel = [
+            -1i*k*matMelP  -matDXel                          -matDYel                         ;
+            -matDXel      -1i*k*matMelU                      zeros(numDofPerTRI,numDofPerTRI) ;
+            -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMelV                     ];
+    end
     
     rhsIel = [
         -1/(1i*k)*rhsPel    ;
@@ -155,17 +162,6 @@ for tri=1:mesh.numTri
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-        
-        % PML stretching
-%         if(~isempty(LdomX) && ~isempty(LdomY))
-%             sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
-%             sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-%             gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-%             gammaPmlY = ones(size(xQ)) - sigmaPmlY/(1i*k);
-%             nx = nx ./ gammaPmlX;
-%             ny = ny ./ gammaPmlY;
-%             detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
-%         end
         
         weightsQ = weightsLinQ .* detJdxdu;
         

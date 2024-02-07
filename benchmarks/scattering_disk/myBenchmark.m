@@ -3,10 +3,10 @@ function mesh = myBenchmark()
 global h edgTagToBC
 global LdomX LdomY LpmlX LpmlY Rdisk
 
-if(isempty(LdomX)) LdomX = 1.1; end
-if(isempty(LdomY)) LdomY = 1.1; end
-if(isempty(LpmlX)) LpmlX = 0.1; end
-if(isempty(LpmlY)) LpmlY = 0.1; end
+if(isempty(LdomX)) LdomX = 1.2; end
+if(isempty(LdomY)) LdomY = 1.2; end
+if(isempty(LpmlX)) LpmlX = 0.3; end
+if(isempty(LpmlY)) LpmlY = 0.3; end
 if(isempty(Rdisk)) Rdisk = 1; end
 
 % BCPML, BCObstacle

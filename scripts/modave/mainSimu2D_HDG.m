@@ -4,7 +4,7 @@ clear all;
 global k h
 
 % Setup benchmark and parameters
-benchmark = 'open';
+benchmark = 'scattering_disk';
 switch benchmark
     case 'open'
         k = 15*pi; h = 1/16;
@@ -18,6 +18,10 @@ switch benchmark
         k = 6*pi; h = 1/8;
         %k = 12*pi; h = 1/17;
         tol = 1e-6; maxit = 4000; itout = 200;
+    case 'scattering_disk'
+        k = 2*pi; h = 1/10;
+        %k = 30*pi; h = 1/34;
+        tol = 1e-6; maxit = 1000; itout = 50;
 end
 tau = 1;
 degree = 3;
@@ -63,10 +67,10 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
