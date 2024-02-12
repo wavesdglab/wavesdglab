@@ -1,8 +1,7 @@
 clear all;
 %close all;
 
-% global k            % if the medium is homogeneous
-global omega      % if the medium is heterogeneous
+global omega eta k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
 
 % Setup benchmark and parameters
 benchmark = 'cavity_heterogeneous';
@@ -22,29 +21,51 @@ switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
         h = 1/16;  % 1/16
-        tol = 1e-10; maxit = 1000; itout = 50;   
+        tol = 1e-10; maxit = 1000; itout = 50;
+        rho1 = 1;
+        c1 = 1;
+        rho2 = 1;
+        c2 = 1;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
     case 'cavity_heterogeneous'
         omega = 15*pi; 
-        h = 1/16;
+        h = 1/32;
         tol = 1e-10; maxit = 2000; itout = 100;
+        rho1 = 1;
+        c1 = 1;
+        rho2 = 1;
+        c2 = 1;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
         h = 1/4; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
+        rho1 = 1;
+        c1 = 2;
+        rho2 = 1;
+        c2 = 0.8;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
 end
 degree = 3;
 BASIS = 1;
 PREC = 1;
 A = 1;              % order of numerical fluxes
-B = 2;              % order of transmission variables
-% order = [1,2];
+B = 1;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
-
-%Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
+setParameters(mesh);
 
 % -------------------------------------------------------------------------
 % Compute solution and error
@@ -53,8 +74,6 @@ dofm = buildDofManager2D_DG(mesh, degree);
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG']);
 disp(['---------------------------------------------------------']);
-% disp(['    k                   ' num2str(k)]);
-% disp(['    omega               ' num2str(omega)]);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
