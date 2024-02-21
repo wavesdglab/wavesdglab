@@ -24,7 +24,6 @@ X = zeros(size(sys.matA,2),length(tol_array));
 A = sys.matA;
 b = sys.rhsA;
 P = sys.matP;
-Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 H = zeros(iMax+1,iMax+1);
@@ -54,10 +53,10 @@ resVec(1) = 1;
 
 %%%%%% Initialisation
 smallEig = 5;
-hrvArray = zeros(iMax, size(A,2));
-rvArray = zeros(iMax, size(A,2));
-distArrayHRV = zeros(iMax, smallEig);
-distArrayRV = zeros(iMax, smallEig);
+hrvArray = zeros(iMax/iOut+1, size(A,2));
+rvArray = zeros(iMax/iOut+1, size(A,2));
+distArrayHRV = zeros(iMax/iOut+1, smallEig);
+distArrayRV = zeros(iMax/iOut+1, smallEig);
 %%%%%%
 
 
@@ -137,17 +136,17 @@ while(i <= iMax)
         resVec(i/iOut+1) = relRes;
 %         resbrut(i/iOut+1) = norm(b-A*x)/rb;
         % errorVec(i/iOut+1) = computeError(mesh, dofm, x);
-        % fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+        fprintf('[%i] %g \n', i, resVec(i/iOut+1));
         %xRef = gmres(A,b,[],1e-10,i);
         %eRef = computeError(mesh, dofm, xRef);
         %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
 
         %%%%%% Compute harmonic Ritz values and Ritz values
-        % [hrv, dist_hrv] = computeHRV(H,cs, sn, i, P\A, smallEig);
-        % hrvArray(i, 1:length(hrv)) = hrv';
+        [hrv, dist_hrv] = computeHarmRitzVal(H,cs, sn, i, P\A, smallEig);
+        hrvArray(i/iOut+1, 1:length(hrv)) = hrv';
         
         %%%%%% Compute the distance to the eigenvalues
-        % distArrayHRV(i, :) = dist_hrv;
+        distArrayHRV(i/iOut+1, :) = dist_hrv;
 
         %%%%%% Plot
         % clf;
