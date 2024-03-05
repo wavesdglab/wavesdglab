@@ -4,7 +4,7 @@ clear all;
 global omega eta k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
 
 % Setup benchmark and parameters
-benchmark = 'cavity_heterogeneous';
+benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
