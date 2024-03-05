@@ -2,10 +2,12 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solA, sysA] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_DG_ALL(mesh, dofm, PREC)
 
 global omega edgTagToBC
 global rho c eta k
+
+p = 0; % exponent of the power mean for the definition of \eta_F
 
 numDofTRI = dofm.numDofTRI;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -136,6 +138,27 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
         
+        triNeigh = mesh.mapTriToTri(tri,fac);
+
+        if (triNeigh>0)
+            if p > 100
+                etaF = max(eta(tri),eta(triNeigh));
+                kF = max(k(tri),k(triNeigh));
+            elseif p < -100
+                etaF = min(eta(tri),eta(triNeigh));
+                kF = min(k(tri),k(triNeigh));
+            elseif p == 0
+                etaF = sqrt(eta(tri)*eta(triNeigh));
+                kF = sqrt(k(tri)*k(triNeigh));
+            else
+                etaF = ((eta(tri)^p+eta(triNeigh)^p)/2)^(1/p);
+                kF = ((k(tri)^p+k(triNeigh)^p)/2)^(1/p);
+            end
+        else
+            etaF = eta(tri);
+            kF = k(tri);
+        end
+
         % Global ID for interior unknowns
         dofInt = dofLocTri(fac,:);
         idIntP = 0*numDofTRI + dofm.locToGloTRI(tri,dofInt);
@@ -150,7 +173,7 @@ for tri=1:mesh.numTri
         
         % Solution function
         [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
-
+        
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
@@ -164,8 +187,8 @@ for tri=1:mesh.numTri
         % Elemental matrix
         matMel = shapeOrQ' * weights * shapeOrQ * Jdxdu;
         rhsPel = shapeOrQ' * weights * solQ * Jdxdu;
-        rhsUel = shapeOrQ' * weights * solDxQ * Jdxdu / (1i*k(tri)*eta(tri));
-        rhsVel = shapeOrQ' * weights * solDyQ * Jdxdu / (1i*k(tri)*eta(tri));
+        rhsUel = shapeOrQ' * weights * solDxQ * Jdxdu / (1i*kF*etaF);
+        rhsVel = shapeOrQ' * weights * solDyQ * Jdxdu / (1i*kF*etaF);
         
         % Exterior normal
         nx = normal(fac,1);
@@ -182,26 +205,26 @@ for tri=1:mesh.numTri
             idExtU = idExtP + numDofTRI;
             idExtV = idExtU + numDofTRI;
             
-            matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/(eta(tri)+eta(triNeigh))                     * matMel;
-            matA(idIntP,idIntU) = matA(idIntP,idIntU) + eta(tri)/(eta(tri)+eta(triNeigh))           *nx     * matMel;
-            matA(idIntP,idIntV) = matA(idIntP,idIntV) + eta(tri)/(eta(tri)+eta(triNeigh))           *ny     * matMel;
-            matA(idIntP,idExtP) = matA(idIntP,idExtP) - 1/(eta(tri)+eta(triNeigh))                     * matMel;
-            matA(idIntP,idExtU) = matA(idIntP,idExtU) + eta(triNeigh)/(eta(tri)+eta(triNeigh))      *nx     * matMel;
-            matA(idIntP,idExtV) = matA(idIntP,idExtV) + eta(triNeigh)/(eta(tri)+eta(triNeigh))      *ny     * matMel;
+            matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/(2*etaF)                     * matMel;
+            matA(idIntP,idIntU) = matA(idIntP,idIntU) + 1/2                    *nx     * matMel;
+            matA(idIntP,idIntV) = matA(idIntP,idIntV) + 1/2                    *ny     * matMel;
+            matA(idIntP,idExtP) = matA(idIntP,idExtP) - 1/(2*etaF)                     * matMel;
+            matA(idIntP,idExtU) = matA(idIntP,idExtU) + 1/2                    *nx     * matMel;
+            matA(idIntP,idExtV) = matA(idIntP,idExtV) + 1/2                    *ny     * matMel;
             
-            matA(idIntU,idIntP) = matA(idIntU,idIntP) + eta(triNeigh)/(eta(tri)+eta(triNeigh))      *nx     * matMel;
-            matA(idIntU,idIntU) = matA(idIntU,idIntU) + eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*nx  * matMel;
-            matA(idIntU,idIntV) = matA(idIntU,idIntV) + eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*ny  * matMel;
-            matA(idIntU,idExtP) = matA(idIntU,idExtP) + eta(tri)/(eta(tri)+eta(triNeigh))           *nx     * matMel;
-            matA(idIntU,idExtU) = matA(idIntU,idExtU) - eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*nx  * matMel;
-            matA(idIntU,idExtV) = matA(idIntU,idExtV) - eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*ny  * matMel;
+            matA(idIntU,idIntP) = matA(idIntU,idIntP) + 1/2                    *nx     * matMel;
+            matA(idIntU,idIntU) = matA(idIntU,idIntU) + etaF/2                 *nx*nx  * matMel;
+            matA(idIntU,idIntV) = matA(idIntU,idIntV) + etaF/2                 *nx*ny  * matMel;
+            matA(idIntU,idExtP) = matA(idIntU,idExtP) + 1/2                    *nx     * matMel;
+            matA(idIntU,idExtU) = matA(idIntU,idExtU) - etaF/2                 *nx*nx  * matMel;
+            matA(idIntU,idExtV) = matA(idIntU,idExtV) - etaF/2                 *nx*ny  * matMel;
             
-            matA(idIntV,idIntP) = matA(idIntV,idIntP) + eta(triNeigh)/(eta(tri)+eta(triNeigh))      *ny     * matMel;
-            matA(idIntV,idIntU) = matA(idIntV,idIntU) + eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*ny  * matMel;
-            matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *ny*ny  * matMel;
-            matA(idIntV,idExtP) = matA(idIntV,idExtP) + eta(tri)/(eta(tri)+eta(triNeigh))           *ny     * matMel;
-            matA(idIntV,idExtU) = matA(idIntV,idExtU) - eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *nx*ny  * matMel;
-            matA(idIntV,idExtV) = matA(idIntV,idExtV) - eta(tri)*eta(triNeigh)/(eta(tri)+eta(triNeigh))  *ny*ny  * matMel;
+            matA(idIntV,idIntP) = matA(idIntV,idIntP) + 1/2                    *ny     * matMel;
+            matA(idIntV,idIntU) = matA(idIntV,idIntU) + etaF/2                 *nx*ny  * matMel;
+            matA(idIntV,idIntV) = matA(idIntV,idIntV) + etaF/2                 *ny*ny  * matMel;
+            matA(idIntV,idExtP) = matA(idIntV,idExtP) + 1/2                    *ny     * matMel;
+            matA(idIntV,idExtU) = matA(idIntV,idExtU) - etaF/2                 *nx*ny  * matMel;
+            matA(idIntV,idExtV) = matA(idIntV,idExtV) - etaF/2                 *ny*ny  * matMel;
             
         else
             
@@ -211,67 +234,48 @@ for tri=1:mesh.numTri
             switch BC
                 case 'DIR'
                     
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/eta(tri) * matMel;
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 1/etaF    * matMel;
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + nx        * matMel;
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + ny        * matMel;
                     
                     gp = rhsPel;
-                    rhsA(idIntP) = rhsA(idIntP) + gp / eta(tri);
+                    rhsA(idIntP) = rhsA(idIntP) + gp / etaF;
                     rhsA(idIntU) = rhsA(idIntU) - gp * nx;
                     rhsA(idIntV) = rhsA(idIntV) - gp * ny;
                     
                 case 'NEU'
                     
                     matA(idIntU,idIntP) = matA(idIntU,idIntP) +                  nx * matMel;
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + eta(tri) * nx       * nx * matMel;
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + eta(tri) * ny       * nx * matMel;
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + etaF * nx       * nx * matMel;
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + etaF * ny       * nx * matMel;
                     
                     matA(idIntV,idIntP) = matA(idIntV,idIntP) +                  ny * matMel;
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + eta(tri) * nx       * ny * matMel;
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + eta(tri) * ny       * ny * matMel;
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + etaF * nx       * ny * matMel;
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + etaF * ny       * ny * matMel;
                     
                     gnu = nx*rhsUel + ny*rhsVel;
                     rhsA(idIntP) = rhsA(idIntP) - gnu;
-                    rhsA(idIntU) = rhsA(idIntU) + eta(tri) * gnu * nx;
-                    rhsA(idIntV) = rhsA(idIntV) + eta(tri) * gnu * ny;
+                    rhsA(idIntU) = rhsA(idIntU) + etaF * gnu * nx;
+                    rhsA(idIntV) = rhsA(idIntV) + etaF * gnu * ny;
                     
                 case 'ABC'
                     
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5 / eta(tri)           * matMel;
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5 / etaF           * matMel;
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5       * nx      * matMel;
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + 0.5       * ny      * matMel;
                     
                     matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5            * nx * matMel;
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5 * eta(tri) * nx * nx * matMel;
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + 0.5 * eta(tri) * ny * nx * matMel;
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5 * etaF * nx * nx * matMel;
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + 0.5 * etaF * ny * nx * matMel;
                     
                     matA(idIntV,idIntP) = matA(idIntV,idIntP) + 0.5            * ny * matMel;
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + 0.5 * eta(tri) * nx * ny * matMel;
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5 * eta(tri) * ny * ny * matMel;
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + 0.5 * etaF * nx * ny * matMel;
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5 * etaF * ny * ny * matMel;
                     
                     gchar = rhsPel - etaNeigh * (nx*rhsUel + ny*rhsVel);
-                    rhsA(idIntP) = rhsA(idIntP) + gchar * 0.5 / eta(tri);
+                    rhsA(idIntP) = rhsA(idIntP) + gchar * 0.5 / etaF;
                     rhsA(idIntU) = rhsA(idIntU) - gchar * 0.5 * nx;
                     rhsA(idIntV) = rhsA(idIntV) - gchar * 0.5 * ny;
-
-                case 'ROB'
-                    
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + 0.5 / eta(tri)           * matMel;
-                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + 0.5       * nx      * matMel;
-                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + 0.5       * ny      * matMel;
-                    
-                    matA(idIntU,idIntP) = matA(idIntU,idIntP) + 0.5            * nx * matMel;
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + 0.5 * eta(tri) * nx * nx * matMel;
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + 0.5 * eta(tri) * ny * nx * matMel;
-                    
-                    matA(idIntV,idIntP) = matA(idIntV,idIntP) + 0.5            * ny * matMel;
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + 0.5 * eta(tri) * nx * ny * matMel;
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + 0.5 * eta(tri) * ny * ny * matMel;
-                    
-                    gchar = rhsPel - etaNeigh * (nx*rhsUel + ny*rhsVel);
-                    rhsA(idIntP) = rhsA(idIntP) + gchar * 0.5 / eta(tri);
-                    rhsA(idIntU) = rhsA(idIntU) - gchar * 0.5 * nx;
-                    rhsA(idIntV) = rhsA(idIntV) - gchar * 0.5 * ny;   
                     
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
