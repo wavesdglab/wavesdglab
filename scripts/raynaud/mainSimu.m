@@ -1,11 +1,7 @@
 clear all;
 %close all;
 
-global k L L_PML R_disk l;
-L_PML = 0;
-R_disk = 0;
-l = 0;
-
+global k h
 
 N=15;
 LASTN = maxNumCompThreads(N);
@@ -51,10 +47,10 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
 end
 degree = 1; % P1
-PREC = 1; % for preconditioner
+PREC = 0; % for preconditioner
 
 % Build mesh and DOF manager
-mesh = benchmark2D(benchmark,h);
+mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree); % espace fonctionnel discret
 
@@ -74,6 +70,9 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 [~, sysA] = computeSolNum2D(mesh, dofm, PREC);
+eigenvec = computeEigVec2D_cavity(mesh, dofm, 1);
+
+
 % errorL2 = computeNormError2D_CG(mesh, dofm, solA);
 %
 % solP = computeSolProjL2_2D_CG(mesh, dofm);
