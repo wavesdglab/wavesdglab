@@ -21,7 +21,7 @@ switch benchmark
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 2.001*sqrt(2)*pi;
+        k = 3.001*sqrt(2)*pi;
 %         k = 5.877;
         h = 1/64;
         tol = 1e-10; maxit = 2000; itout =4;
@@ -227,6 +227,9 @@ sysA.rhsA = (PP+Q)*b;
 % system('gmsh output/solGMRESP.pos output/solGMRES.pos output/solDef1C.pos output/solADef1C.pos output/solDef1PC.pos output/solADef1PC.pos output/solADef1MPC.pos output/solDef1F.pos output/solADef1F.pos output/solDef1PF.pos output/solADef1PF.pos output/solADef1MPF.pos&');
 
 folder = "output/eigvec"+num2str(nbEigVec);
+if ~exist(folder, 'dir')
+    mkdir(folder);
+end
 csvwrite([folder+"/resVecGMRES.csv"],resVecGMRES);
 csvwrite([folder+"/resVecGMRESP.csv"],resVecGMRESP);
 csvwrite([folder+"/resVecDef1C.csv"],resVecDef1C);
