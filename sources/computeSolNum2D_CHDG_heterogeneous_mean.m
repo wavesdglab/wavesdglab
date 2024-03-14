@@ -359,13 +359,13 @@ sysA.matPhy = matII - matIG*(matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditionning
-if (PREC == 1)
-    sysA.matP = matPP;
-    sysA.matPinv = matPPinv;
-else
-    sysA.matP = 1;
-    sysA.matPinv = 1;
-end
+% if (PREC == 1)
+%     sysA.matP = matPP;
+%     sysA.matPinv = matPPinv;
+% else
+%     sysA.matP = 1;
+%     sysA.matPinv = 1;
+% end
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;

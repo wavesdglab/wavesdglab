@@ -4,7 +4,7 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B)
 
-global k edgTagToBC
+global omega edgTagToBC
 global rho c eta k
 
 p = 0; % exponent of the power mean for the definition of \eta_F
@@ -286,6 +286,10 @@ for tri=1:mesh.numTri
                     matGGel = matB_Lin + matM_Lin;                         % ====================================
                     matGHel = matB_Lin - matM_Lin;                         % ====================================
                     rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
+                case 'ROB'
+                    matGGel = matB_Lin + matM_Lin;                         % ====================================
+                    matGHel = matB_Lin - matM_Lin;                         % ====================================
+                    rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));   
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -314,7 +318,7 @@ for tri=1:mesh.numTri
         % Elemental matrices (interface condition)
         if (B == 1)  % Upwind conditions (CHDG 1 & CHDG 3)
             matHHel = matM_Lin;
-            matHIel = 2 * [ -matM_Lin, -nx*matM_Lin, -ny*matM_Lin ];
+            matHIel = 2 * [ -matM_Lin, -nx*etaF*matM_Lin, -ny*etaF*matM_Lin ];
             matHGel = - matM_Lin;
             matHFel = 2 * matM_Lin;
         end

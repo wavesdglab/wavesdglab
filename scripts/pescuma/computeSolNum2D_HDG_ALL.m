@@ -2,10 +2,12 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC)
 
 global omega edgTagToBC
 global rho c eta k
+
+p=0;
 
 numDofTRI = dofm.numDofTRI;
 numDofLIN = dofm.numDofLIN;
@@ -92,7 +94,7 @@ for tri=1:mesh.numTri
         -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel       ];
    
     rhsIel = [
-        -1/(1i*k(tri)*eta(tri))*rhsPel ;
+        -1/(1i*k(tri)*eta(tri))*rhsPel  ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -118,6 +120,27 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
         
+        triNeigh = mesh.mapTriToTri(tri,fac);
+
+        if (triNeigh>0)
+            if p > 100
+                etaF = max(eta(tri),eta(triNeigh));
+                kF = max(k(tri),k(triNeigh));
+            elseif p < -100
+                etaF = min(eta(tri),eta(triNeigh));
+                kF = min(k(tri),k(triNeigh));
+            elseif p == 0
+                etaF = sqrt(eta(tri)*eta(triNeigh));
+                kF = sqrt(k(tri)*k(triNeigh));
+            else
+                etaF = ((eta(tri)^p+eta(triNeigh)^p)/2)^(1/p);
+                kF = ((k(tri)^p+k(triNeigh)^p)/2)^(1/p);
+            end
+        else
+            etaF = eta(tri);
+            kF = k(tri);
+        end
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -151,9 +174,6 @@ for tri=1:mesh.numTri
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-        
-        % Infos on neighboring element
-        triNeigh = mesh.mapTriToTri(tri,fac);
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -166,11 +186,11 @@ for tri=1:mesh.numTri
         dofLocI = [dofLocP, dofLocU, dofLocV];
         
         % Element matrices (local element-wise system)
-        matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / eta(tri) * matM_IIel;
+        matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / etaF * matM_IIel;
         matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) +      nx * matM_IIel;
         matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) +      ny * matM_IIel;
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
-        matIGel(dofLocP,:) = - 1 / eta(tri) * matM_IGel;
+        matIGel(dofLocP,:) = - 1 / etaF * matM_IGel;
         matIGel(dofLocU,:) =       nx  * matM_IGel;
         matIGel(dofLocV,:) =       ny  * matM_IGel;
         
@@ -189,15 +209,15 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = 0.5 * matM_GGel;
-            matGIel = - eta(tri) * eta(triNeigh) / (eta(tri) + eta(triNeigh)) * [1/eta(tri) * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+            matGIel = - etaF / 2 * [1/etaF * matM_GIel, nx*matM_GIel, ny*matM_GIel];
             
         else
             
             % Source terms
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri)*eta(tri));
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri)*eta(tri));
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -209,14 +229,14 @@ for tri=1:mesh.numTri
                 case 'DIR'
                     rhsGel = rhsPel;
                 case 'NEU'
-                    matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = -eta(tri)*(nx*rhsUel + ny*rhsVel);
+                    matGIel = - [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    rhsGel = -etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;
+                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    rhsGel = (rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;
                 case 'ROB'
-                    matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;   
+                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    rhsGel = (rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;    
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

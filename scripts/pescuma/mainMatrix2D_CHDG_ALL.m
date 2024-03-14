@@ -9,27 +9,27 @@ degree = 3;
 BASIS = 1;
 PREC = 1;
 A = 1;              % order of numerical fluxes
-B = 2;              % order of transmission variables
+B = 1;              % order of transmission variables
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 benchmark = 'cavity_heterogeneous';
 degree = 3; h = 1/10; omega = 15*pi;
-rho1 = 1; c1 = 1; rho2 = 1; c2 = 1;
+rho1 = 1; c1 = 0.5; rho2 = 1; c2 = 0.5;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 run(benchmark,degree,BASIS,PREC,A,B);
 
 benchmark = 'cavity_heterogeneous';
-degree = 3; h = 1/10; omega = 15*pi;
-rho1 = 1; c1 = 2; rho2 = 1; c2 = 0.8;
+degree = 3; h = 1/20; omega = 15*pi;
+rho1 = 1; c1 = 0.5; rho2 = 1; c2 = 0.5;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 run(benchmark,degree,BASIS,PREC,A,B);
-
-benchmark = 'cavity_heterogeneous';
-degree = 3; h = 1/10; omega = 15*pi;
-rho1 = 1; c1 = 4; rho2 = 1; c2 = 1.6;
-eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
-run(benchmark,degree,BASIS,PREC,A,B);
+ 
+% benchmark = 'cavity_heterogeneous';
+% degree = 3; h = 1/40; omega = 15*pi;
+% rho1 = 1; c1 = 1; rho2 = 1; c2 = 0.75;
+% eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+% run(benchmark,degree,BASIS,PREC,A,B);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -117,7 +117,7 @@ eigenvalIter = 1 - diag(eigenvalIter);
 
 rezu1 = ["real", "imag"];
 rezu2 = [real(eigenvalIter), imag(eigenvalIter)];
-name = sprintf('output/spectrumIter_%s_p%g_h%g.csv', benchmark, degree, h);
+name = sprintf('output/spectrumIter_%s_p%g_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 disp(['    Min e.v. (Iter)     ' num2str(min(abs(eigenvalIter)))]);
