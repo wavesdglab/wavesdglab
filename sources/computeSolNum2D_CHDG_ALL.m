@@ -441,11 +441,17 @@ tic
 
 X = matHF - matHH * (matFH \ matFF);
 Y = matHG - matHH * (matFH \ matFG);
+Z = X \ Y;
+W = X \ matHI;
+V = matFF * W;
+R = matFF * Z;
+T = matFH \ R;
+U = matFH \ matFG;
 
-sysA.matII = matII + matIH * (matFH \ (matFF * (X \ matHI))) - matIF * (X \ matHI);
-sysA.matIG = matIG + matIH * (matFH \ (matFF * (X \ Y)) - matFH \ matFG) - matIF * (X \ Y);
+sysA.matII = matII + matIH * (matFH \ V) - matIF * W;
+sysA.matIG = matIG + matIH * (T - U) - matIF * Z;
 sysA.matGI = matGI + matGH * (matFH \ (matFF * (X \ matHI)));
-sysA.matGG = matGG + matGH * (matFH \ (matFF * (X \ Y)) - matFH \ matFG);
+sysA.matGG = matGG + matGH * (T - U);
 
 sysA.matGGinv = inv(sysA.matGG);
 sysA.rhsI = rhsI;

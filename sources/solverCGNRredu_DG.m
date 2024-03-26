@@ -12,9 +12,9 @@ Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 r = b-A*x;
-s = Pinv*r;  % s=r for left-preconditioning
+s = P\r;  % s=r for left-preconditioning
 y = A'*s;
-z = Pinv*y;
+z = P\y;
 p = z;
 rrini = r'*r;
 zzini = y'*z;
