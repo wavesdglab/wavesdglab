@@ -20,7 +20,7 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/16;  % 1/16
+        h = 1/10;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
@@ -93,31 +93,31 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numeri10cal solution (Upwind)
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
 
 % Compute numerical solution (High-order)
-% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 % [solB, sysB] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
 
 %%
 % Compute numerical error
-% errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA)
+errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
 % errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
 % errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
-% errorL2 = errorL2_A;
+errorL2 = errorL2_A;
 
 % Compute projection solution
-% solP = computeSolProjL2_2D_DG(mesh, dofm);
-% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP)
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
 
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 
 % figure()
 % loglog(H,err(:,1),'-r','LineWidth',2);
@@ -137,23 +137,23 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 %%
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-mat = sysA.matPinv*sysA.matS;
-[~, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-
-eigenval = 1 - diag(eigenval);
-
-1 - max(abs(eigenval))
+% mat = sysA.matPinv*sysA.matS;
+% [~, eigenval] = eigs(mat,size(mat,1));
+% % eigenval = diag(eigenval);
+% 
+% eigenval = 1 - diag(eigenval);
+% 
+% 1 - max(abs(eigenval))
 
 % A=0;
 % B=0;

@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B)
+function [solI, sysA] = computeSolNum2D_CHDG_x(mesh, dofm, PREC, A, B)
 
-global omega edgTagToBC
+global k edgTagToBC
 global rho c eta k
 
 p = 0; % exponent of the power mean for the definition of \eta_F
@@ -317,10 +317,14 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         if (B == 1)  % Upwind conditions (CHDG 1 & CHDG 3)
+%             matHHel = matM_Lin;
+%             matHIel = 2 * [ -matM_Lin, -nx*etaF*matM_Lin, -ny*etaF*matM_Lin ];
+%             matHGel = - matM_Lin;
+%             matHFel = 2 * matM_Lin;
             matHHel = matM_Lin;
-            matHIel = 2 * [ -matM_Lin, -nx*etaF*matM_Lin, -ny*etaF*matM_Lin ];
-            matHGel = - matM_Lin;
-            matHFel = 2 * matM_Lin;
+            matHIel = [ -matM_Lin, -nx*etaF*matM_Lin, -ny*etaF*matM_Lin ];
+            matHGel = 0 * matM_Lin;
+            matHFel = 0 * matM_Lin;
         end
         if (B == 2)  % High-order conditions (CHDG 2)
             matHHel = matB_Lin;
@@ -441,19 +445,13 @@ tic
 
 X = matHF - matHH * (matFH \ matFF);
 Y = matHG - matHH * (matFH \ matFG);
-Z = X \ Y;
-W = X \ matHI;
-V = matFF * W;
-R = matFF * Z;
-T = matFH \ R;
-U = matFH \ matFG;
 
-sysA.matII = matII + matIH * (matFH \ V) - matIF * W;
-sysA.matIG = matIG + matIH * (T - U) - matIF * Z;
-sysA.matGI = matGI + matGH * (matFH \ (matFF * W));
-sysA.matGG = matGG + matGH * (T - U);
+sysA.matII = matII + matIH * (matFH \ (matFF * (X \ matHI))) - matIF * (X \ matHI);
+sysA.matIG = matIG + matIH * (matFH \ (matFF * (X \ Y)) - matFH \ matFG) - matIF * (X \ Y);
+sysA.matGI = matGI + matGH * (matFH \ (matFF * (X \ matHI)));
+sysA.matGG = matGG + matGH * (matFH \ (matFF * (X \ Y)) - matFH \ matFG);
 
-% sysA.matGGinv = inv(sysA.matGG);
+sysA.matGGinv = inv(sysA.matGG);
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 toc
@@ -477,24 +475,24 @@ sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 toc
 
 % Physical system
-% disp('--- Physical system ---');
-% tic
-% sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
-% sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
-% toc
+disp('--- Physical system ---');
+tic
+sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
+sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
+toc
 
 % Preconditionning
-% disp('--- Preconditionning ---');
-% tic
-% sysA.matGGinv = matGGinv;
-% if (PREC == 1)
-%     sysA.matP = matGG;
-%     sysA.matPinv = matGGinv;
-% else
-%     sysA.matP = 1;
-%     sysA.matPinv = 1;
-% end
-% toc
+disp('--- Preconditionning ---');
+tic
+sysA.matGGinv = matGGinv;
+if (PREC == 1)
+    sysA.matP = matGG;
+    sysA.matPinv = matGGinv;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+toc
 
 % Compute direct solution
 disp('--- Compute direct solution ---');
