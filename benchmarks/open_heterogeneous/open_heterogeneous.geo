@@ -45,13 +45,13 @@ Physical Curve(3) = {6};
 //+
 Physical Surface(12) = {1, 2};
 Field[1] = Box;
-Field[1].VIn = 1/34;
-Field[1].VOut = 1/16;
+Field[1].VIn = 1/20;
+Field[1].VOut = 1/20;
 Field[1].XMin = 0.5;
 Field[1].XMax = 1;
 Field[1].YMin = 0;
 Field[1].YMax = 1;
-Field[1].Thickness = 0.2;
+Field[1].Thickness = 0;
 Field[2] = Min;
 Field[2].FieldsList = {1};
 Background Field = 2;
