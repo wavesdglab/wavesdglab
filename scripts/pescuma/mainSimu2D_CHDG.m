@@ -4,7 +4,7 @@ clear all;
 global omega eta k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
 
 % Setup benchmark and parameters
-benchmark = 'open_heterogeneous';
+benchmark = 'disk_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -92,7 +92,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numeri10cal solution (Upwind)
+% Compute numerical solution (Upwind)
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
@@ -112,8 +112,13 @@ errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
 errorL2 = errorL2_A;
 
 % Compute projection solution
+<<<<<<< HEAD
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
+=======
+% solP = computeSolProjL2_2D_DG(mmainSimu2D_CHDGesh, dofm);
+% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP)
+>>>>>>> 5f5ad88f064ff1880e13c264034c7bd451d937de
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
@@ -147,6 +152,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
+<<<<<<< HEAD
 % mat = sysA.matPinv*sysA.matS;
 % [~, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);
@@ -154,6 +160,15 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % eigenval = 1 - diag(eigenval);
 % 
 % 1 - max(abs(eigenval))
+=======
+%mat = sysA.matPinv*sysA.matS;
+%[eigenvec, eigenval] = eigs(mat,size(mat,1));
+% eigenval = diag(eigenval);
+
+%eigenval = 1 - diag(eigenval);
+
+%1 - max(abs(eigenval))
+>>>>>>> 5f5ad88f064ff1880e13c264034c7bd451d937de
 
 % A=0;
 % B=0;
