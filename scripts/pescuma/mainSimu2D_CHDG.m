@@ -152,7 +152,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-<<<<<<< HEAD
+
 % mat = sysA.matPinv*sysA.matS;
 % [~, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);
@@ -160,7 +160,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % eigenval = 1 - diag(eigenval);
 % 
 % 1 - max(abs(eigenval))
-=======
+
 %mat = sysA.matPinv*sysA.matS;
 %[eigenvec, eigenval] = eigs(mat,size(mat,1));
 % eigenval = diag(eigenval);
@@ -168,7 +168,6 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 %eigenval = 1 - diag(eigenval);
 
 %1 - max(abs(eigenval))
->>>>>>> 5f5ad88f064ff1880e13c264034c7bd451d937de
 
 % A=0;
 % B=0;
