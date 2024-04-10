@@ -45,8 +45,8 @@ Physical Curve(3) = {6};
 //+
 Physical Surface(12) = {1, 2};
 Field[1] = Box;
-Field[1].VIn = 1/20;
-Field[1].VOut = 1/20;
+Field[1].VIn = 1/16;
+Field[1].VOut = 1/16;
 Field[1].XMin = 0.5;
 Field[1].XMax = 1;
 Field[1].YMin = 0;

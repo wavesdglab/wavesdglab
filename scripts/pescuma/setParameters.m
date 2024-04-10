@@ -10,6 +10,9 @@ c = zeros(mesh.numTri,1);
 eta = zeros(mesh.numTri,1);
 k = zeros(mesh.numTri,1);
 
+R1 = 0.25;
+R2 = 0.5;
+
 for tri = 1:mesh.numTri
     verTri = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(verTri(1),:);
@@ -19,7 +22,7 @@ for tri = 1:mesh.numTri
     y = (V1(1,2)+V2(1,2)+V3(1,2))/3;
 
     if (strcmp(benchmark,'disk_heterogeneous'))
-        if x^2 + y^2 < 0.25
+        if x^2 + y^2 < R1^2
             rho(tri) = rho1;
             c(tri) = c1;
         else

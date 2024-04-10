@@ -20,24 +20,24 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/10;  % 1/16
+        h = 1/16;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
         rho2 = 1;
-        c2 = 0.5;  
+        c2 = 1;  
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
         k2 = omega / c2;
     case 'cavity_heterogeneous'
         omega = 15*pi; 
-        h = 0.1;
-        tol = 1e-10; maxit = 1000; itout = 100;
+        h = 1/16;
+        tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
-        c1 = 1;
+        c1 = 1.3;
         rho2 = 1;
-        c2 = 0.75;
+        c2 = 0.8;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -56,12 +56,12 @@ switch benchmark
         k2 = omega / c2;
     case 'disk_heterogeneous'
         omega = 10*pi; 
-        h = 0.025;
+        h = 0.0125;
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
         rho2 = 1;
-        c2 = 1;
+        c2 = 1/2;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -70,8 +70,8 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 2;              % order of numerical fluxes
-B = 2;              % order of transmission variables
+A = 1;              % order of numerical fluxes
+B = 1;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -79,6 +79,9 @@ mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 setParameters(mesh, benchmark);
 Dlambda = 2*pi/k(1) * (sqrt(dofm.numDofTRI) - 1);
+
+disp('Num');
+mesh.numTri
 
 % -------------------------------------------------------------------------
 % Compute solution and error
@@ -93,13 +96,13 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution (Upwind)
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
 
 % Compute numerical solution (High-order)
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 % [solB, sysB] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
@@ -107,18 +110,13 @@ disp(['---------------------------------------------------------']);
 %%
 % Compute numerical error
 errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
-% errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
-% errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
+% % errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
+% % errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
 errorL2 = errorL2_A;
-
+% 
 % Compute projection solution
-<<<<<<< HEAD
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
-=======
-% solP = computeSolProjL2_2D_DG(mmainSimu2D_CHDGesh, dofm);
-% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP)
->>>>>>> 5f5ad88f064ff1880e13c264034c7bd451d937de
 
 disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
@@ -152,7 +150,6 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
 
-
 % mat = sysA.matPinv*sysA.matS;
 % [~, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);
@@ -160,14 +157,6 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % eigenval = 1 - diag(eigenval);
 % 
 % 1 - max(abs(eigenval))
-
-%mat = sysA.matPinv*sysA.matS;
-%[eigenvec, eigenval] = eigs(mat,size(mat,1));
-% eigenval = diag(eigenval);
-
-%eigenval = 1 - diag(eigenval);
-
-%1 - max(abs(eigenval))
 
 % A=0;
 % B=0;
@@ -246,7 +235,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 %         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
 % 
 % end
-%  
+ 
 % alpha = 1;
 % [CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG_ALL);
 % [CHDG_resRedVec_CGNR, CHDG_resPhyVec_CGNR, CHDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
@@ -315,10 +304,11 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
  
 % figure;
 % hold off
-% semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
-% hold on;
-% semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
+% % semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
+% % hold on;
+% % semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
 % semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
+% hold on
 % semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
 % semilogy(0:itout:maxit,CHDG_errorVec_CGNR,'-ob','MarkerFaceColor','w','DisplayName','CHDG - CGN');
 % hold on
@@ -334,3 +324,13 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % ylim([0.05 1]);
 % xlabel('Iteration');
 % ylabel('Relative error');
+
+% figure;
+% loglog(hh,err,'-r');
+% hold on
+% loglog(hh,hh,'-b');
+% loglog(hh,hh.^2,'-g');
+% loglog(hh,hh.^3,'-y');
+% loglog(hh,hh.^4,'-c');
+% grid on
+% legend('L^2-error', 'h', 'h^2', 'h^3', 'h^4');

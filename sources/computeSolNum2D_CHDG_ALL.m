@@ -438,7 +438,6 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 % Matrix partition
 disp('--- Matrix partition ---');
 tic
-
 X = matHF - matHH * (matFH \ matFF);
 Y = matHG - matHH * (matFH \ matFG);
 Z = X \ Y;
@@ -477,24 +476,24 @@ sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 toc
 
 % Physical system
-% disp('--- Physical system ---');
-% tic
-% sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
-% sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
-% toc
+disp('--- Physical system ---');
+tic
+sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
+sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
+toc
 
 % Preconditionning
-% disp('--- Preconditionning ---');
-% tic
-% sysA.matGGinv = matGGinv;
-% if (PREC == 1)
-%     sysA.matP = matGG;
-%     sysA.matPinv = matGGinv;
-% else
-%     sysA.matP = 1;
-%     sysA.matPinv = 1;
-% end
-% toc
+disp('--- Preconditionning ---');
+tic
+sysA.matGGinv = matGGinv;
+if (PREC == 1)
+    sysA.matP = matGG;
+    sysA.matPinv = matGGinv;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
+toc
 
 % Compute direct solution
 disp('--- Compute direct solution ---');
