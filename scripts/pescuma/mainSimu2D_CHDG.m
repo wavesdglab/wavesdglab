@@ -1,8 +1,12 @@
 clear all;
 %close all;
 
-global omega eta k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
+global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
 
+% e=1;
+% 
+% for omega=22:0.1:62
+   
 % Setup benchmark and parameters
 benchmark = 'disk_heterogeneous';
 switch benchmark
@@ -20,12 +24,12 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/16;  % 1/16
+        h = 1;  % 1/16
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
-        rho2 = 1;
-        c2 = 1;  
+        rho2 = 2;
+        c2 = 1/2; 
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -55,12 +59,12 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 10*pi; 
-        h = 0.0125;
+        omega = 10*pi; %10*pi;
+        h = 0.05;
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
-        rho2 = 1;
+        rho2 = 2;
         c2 = 1/2;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
@@ -70,8 +74,8 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 1;              % order of numerical fluxes
-B = 1;              % order of transmission variables
+A = 2;              % order of numerical fluxes
+B = 2;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -96,13 +100,13 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution (Upwind)
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
 
 % Compute numerical solution (High-order)
-% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 % [solB, sysB] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
@@ -112,8 +116,29 @@ disp(['---------------------------------------------------------']);
 errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
 % % errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
 % % errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
-errorL2 = errorL2_A;
+errorL2 = errorL2_A
+
+% e
+% Omega(e) = omega;
+% err(e)=errorL2;
+% e=e+1;
 % 
+% end
+
+% zerosBessel = besselzero(0,10,1);
+% frequencies = 2*zerosBessel(4:10);
+% 
+% figure;
+% semilogy(Omega,err);
+% hold on;
+% xline(frequencies);
+% grid on;
+% 
+% rezu1A = ["omega" "error"];
+% rezu2A = [Omega', err'];
+
+% writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
 % Compute projection solution
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
@@ -149,7 +174,7 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
 % -------------------------------------------------------------------------
-
+% 
 % mat = sysA.matPinv*sysA.matS;
 % [~, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);

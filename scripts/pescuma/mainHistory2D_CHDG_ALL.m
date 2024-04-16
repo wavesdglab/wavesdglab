@@ -30,8 +30,8 @@ tol = 1e-100;
 iMax = 1000; iOut = 50;
 benchmark = 'open_heterogeneous';
 
-degree = 3; h = 1; omega = 15*pi;
-rho1 = 1; c1 = 1; rho2 = 2; c2 = 0.5;
+degree = 3; h = 10; omega = 15*pi;
+rho1 = 1; c1 = 1; rho2 = 2/3; c2 = 3/4;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 run(benchmark,degree,A,B,tol,iMax,iOut);
 
@@ -83,10 +83,10 @@ A=2;
 B=2;
 [solD, sysD] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 
-normErrA= computeNormError2D_DG_ALL(mesh, dofm, solA);
-normErrB= computeNormError2D_DG_ALL(mesh, dofm, solB);
+normErrA= computeNormError2D_DG_ALL(mesh, dofm, solA)
+normErrB= computeNormError2D_DG_ALL(mesh, dofm, solB)
 normErrC= computeNormError2D_DG_ALL(mesh, dofm, solC);
-normErrD= computeNormError2D_DG_ALL(mesh, dofm, solD);
+normErrD= computeNormError2D_DG_ALL(mesh, dofm, solD)
 
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 normProjErr = computeNormError2D_DG_ALL(mesh, dofm, solP);
