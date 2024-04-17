@@ -77,6 +77,10 @@ A = sysA.matA;
 M = sysA.matP;
 b = sysA.rhsA;
 
+if maxit > size(A,2)
+    maxit = size(A,2);
+end
+
 [~, evA] = eigs(A,50,'smallestabs');
 evA = diag(evA);
 
@@ -235,37 +239,37 @@ disp(['DEF1 and Shift : ' num2str(itPD)]);
 disp(['ADEF1 and Shift : ' num2str(itPAD)]);
 
 disp(['Difference: ' num2str(100*(maxIt-minIt)/maxIt) '%']);
-% 
-% iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
-% iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
-% iterDef1C = 0:itout:itout*size(rrD,1)-1;
-% iterADef1C = 0:itout:itout*size(rrAD,1)-1;
-% iterDef1PC = 0:itout:itout*size(rrPD,1)-1;
-% iterADef1PC = 0:itout:itout*size(rrPAD,1)-1;
-% 
-% 
-% figure
-% hold on
-% set(0,'DefaultFigureWindowStyle','docked')
-% 
-% p1 = semilogy(iterGMRES,rrGMRES,'b-o','DisplayName','Relative residual','linewidth', 2,'markersize', 10);
-% p2 = semilogy(iterGMRESP,rrGMRESP,'r-o','DisplayName','Relative residual with shift','linewidth', 2,'markersize', 10);
-% p3 = semilogy(iterDef1C,rrD,'g-o','DisplayName','Relative residual with DEF1','linewidth', 2,'markersize', 10);
-% p3.Color = green;
-% p4 = semilogy(iterADef1C,rrAD,'c-o','DisplayName','Relative residual with ADEF1','linewidth', 2,'markersize', 10);
-% p4.Color = cyan;
-% p5 = semilogy(iterDef1PC,rrPD,'m-o','DisplayName','Relative residual with DEF1 and shift','linewidth', 2,'markersize', 10);
-% p5.Color = magenta;
-% p6  = semilogy(iterADef1PC,rrPAD,'y-o','DisplayName','Relative residual with ADEF1 and shift','linewidth', 2,'markersize', 10);
-% p6.Color = orange;
-% % plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-% 
-% set(gca, 'YScale', 'log')
-% box on
-% grid on
-% xlim([0 maxIt+1]);
-% ylim auto;
-% title(['CG - ' benchmark ' - GMRES - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree) ' - nbEigvec=' num2str(nbEigVec)], 'interpreter', 'latex', 'fontsize', 20)
-% xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
-% ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
-% legend('Location', 'southwest', 'fontsize', 15)
+
+iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
+iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
+iterDef = 0:itout:itout*size(rrD,1)-1;
+iterADef = 0:itout:itout*size(rrAD,1)-1;
+iterDefP = 0:itout:itout*size(rrPD,1)-1;
+iterADefP = 0:itout:itout*size(rrPAD,1)-1;
+
+
+figure
+hold on
+set(0,'DefaultFigureWindowStyle','docked')
+
+p1 = semilogy(iterGMRES,rrGMRES,'b-o','DisplayName','Relative residual','linewidth', 2,'markersize', 10);
+p2 = semilogy(iterGMRESP,rrGMRESP,'r-o','DisplayName','Relative residual with shift','linewidth', 2,'markersize', 10);
+p3 = semilogy(iterDef,rrD,'g-o','DisplayName','Relative residual with DEF1','linewidth', 2,'markersize', 10);
+p3.Color = green;
+p4 = semilogy(iterADef,rrAD,'c-o','DisplayName','Relative residual with ADEF1','linewidth', 2,'markersize', 10);
+p4.Color = cyan;
+p5 = semilogy(iterDefP,rrPD,'m-o','DisplayName','Relative residual with DEF1 and shift','linewidth', 2,'markersize', 10);
+p5.Color = magenta;
+p6  = semilogy(iterADefP,rrPAD,'y-o','DisplayName','Relative residual with ADEF1 and shift','linewidth', 2,'markersize', 10);
+p6.Color = orange;
+% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+
+set(gca, 'YScale', 'log')
+box on
+grid on
+xlim([0 maxIt+1]);
+ylim auto;
+title(['CG - ' benchmark ' - GMRES - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree) ' - nbEigvec=' num2str(nbEigVec)], 'interpreter', 'latex', 'fontsize', 20)
+xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
+ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
+legend('Location', 'southwest', 'fontsize', 15)
