@@ -148,7 +148,7 @@ for tri=1:mesh.numTri
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
     matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
-    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
+    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel - (k*k + 1i*k)*matMel;
     
 end
 
