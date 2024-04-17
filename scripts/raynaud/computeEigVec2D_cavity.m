@@ -14,7 +14,7 @@ if varargin{1} == "firsteigvec"
 elseif varargin{1} == "closesteigvec"
     mn = closest_to_k(nbEigVec, k);
 else
-    error('Invalid input: varargin{1} must be "smallesteigvec" or "closesteigvec"')
+    error('Invalid input: varargin{1} must be "firsteigvec" or "closesteigvec"')
 end
 
 
