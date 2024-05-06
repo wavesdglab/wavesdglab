@@ -285,7 +285,7 @@ for tri=1:mesh.numTri
                 case 'ABC'
                     matGGel = matB_Lin + matM_Lin;                         % ====================================
                     matGHel = matB_Lin - matM_Lin;                         % ====================================
-                    rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = 0*rhsPel;
                 case 'ROB'
                     matGGel = matB_Lin + matM_Lin;                         % ====================================
                     matGHel = matB_Lin - matM_Lin;                         % ====================================
