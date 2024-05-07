@@ -247,7 +247,7 @@ for tri=1:mesh.numTri
                     rhsGel  = -2*eta(tri)*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - eta(tri) * (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = 0*rhsPel;
                 case 'ROB'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
                     rhsGel  = (rhsPel - eta(tri) * (nx*rhsUel  + ny*rhsVel));    

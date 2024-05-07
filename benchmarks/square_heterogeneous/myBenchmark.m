@@ -2,10 +2,9 @@ function mesh = myBenchmark()
 
 global h edgTagToBC
 
-% BCWest, BCNorth, BCEast, BCSouth
-edgTag = {1, 2, 3, 4};
-BC = {'ABC', 'ABC', 'ABC', 'ABC'};
-edgTagToBC = containers.Map(edgTag,BC)
+edgTag = {1};
+BC = {'ABC'};
+edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'benchmarks/square_heterogeneous/square_heterogeneous.msh';
 linkGeo = 'benchmarks/square_heterogeneous/square_heterogeneous.geo';

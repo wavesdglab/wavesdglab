@@ -73,13 +73,13 @@ switch benchmark
         k2 = omega / c2;
     case 'square_heterogeneous'
 %         global eta3 k3 c3 rho3
-        omega = 60; %10*pi;
-        h = 0.07;
+        omega = 350; %10*pi;
+        h = 0.01;
         tol = 1e-10; maxit = 1000; itout = 100;
-        rho1 = 1;
-        c1 = 1; %3; 
-        rho2 = 1;
-        c2 = 1; %2;
+        rho1 = 1/3;
+        c1 = 3; %3; 
+        rho2 = 1/2;
+        c2 = 2; %2;
         rho3 = 1;
         c3 = 1;
         eta1 = rho1 * c1;
@@ -119,13 +119,13 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution (Upwind)
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
 
 % Compute numerical solution (High-order)
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 % [solB, sysB] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
