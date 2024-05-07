@@ -4,8 +4,10 @@
 
 function [solA, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, PREC)
 
-global omega edgTagToBC
+global kArray rhoArray
+global edgTagToBC
 global LdomX LdomY LpmlX LpmlY Rdom Rpml
+global pntSouTag
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
@@ -30,7 +32,9 @@ shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 % Volume terms
 % -------------------------------------------------------------------------
 
+myWaitbar = waitbar(0,'   Volume terms...');
 for tri=1:mesh.numTri
+    waitbar(tri/mesh.numTri,myWaitbar,['   Volume terms... (' int2str(100*tri/mesh.numTri) '%)']);
     
     % Mapping
     ver = mesh.mapTriToVer(tri,:);
@@ -61,10 +65,8 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
     % Coefficients on the element
-    x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
-    y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
-    [c, rho] = myCoef(x_C,y_C);
-    k = omega/c;
+    k = kArray(tri);
+    rho = rhoArray(tri);
     
     % RHS term
     rhsQ = mySourceVolume(xQ, yQ);
@@ -181,6 +183,7 @@ for tri=1:mesh.numTri
     % matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
     
 end
+close(myWaitbar)
 
 % -------------------------------------------------------------------------
 % Surface terms
@@ -188,7 +191,9 @@ end
 
 dofDIR = [];
 cacheDIR = zeros(dofm.numDofTRI);
+myWaitbar = waitbar(0,'   Surface terms...');
 for edgBnd=1:mesh.numEdgBnd
+    waitbar(edgBnd/mesh.numEdgBnd,myWaitbar,['   Surface terms... (' int2str(100*edgBnd/mesh.numEdgBnd) '%)']);
     edg = mesh.listEdgBnd(edgBnd);
     dof = dofm.locToGloBND(edgBnd,:);
     
@@ -231,10 +236,7 @@ for edgBnd=1:mesh.numEdgBnd
     rhsNel = shapeOrQ' * (weightsQ .* neuQ);
     
     % Coefficients on the element
-    x_C = (V1(1,1)+V2(1,1)+V3(1,1))/3;
-    y_C = (V1(1,2)+V2(1,2)+V3(1,2))/3;
-    c = myCoef(x_C,y_C);
-    k = omega/c;
+    k = kArray(tri);
     
     % Boundary condition
     switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
@@ -256,6 +258,7 @@ for edgBnd=1:mesh.numEdgBnd
             error('BAD BOUNDARY CONDITION.');
     end
 end
+close(myWaitbar)
 
 if(~isempty(dofDIR))
     solP = computeSolProjL2_2D_CG(mesh, dofm) .* cacheDIR;
@@ -265,6 +268,11 @@ if(~isempty(dofDIR))
     matA(dofDIR,:) = 0;
     matA(:,dofDIR) = 0;
     matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
+end
+
+if(~isempty(pntSouTag))
+    Isou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+    rhsA(Isou) = rhsA(Isou) + 1;
 end
 
 % -------------------------------------------------------------------------
@@ -287,8 +295,8 @@ sysA.matA = matA;
 sysA.rhsA = rhsA;
 
 % Reduced system
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
-sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
+% sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
+% sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
 
 % Preconditionning
 if (PREC == 1)
@@ -299,9 +307,9 @@ else
 end
 
 % Compute solution
-solG = sysA.matS\sysA.rhsS;
-solI = sysA.matII\(sysA.rhsI-sysA.matIG*solG);
-solA = [ solG ; solI ];
-% solA = sysA.matA\sysA.rhsA;
+% solG = sysA.matS\sysA.rhsS;
+% solI = sysA.matII\(sysA.rhsI-sysA.matIG*solG);
+% solA = [ solG ; solI ];
+solA = sysA.matA\sysA.rhsA;
 
 end
