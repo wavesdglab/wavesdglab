@@ -5,10 +5,10 @@
 function [solP, sysP] = computeSolProjL2_2D_CG(mesh, dofm)
 
 % Quadrature and shape functions
-degreeQ = 4*dofm.degree;
-[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
+degreeQ = 2*dofm.degree;
+[uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
+weightsTriQ = sparse(1:size(weightsTriQ,1), 1:size(weightsTriQ,1), weightsTriQ);
+shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 
 % Build matrix and RHS vector
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
@@ -20,7 +20,7 @@ for tri=1:mesh.numTri
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
+    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     detJdxdu = abs(det(Jdxdu));
     
@@ -44,12 +44,15 @@ for tri=1:mesh.numTri
     shapeOrQ = shapeQ * orientation;
     
     % Local matrix and RHS vector
-    matPel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
-    rhsPel = shapeOrQ' * weights * refQ * detJdxdu;
+    weightsQ = weightsTriQ .* detJdxdu;
+    matPel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    rhsPel = transpose(shapeOrQ) * (weightsQ .* refQ);
     
     % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
+    size(dof)
+    size(rhsPel)
     rhsP(dof) = rhsP(dof) + rhsPel;
 end
 

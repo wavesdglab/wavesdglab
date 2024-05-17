@@ -9,7 +9,7 @@ global omega nLambda
 myData();
 linkMsh = 'benchmarks/geophysics_marmousi/myMesh.msh';
 linkGeo = 'benchmarks/geophysics_marmousi/myMesh.geo';
-system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega/(2*pi)) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
@@ -17,16 +17,19 @@ mesh = readMesh2D(linkMsh);
 % -------------------------------------------------------------------------
 
 global edgTagToBC
-bndTag = {2000};
-BC = {'ABC'};
+bndTag = {2001, 2002, 2003, 2004};
+BC = {'ABC','ABC','DIR0','ABC'};
 edgTagToBC = containers.Map(bndTag,BC);
 
 % -------------------------------------------------------------------------
 % Source point
 % -------------------------------------------------------------------------
 
-global pntSouTag
+global pntSouTag pntSouVal
 pntSouTag = 1000;
+vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+xSou = mesh.coord(vertSou,1);
+ySou = mesh.coord(vertSou,2);
 
 % -------------------------------------------------------------------------
 % Physical coefficients
@@ -36,8 +39,12 @@ pntSouTag = 1000;
 % Source:
 %   https://www.geoazur.fr/WIND/bin/view/Main/Data/WebHome
 % Reference:
-%   F. J. Billette and S. Brandsberg-Dahl, The 2004 BP Velocity Benchmark,
+% - F. J. Billette and S. Brandsberg-Dahl, The 2004 BP Velocity Benchmark,
 %   Extended Abstracts, 67th Annual EAGE Conference & Exhibition, Madrid, Spain, 2004
+% - https://doi.org/10.1051/proc/201861093
+% - https://doi.org/10.1137/18M1196170
+% - https://doi.org/10.1016/j.cma.2020.113162
+% - https://doi.org/10.1016/j.cma.2022.115006
 
 Ix = 2301;
 Iy = 751;
@@ -70,17 +77,25 @@ for tri = 1:mesh.numTri
     cArray(tri) = dataVelocity(j,i);
     rhoArray(tri) = dataDensity(j,i);
     
-    cArray(tri) = 5000;
-    rhoArray(tri) = 1;
-    % cArray(tri) = 
-    % i0 = ceil(x/dx)+1;
-    % i1 = floor(x/dx)+1;
-    % j0 = ceil(-y/dy)+1;
-    % j1 = floor(-y/dy)+1;
-    % cArray(tri) = mean(dataVelocity([j0 j1], [i0 i1]),'all');
-    % rhoArray(tri) = mean(dataDensity([j0 j1], [i0 i1]),'all');
+    i0 = ceil(x/dx)+1;
+    i1 = floor(x/dx)+1;
+    j0 = ceil(-y/dy)+1;
+    j1 = floor(-y/dy)+1;
+    cArray(tri) = mean(dataVelocity([j0 j1], [i0 i1]),'all');
+    rhoArray(tri) = mean(dataDensity([j0 j1], [i0 i1]),'all');
+    %cArray(tri) = 5000;
+    %rhoArray(tri) = 1;
     etaArray(tri) = rhoArray(tri) * cArray(tri);
     kArray(tri) = omega / cArray(tri);
 end
+
+xSou = mesh.coord(vertSou,1);
+ySou = mesh.coord(vertSou,2);
+
+i0 = ceil(xSou/dx)+1;
+i1 = floor(xSou/dx)+1;
+j0 = ceil(-ySou/dy)+1;
+j1 = floor(-ySou/dy)+1;
+pntSouVal = 1/mean(dataDensity([j0 j1], [i0 i1]),'all');
 
 end

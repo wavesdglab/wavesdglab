@@ -16,15 +16,15 @@ fileDensity = fopen('benchmarks/geophysics_marmousi/data/rho.bin');
 dataVelocity = fread(fileVelocity,[Iy Ix],'single');
 dataDensity = fread(fileDensity,[Iy Ix],'single');
 
-figure(1);
-imagesc(dataVelocity);
-title('Velocity');
-colorbar;
-
-figure(2);
-imagesc(dataDensity);
-title('Density');
-colorbar;
+% figure(1);
+% imagesc(dataVelocity);
+% title('Velocity');
+% colorbar;
+% 
+% figure(2);
+% imagesc(dataDensity);
+% title('Density');
+% colorbar;
 
 % Data for structured GMSH data file:
 %   Ox Oy Oz

@@ -2,17 +2,12 @@
 % See the LICENSE.txt file in the root directory for license information
 % Authors: Axel Modave, Timothée Raynaud
 
-function [solA, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_CG_heterogeneous2(mesh, dofm, PREC)
 
 global kArray rhoArray
 global edgTagToBC
 global LdomX LdomY LpmlX LpmlY Rdom Rpml
-global pntSouTag
-
-matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
-matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
-matShiftedLaplacian = sparse(dofm.numDofTRI,dofm.numDofTRI);
-rhsA = zeros(dofm.numDofTRI, 1);
+global pntSouTag pntSouVal
 
 % -------------------------------------------------------------------------
 % Quadrature
@@ -32,6 +27,14 @@ shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 % Volume terms
 % -------------------------------------------------------------------------
 
+matIv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+matJv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+matAv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+% matMv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+% matPv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+rhsA = zeros(dofm.numDofTRI, 1);
+
+tic
 myWaitbar = waitbar(0,'   Volume terms...');
 for tri=1:mesh.numTri
     waitbar(tri/mesh.numTri,myWaitbar,['   Volume terms... (' int2str(100*tri/mesh.numTri) '%)']);
@@ -135,62 +138,32 @@ for tri=1:mesh.numTri
         end
     end
     
-    % PML stretching (rectangular PML — alternative)
-    % if(~isempty(LdomX) && ~isempty(LdomY))
-    %     if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
-    %         sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
-    %         sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-    %         gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-    %         gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
-    %         coefPml = gammaPmlX.*gammaPmlY;
-    %         tensPmlXX = gammaPmlY./gammaPmlX;
-    %         tensPmlYY = gammaPmlX./gammaPmlY;
-    %         matMel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
-    %         matKel = transpose(shapeDxQ) * (weightsQ .* tensPmlXX .* shapeDxQ) ...
-    %                + transpose(shapeDyQ) * (weightsQ .* tensPmlYY .* shapeDyQ);
-    %         matApml = (1/rho) * matKpml - (k^2/rho) * matMpml;
-    %     end
-    % end
-    
-    % % PML stretching (circular PML — alternative)
-    % if(~isempty(Rdom))
-    %     rQ = sqrt(xQ.*xQ + yQ.*yQ);
-    %     if (mean(rQ) >= Rdom)
-    %         cosT = xQ./rQ;
-    %         sinT = yQ./rQ;
-    %         sigmaPml = 1./(Rpml-(rQ-Rdom));
-    %         sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
-    %         gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
-    %         gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
-    %         coefPml = gammaPmlR.*gammaPmlT;
-    %         tensPmlXX = (gammaPmlT./gammaPmlR) .* cosT.*cosT + (gammaPmlR./gammaPmlT) .* (sinT.*sinT);
-    %         tensPmlXY = (gammaPmlT./gammaPmlR) .* cosT.*sinT - (gammaPmlR./gammaPmlT) .* (cosT.*sinT);
-    %         tensPmlYY = (gammaPmlT./gammaPmlR) .* sinT.*sinT + (gammaPmlR./gammaPmlT) .* (cosT.*cosT);
-    %         matMel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
-    %         matKel = transpose(shapeDxQ) * (weightsQ .* tensPmlXX .* shapeDxQ) ...
-    %                + transpose(shapeDxQ) * (weightsQ .* tensPmlXY .* shapeDyQ) ...
-    %                + transpose(shapeDyQ) * (weightsQ .* tensPmlXY .* shapeDxQ) ...
-    %                + transpose(shapeDyQ) * (weightsQ .* tensPmlYY .* shapeDyQ);
-    %         matApml = (1/rho) * matKpml - (k^2/rho) * matMpml;
-    %     end
-    % end
-    
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
-    matA(dof,dof) = matA(dof,dof) + matAel;
-    matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
-    % matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
+    
+    iStart = (tri-1) * dofm.numDofPerTRI + 1;
+    iEnd = tri * dofm.numDofPerTRI;
+    matIv(iStart:iEnd,:) = dof' * ones(1,dofm.numDofPerTRI);
+    matJv(iStart:iEnd,:) = ones(dofm.numDofPerTRI,1) * dof;
+    matAv(iStart:iEnd,:) = matAel;
+    % matMv(iStart:iEnd,:) = matMel;
+    % matPv(iStart:iEnd,:) = matKel + k^2*matMel;
     
 end
+matA = sparse(matIv,matJv,matAv);
+% matM = sparse(matIv,matJv,matMv);
+% matP = sparse(matIv,matJv,matPv);
 close(myWaitbar)
+toc
 
 % -------------------------------------------------------------------------
 % Surface terms
 % -------------------------------------------------------------------------
 
+tic
+dofDIR0 = [];
 dofDIR = [];
-cacheDIR = zeros(dofm.numDofTRI);
 myWaitbar = waitbar(0,'   Surface terms...');
 for edgBnd=1:mesh.numEdgBnd
     waitbar(edgBnd/mesh.numEdgBnd,myWaitbar,['   Surface terms... (' int2str(100*edgBnd/mesh.numEdgBnd) '%)']);
@@ -237,43 +210,45 @@ for edgBnd=1:mesh.numEdgBnd
     
     % Coefficients on the element
     k = kArray(tri);
+    rho = rhoArray(tri);
     
     % Boundary condition
     switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
         case 'DIR0'
-            dofDIR = [dofDIR ; dof];
-            cacheDIR(dof) = zeros(size(dof,1),size(dof,2));
+            dofDIR0 = [dofDIR0 ; dof(:)];
         case 'DIR'
-            dofDIR = [dofDIR ; dof];
-            cacheDIR(dof) = ones(size(dof,1),size(dof,2));
+            dofDIR = [dofDIR ; dof(:)];
         case 'NEU0'
         case 'NEU'
             rhsA(dof) = rhsA(dof) + rhsNel;
         case 'ABC'
-            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel;
+            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel/rho;
         case 'ROB'
-            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel;
-            rhsA(dof) = rhsA(dof) + rhsNel - 1i*k * rhsDel;
+            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel/rho;
+            rhsA(dof) = rhsA(dof) + (rhsNel - 1i*k * rhsDel)/rho;
         otherwise
             error('BAD BOUNDARY CONDITION.');
     end
 end
 close(myWaitbar)
 
+if(~isempty(dofDIR0))
+    dofDIR0 = unique(dofDIR0);
+    rhsA(dofDIR0) = 0;
+    matA(dofDIR0,dofDIR0) = eye(size(dofDIR0,1),size(dofDIR0,1));
+end
 if(~isempty(dofDIR))
-    solP = computeSolProjL2_2D_CG(mesh, dofm) .* cacheDIR;
     dofDIR = unique(dofDIR);
+    solP = computeSolProjL2_2D_CG(mesh, dofm);
     rhsA = rhsA - matA(:,dofDIR)*solP(dofDIR);
     rhsA(dofDIR) = solP(dofDIR);
-    matA(dofDIR,:) = 0;
-    matA(:,dofDIR) = 0;
     matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
 end
-
 if(~isempty(pntSouTag))
     Isou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
-    rhsA(Isou) = rhsA(Isou) + 1;
+    rhsA(Isou) = rhsA(Isou) + pntSouVal;
 end
+toc
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -300,8 +275,9 @@ sysA.rhsA = rhsA;
 
 % Preconditionning
 if (PREC == 1)
+    sysA.matP = 1;
     % sysA.matP = matM;
-    sysA.matP = matShiftedLaplacian;
+    % sysA.matP = matP;
 else
     sysA.matP = 1;
 end
@@ -310,6 +286,8 @@ end
 % solG = sysA.matS\sysA.rhsS;
 % solI = sysA.matII\(sysA.rhsI-sysA.matIG*solG);
 % solA = [ solG ; solI ];
+tic
 solA = sysA.matA\sysA.rhsA;
+toc
 
 end
