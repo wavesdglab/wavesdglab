@@ -1,5 +1,5 @@
-function val = mySourceVolume(~,~)
+function val = mySourceVolume(x,~)
 
-val = 0;
+val = zeros(size(x));
 
 end

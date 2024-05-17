@@ -1,9 +1,9 @@
-function [solU, solDx, solDy, solVx, solVy] = mySol(~,~)
+function [solU, solDx, solDy, solVx, solVy] = mySol(x,~)
 
-solU = 0;
-solDx = 0;
-solDy = 0;
-solVx = 0;
-solVy = 0;
+solU = zeros(size(x));
+solDx = zeros(size(x));
+solDy = zeros(size(x));
+solVx = zeros(size(x));
+solVy = zeros(size(x));
 
 end

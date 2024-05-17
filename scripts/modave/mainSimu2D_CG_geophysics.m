@@ -6,10 +6,9 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-omega = 100*pi;  % FIXME: THERE IS SOMETHING NOT CLEAR FOR THE CHOICE OF 'LC'
-nLambda = 0.2;
-
+omega = 100*pi;
 degree = 3;
+nLambda = 10/(degree+1);
 PREC = 0;
 
 % Build mesh and DOF manager
