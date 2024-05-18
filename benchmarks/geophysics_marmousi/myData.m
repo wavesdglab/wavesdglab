@@ -34,7 +34,7 @@ dataDensity = fread(fileDensity,[Iy Ix],'single');
 padding = 10;
 
 data = round(dataVelocity(1:padding:end, 1:padding:end)');
-fileGmsh = fopen('benchmarks/geophysics_marmousi/_velocityGmsh.txt','w');
+fileGmsh = fopen('output/velocityGmsh.txt','w');
 fprintf(fileGmsh,'%f %f %f\n', 0, 0, 0);
 fprintf(fileGmsh,'%f %f %f\n', Lx/size(data,1), -Ly/size(data,2), 1);
 fprintf(fileGmsh,'%i %i %i\n', size(data,1), size(data,2), 1);
