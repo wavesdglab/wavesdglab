@@ -1,11 +1,11 @@
 clear all;
-%close all;
+close all;
 
 benchmark = 'scattering_disk_penetrable';
 
 % Parameters
 global omega cAir cObj rhoAir rhoObj h
-omega = 2*pi;
+omega = 2.1*pi;
 cAir = 1;
 cObj = 0.5;
 rhoAir = 1.33;
@@ -51,4 +51,4 @@ writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 global PML_HIDE; PML_HIDE = 1;
 writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.pos output/mesh.msh&');
