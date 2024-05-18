@@ -1,9 +1,9 @@
-function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(~,~)
+function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(x,~)
 
-souU = 0;
-souDx = 0;
-souDy = 0;
-souVx = 0;
-souVy = 0;
+souU = zeros(size(x));
+souDx = zeros(size(x));
+souDy = zeros(size(x));
+souVx = zeros(size(x));
+souVy = zeros(size(x));
 
 end

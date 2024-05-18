@@ -1,23 +1,17 @@
 // Dimensions
-Lx = 9192;
-Ly = 2904;
+Lx = 67437.5;
+Ly = 11943.75;
 X0 = 0;
 Y0 = -Ly;
 
 // Parameters
-// X_SOU = Lx/2;
-// Y_SOU = -10;
-// X0 = 2*Lx/5;
-// Lx = Lx/5;
-// Ly = Ly/3;
-// Y0 = -Ly;
+X0 = Lx/3;
+Lx = Lx/3;
+Ly = 2*Ly/3;
+Y0 = -Ly;
 
-X_SOU = 4585;
-Y_SOU = -10;
-
-// https://hdl.handle.net/2268/174920:
-// X_SOU = 6200;
-// Y_SOU = -2300;
+X_SOU = X0+Lx/2;
+Y_SOU = -30;
 
 // ====================================================================================================
 // Build DOMAIN
@@ -55,7 +49,7 @@ Point {p0} In Surface {s};
 // LC = cMin/FREQ/N_LAMBDA;
 
 Field[1] = Structured;
-Field[1].FileName = "benchmarks/geophysics_marmousi/_velocityGmsh.txt";
+Field[1].FileName = "output/velocityGmsh.txt";
 Field[1].TextFormat = 1;
 Field[2] = MathEval;
 Field[2].F = Sprintf("F1 * %g", 1/FREQ/N_LAMBDA);
