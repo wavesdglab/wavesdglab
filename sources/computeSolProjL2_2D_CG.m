@@ -50,8 +50,6 @@ for tri=1:mesh.numTri
     % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
-    size(dof)
-    size(rhsPel)
     rhsP(dof) = rhsP(dof) + rhsPel;
 end
 
