@@ -21,8 +21,8 @@ switch benchmark
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 3.1*sqrt(2)*pi;
-        h = 1/64;
+        k = 3.01*sqrt(2)*pi;
+        h = 1/32;
         tol = 1e-6; maxit = 2000; itout =4;
         L = 1;
     case 'scatteringPML'
@@ -114,8 +114,8 @@ rrGMRES = rrGMRES(1:itout:end);
 
 
 
-[~,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec,eigvecToDeflate);
-[eigvec,~] = eigs(A,nbEigVec,'smallestabs');
+[eigvec,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec,eigvecToDeflate);
+% [eigvec,~] = eigs(A,nbEigVec,'smallestabs');
 
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
 

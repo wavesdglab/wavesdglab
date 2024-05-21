@@ -17,17 +17,15 @@ else
     error('Invalid input: varargin{1} must be "firsteigvec" or "closesteigvec"')
 end
 
-
-eigenvec = zeros(dofm.numDofTRI, size(mn, 1));
-
-% Quadrature
-degreeQ = 3*dofm.degree;
+% Quadrature and shape functions
+degreeQ = 4*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
+weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
+shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
-shapeTriQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-
-% Shape functions (f, dfdu, dfdv)
-% shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
+% Build matrix and RHS vector
+matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
+rhsP = zeros(dofm.numDofTRI, size(mn, 1));
 
 for tri=1:mesh.numTri
     
@@ -37,48 +35,51 @@ for tri=1:mesh.numTri
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
-
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
-    % Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
-    % Orientation
-    orientation = ones(dofm.numDofPerTRI,1);
-    if(ver(1) > ver(2))
-        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(2) > ver(3))
-        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(3) > ver(1))
-        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
-    % Shape functions (f, dfdx, dfdy) with orientation
-    shapeOrQ = shapeTriQ * orientation;
-    % shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    % shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
-    weightsQ = weights .* detJdxdu;
-    
-    dof = dofm.locToGloTRI(tri,:);
-    
+
+    % Reference solution
+    refQ = zeros(size(xQ,1), size(mn, 1));
     for i=1:size(mn, 1)
         m = mn(i, 1);
         n = mn(i, 2);
 
-        eigvFunc = (sin(m*xQ*pi).*sin(n*yQ*pi)) .* (16*m*n*pi^2 /(pi^2*(m^2 + n^2)-k^2));
-
-        eigvPel = transpose(shapeOrQ) * (weightsQ .* eigvFunc);
-
-
-        eigenvec(dof, i) = eigenvec(dof, i) + eigvPel;
+        refQ(:, i) = (sin(m*xQ*pi).*sin(n*yQ*pi)) .* (16*m*n*pi^2 /(pi^2*(m^2 + n^2)-k^2));
     end
+    
+     % Orientation
+     orientation = ones(dofm.numDofPerTRI,1);
+     if(ver(1) > ver(2))
+         orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+     end
+     if(ver(2) > ver(3))
+         orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+     end
+     if(ver(3) > ver(1))
+         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+     end
+     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+     
+     % Shape functions with orientation
+     shapeOrQ = shapeQ * orientation;
+     
+     % Local matrix and RHS vector
+     matPel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
+     rhsPel = shapeOrQ' * weights * refQ * detJdxdu;
+    
+    % Assembling
+    dof = dofm.locToGloTRI(tri,:);
+    matP(dof,dof) = matP(dof,dof) + matPel;
+    rhsP(dof,:) = rhsP(dof,:) + rhsPel;
 
 
     nbEigVec = size(mn, 1);
     
 end
+
+% Solution
+eigenvec = matP\rhsP;
+
 % for i=1:size(mn, 1)
 %     filename = 'output/eigenvec' + string(i) + '.pos';
 %     fieldname = 'eigenvec' + string(i);
