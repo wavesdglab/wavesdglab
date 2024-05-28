@@ -28,10 +28,10 @@ tol = 1e-100;
 
 % PLANE WAVE IN INHOMOGENEOUS MEDIUM WITH EXACT ROBIN B.C.
 iMax = 1000; iOut = 50;
-benchmark = 'open_heterogeneous';
+benchmark = 'disk_heterogeneous';
 
-degree = 3; h = 10; omega = 15*pi;
-rho1 = 1; c1 = 1; rho2 = 2/3; c2 = 3/4;
+degree = 3; h = 0.065; omega = 36.14;
+rho1 = 1; c1 = 1; rho2 = 1; c2 = 1;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 run(benchmark,degree,A,B,tol,iMax,iOut);
 

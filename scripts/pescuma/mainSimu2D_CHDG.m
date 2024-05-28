@@ -9,7 +9,7 @@ global eta3 k3 c3 rho3
 % for omega=22:0.1:62
    
 % Setup benchmark and parameters
-benchmark = 'square_heterogeneous';
+benchmark = 'disk_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -60,8 +60,8 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 10*pi; %10*pi;
-        h = 0.05;
+        omega = 36; %10*pi;
+        h = 0.065;
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
@@ -92,8 +92,8 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 1;              % order of numerical fluxes
-B = 1;              % order of transmission variables
+A = 2;              % order of numerical fluxes
+B = 2;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -101,9 +101,6 @@ mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 setParameters(mesh, benchmark);
 Dlambda = 2*pi/k(1) * (sqrt(dofm.numDofTRI) - 1);
-
-disp('Num');
-mesh.numTri
 
 %%
 % -------------------------------------------------------------------------
@@ -132,10 +129,10 @@ disp(['---------------------------------------------------------']);
 
 %%
 % Compute numerical error
-% errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
+errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
 % % errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
 % % errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
-% errorL2 = errorL2_A
+errorL2 = errorL2_A
 
 % e
 % Omega(e) = omega;
@@ -143,7 +140,7 @@ disp(['---------------------------------------------------------']);
 % e=e+1;
 % 
 % end
-
+% 
 % zerosBessel = besselzero(0,10,1);
 % frequencies = 2*zerosBessel(4:10);
 % 
@@ -155,16 +152,16 @@ disp(['---------------------------------------------------------']);
 % 
 % rezu1A = ["omega" "error"];
 % rezu2A = [Omega', err'];
-
+% name = sprintf('frequencies_resonance.csv');
 % writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
 % Compute projection solution
-% solP = computeSolProjL2_2D_DG(mesh, dofm);
-% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
-% 
-% % disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% % disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
+
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 
 % figure()
 % loglog(H,err(:,1),'-r','LineWidth',2);
@@ -183,12 +180,11 @@ disp(['---------------------------------------------------------']);
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
-
+% 
 writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
-system('gmsh output/solNum.pos&');
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 %%
 % -------------------------------------------------------------------------

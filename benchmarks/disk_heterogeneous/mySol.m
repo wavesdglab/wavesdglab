@@ -51,23 +51,6 @@ else
     solF = f + 0*x + 0*y;
     solVx = 1i/eta2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* x ./ r;
     solVy = 1i/eta2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* y ./ r;
-end
-
-%% Homogeneous medium
-
-% R1 = 0.25;
-% R2 = 0.5;
-% f = 1;
-% 
-% A = f/(k1^2*besselj(0,k1*R2));
-% 
-% r = sqrt(x.^2+y.^2);
-% 
-% solU = A * besselj(0,k1*r) - f/(k1^2);            
-% solDx = - k1 * A * besselj(1,k1*r) .* x ./ r;      
-% solDy = - k1 * A * besselj(1,k1*r) .* y ./ r;       
-% solF = f + 0*x + 0*y;                               
-% solVx = 1i/eta1 * A * besselj(1,k1*r) .* x ./ r;    
-% solVy = 1i/eta1 * A * besselj(1,k1*r) .* y ./ r;    
+end 
 
 end
