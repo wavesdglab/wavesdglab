@@ -12,8 +12,8 @@ global k BCLeft BCRight
 
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
-shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
+shapeQ = functionsShapeLIN(nodes,dofm.degree);
+shapeDerQ = functionsShapeDerLIN(nodes,dofm.degree);
 matMelem = shapeQ' * (weights .* shapeQ);
 matDelem = shapeQ' * (weights .* shapeDerQ);
 

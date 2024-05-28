@@ -9,7 +9,7 @@ N = dofm.degree+1;
 Q = ceil((2*(N-1)+1)/2);
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShapeLIN(nodes,dofm.degree);
 
 % Build matrix and RHS vector
 matP = sparse(dofm.numDof, dofm.numDof);

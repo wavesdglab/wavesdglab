@@ -1,10 +1,11 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Authors: Axel Modave, Timothée Raynaud
 
 function [solA, sysA] = computeSolNum2D_CG(mesh, dofm, PREC)
 
 global k edgTagToBC
+global LdomX LdomY LpmlX LpmlY Rdom Rpml
 
 matA = sparse(dofm.numDofTRI,dofm.numDofTRI);
 matM = sparse(dofm.numDofTRI,dofm.numDofTRI);
@@ -40,7 +41,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-
+    
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -62,17 +63,92 @@ for tri=1:mesh.numTri
     % RHS function
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
-    % Elemental matrices
-    matMel = shapeOrQ' * (weightsTriQ .* shapeOrQ) * detJdxdu;
-    matKel = (shapeDxQ' * (weightsTriQ .* shapeDxQ) + shapeDyQ' * (weightsTriQ .* shapeDyQ) ) * detJdxdu;
-    rhsPel = shapeOrQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-
+    % PML stretching (rectangular PML)
+    if(~isempty(LdomX) && ~isempty(LdomY))
+        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+            sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+            sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
+            shapeDxQ = shapeDxQ ./ gammaPmlX;
+            shapeDyQ = shapeDyQ ./ gammaPmlY;
+        end
+    end
+    
+    % PML stretching (circular PML)
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            invJacXX = (1./gammaPmlR) .* cosT.*cosT + (1./gammaPmlT) .* (sinT.*sinT);
+            invJacXY = (1./gammaPmlR) .* cosT.*sinT - (1./gammaPmlT) .* (cosT.*sinT);
+            invJacYY = (1./gammaPmlR) .* sinT.*sinT + (1./gammaPmlT) .* (cosT.*cosT);
+            detJdxdu = detJdxdu .* gammaPmlR .* gammaPmlT;
+            shapeDxQnew = invJacXX .* shapeDxQ + invJacXY .* shapeDyQ;
+            shapeDyQnew = invJacXY .* shapeDxQ + invJacYY .* shapeDyQ;
+            shapeDxQ = shapeDxQnew;
+            shapeDyQ = shapeDyQnew;
+        end
+    end
+    
+    % Elemental matrices/vectors
+    weightsQ = weightsTriQ .* detJdxdu;
+    matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    matKel = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
+    rhsPel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
+    
+    % PML stretching (rectangular PML — alternative)
+    % if(~isempty(LdomX) && ~isempty(LdomY))
+    %     if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+    %         sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+    %         sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+    %         gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+    %         gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+    %         coefPml = gammaPmlX.*gammaPmlY;
+    %         tensPmlXX = gammaPmlY./gammaPmlX;
+    %         tensPmlYY = gammaPmlX./gammaPmlY;
+    %         matMel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+    %         matKel = transpose(shapeDxQ) * (weightsQ .* tensPmlXX .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* tensPmlYY .* shapeDyQ);
+    %         rhsPel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
+    %     end
+    % end
+    
+    % % PML stretching (circular PML — alternative)
+    % if(~isempty(Rdom))
+    %     rQ = sqrt(xQ.*xQ + yQ.*yQ);
+    %     if (mean(rQ) >= Rdom)
+    %         cosT = xQ./rQ;
+    %         sinT = yQ./rQ;
+    %         sigmaPml = 1./(Rpml-(rQ-Rdom));
+    %         sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+    %         gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+    %         gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+    %         coefPml = gammaPmlR.*gammaPmlT;
+    %         tensPmlXX = (gammaPmlT./gammaPmlR) .* cosT.*cosT + (gammaPmlR./gammaPmlT) .* (sinT.*sinT);
+    %         tensPmlXY = (gammaPmlT./gammaPmlR) .* cosT.*sinT - (gammaPmlR./gammaPmlT) .* (cosT.*sinT);
+    %         tensPmlYY = (gammaPmlT./gammaPmlR) .* sinT.*sinT + (gammaPmlR./gammaPmlT) .* (cosT.*cosT);
+    %         matMel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+    %         matKel = transpose(shapeDxQ) * (weightsQ .* tensPmlXX .* shapeDxQ) ...
+    %                + transpose(shapeDxQ) * (weightsQ .* tensPmlXY .* shapeDyQ) ...
+    %                + transpose(shapeDyQ) * (weightsQ .* tensPmlXY .* shapeDxQ) ...
+    %                + transpose(shapeDyQ) * (weightsQ .* tensPmlYY .* shapeDyQ);
+    %         rhsPel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
+    %         
+    %     end
+    % end
+    
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matA(dof,dof) = matA(dof,dof) + matKel - k^2*matMel;
     matM(dof,dof) = matM(dof,dof) + matMel;
     rhsA(dof) = rhsA(dof) + rhsPel;
-    matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
+    % matShiftedLaplacian(dof,dof) = matShiftedLaplacian(dof,dof) + matKel + k^2*matMel;
     
 end
 
@@ -119,9 +195,10 @@ for edgBnd=1:mesh.numEdgBnd
     shapeOrQ = shapeLinQ * orientation;
     
     % Elemental matrices/vectors
-    matMel = shapeOrQ' * (weightsLinQ .* shapeOrQ) * Jdxdu;
-    rhsDel = shapeOrQ' * (weightsLinQ .* dirQ) * Jdxdu;
-    rhsNel = shapeOrQ' * (weightsLinQ .* neuQ) * Jdxdu;
+    weightsQ = weightsLinQ * Jdxdu;
+    matMel = shapeOrQ' * (weightsQ .* shapeOrQ);
+    rhsDel = shapeOrQ' * (weightsQ .* dirQ);
+    rhsNel = shapeOrQ' * (weightsQ .* neuQ);
     
     % Boundary condition
     switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
@@ -160,9 +237,9 @@ end
 
 % Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;
-dofG = 1:numDofTRIred; % noeuds qu'on garde : noeuds des vertex + arètes
-dofI = (numDofTRIred+1):dofm.numDofTRI;
-sysA.matII = matA(dofI,dofI); % ddl intérieurs 
+dofG = 1:numDofTRIred;                   % DOFs for reduced system
+dofI = (numDofTRIred+1):dofm.numDofTRI;  % DOFs eliminated by static condensation
+sysA.matII = matA(dofI,dofI);
 sysA.matIG = matA(dofI,dofG);
 sysA.matGI = matA(dofG,dofI);
 sysA.matGG = matA(dofG,dofG);

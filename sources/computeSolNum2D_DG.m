@@ -5,28 +5,33 @@
 function [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC)
 
 global k edgTagToBC
+global LdomX LdomY LpmlX LpmlY Rdom Rpml
 
 numDofTRI = dofm.numDofTRI;
 numDofPerTRI = dofm.numDofPerTRI;
+
+% Quadrature
+degreeQ = 2*dofm.degree;
+[uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
+[uLinQ, weightsLinQ] = quadratureGaussLIN(degreeQ);
+
+% Shape functions and derivatives (reference space)
+shapeLinQ = functionsShapeLIN(uLinQ, dofm.degree);
+shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+[shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % -------------------------------------------------------------------------
 % Volume terms
 % -------------------------------------------------------------------------
 
-% Quadrature
-degreeQ = 2*dofm.degree;
-[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-
-% Shape functions (f, dfdu, dfdv)
-shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
-
 % Global matrices
 matXv  = zeros(numDofTRI, numDofPerTRI);
 matYv  = zeros(numDofTRI, numDofPerTRI);
 matMv  = zeros(numDofTRI, numDofPerTRI);
-matMvInv = zeros(numDofTRI, numDofPerTRI);
+matMPv = zeros(numDofTRI, numDofPerTRI);
+matMXXv = zeros(numDofTRI, numDofPerTRI);
+matMXYv = zeros(numDofTRI, numDofPerTRI);
+matMYYv = zeros(numDofTRI, numDofPerTRI);
 matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
 rhsP   = zeros(numDofTRI, 1);
@@ -38,7 +43,7 @@ for tri=1:mesh.numTri
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     V3 = mesh.coord(ver(3),:);
-    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
+    [xQ, yQ] = locToGloTRI(uTriQ, vTriQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
@@ -57,50 +62,93 @@ for tri=1:mesh.numTri
     orientation = sparse(1:numDofPerTRI, 1:numDofPerTRI, orientation);
     
     % Shape functions (f, dfdx, dfdy) with orientation
-    shapeOrQ = shapeQ * orientation;
-    shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
+    shapeOrQ = shapeTriQ * orientation;
+    shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % RHS function
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
     % Elemental matrices
-    matMel = shapeOrQ' * weights * shapeOrQ * detJdxdu;
-    matDXel = shapeDxQ' * weights * shapeOrQ * detJdxdu;
-    matDYel = shapeDyQ' * weights * shapeOrQ * detJdxdu;
-    vecRHSel = shapeOrQ' * weights * rhsQ * detJdxdu;
+    weightsQ = weightsTriQ .* detJdxdu;
+    matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    matMPel = matMel;
+    matMXXel = matMel;
+    matMXYel = zeros(size(matMel));
+    matMYYel = matMel;
+    matDXel = transpose(shapeDxQ) * (weightsQ .* shapeOrQ);
+    matDYel = transpose(shapeDyQ) * (weightsQ .* shapeOrQ);
+    vecRHSel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
+    
+    % PML stretching (rectangular PML)
+    if(~isempty(LdomX) && ~isempty(LdomY))
+        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+            sigmaPmlX = 1./(LdomX+LpmlX-abs(xQ));
+            sigmaPmlY = 1./(LdomY+LpmlY-abs(yQ));
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            coefPml = gammaPmlX.*gammaPmlY;
+            tensPmlInvXX = gammaPmlX./gammaPmlY;
+            tensPmlInvYY = gammaPmlY./gammaPmlX;
+            matMPel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+            matMXXel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXX .* shapeOrQ);
+            matMYYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvYY .* shapeOrQ);
+        end
+    end
+    
+    % PML stretching (circular PML)
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            coefPml = gammaPmlR.*gammaPmlT;
+            tensPmlInvXX = (gammaPmlR./gammaPmlT) .* cosT.*cosT + (gammaPmlT./gammaPmlR) .* (sinT.*sinT);
+            tensPmlInvXY = (gammaPmlR./gammaPmlT) .* cosT.*sinT - (gammaPmlT./gammaPmlR) .* (cosT.*sinT);
+            tensPmlInvYY = (gammaPmlR./gammaPmlT) .* sinT.*sinT + (gammaPmlT./gammaPmlR) .* (cosT.*cosT);
+            matMPel = transpose(shapeOrQ) * (weightsQ .* coefPml .* shapeOrQ);
+            matMXXel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXX .* shapeOrQ);
+            matMXYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvXY .* shapeOrQ);
+            matMYYel = transpose(shapeOrQ) * (weightsQ .* tensPmlInvYY .* shapeOrQ);
+        end
+    end
     
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     matXv(dof,:) = dof'*ones(1,size(dof,2));
     matYv(dof,:) = ones(size(dof,2),1)*dof;
     matMv(dof,:) = matMel;
-    matMvInv(dof,:) = inv(matMel);
+    matMPv(dof,:) = matMPel;
+    matMXXv(dof,:) = matMXXel;
+    matMXYv(dof,:) = matMXYel;
+    matMYYv(dof,:) = matMYYel;
     matDXv(dof,:) = matDXel;
     matDYv(dof,:) = matDYel;
     rhsP(dof) = vecRHSel;
     
 end
 
-matM  = sparse(matXv,matYv,matMv);   % Mass matrix
-matMinv  = sparse(matXv,matYv,matMvInv); % Mass matrix (onverse)
-matDX = sparse(matXv,matYv,matDXv);  % Differentiation matrix (x)
-matDY = sparse(matXv,matYv,matDYv);  % Differentiation matrix (y)
+matM  = sparse(matXv,matYv,matMv);     % Mass matrix
+matMP = sparse(matXv,matYv,matMPv);    % Mass matrix
+matMXX = sparse(matXv,matYv,matMXXv);  % Mass matrix
+matMXY = sparse(matXv,matYv,matMXYv);  % Mass matrix
+matMYY = sparse(matXv,matYv,matMYYv);  % Mass matrix
+matDX = sparse(matXv,matYv,matDXv);    % Differentiation matrix (x)
+matDY = sparse(matXv,matYv,matDYv);    % Differentiation matrix (y)
 
 matP = [
     matM sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
     sparse(numDofTRI,numDofTRI) matM sparse(numDofTRI,numDofTRI) ;
     sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matM ];
 
-matPinv = [
-    matMinv sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) matMinv sparse(numDofTRI,numDofTRI) ;
-    sparse(numDofTRI,numDofTRI) sparse(numDofTRI,numDofTRI) matMinv ];
-
 matA = [
-    -1i*k*matM  -matDX                       -matDY                      ;
-    -matDX      -1i*k*matM                   sparse(numDofTRI,numDofTRI) ;
-    -matDY      sparse(numDofTRI,numDofTRI)  -1i*k*matM                  ];
+    -1i*k*matMP  -matDX        -matDY       ;
+    -matDX       -1i*k*matMXX  -1i*k*matMXY ;
+    -matDY       -1i*k*matMXY  -1i*k*matMYY ];
 
 rhsA = [
     -1/(1i*k)*rhsP ;
@@ -110,14 +158,6 @@ rhsA = [
 % -------------------------------------------------------------------------
 % Surface terms
 % -------------------------------------------------------------------------
-
-% Quadrature
-degreeQ = 4*dofm.degree;
-[uQ, weights] = quadratureGaussLIN(degreeQ);
-weights = sparse(1:size(weights,1), 1:size(weights,1), weights);
-
-% Shape functions
-shapeQ = functionsShapeLIN(uQ, dofm.degree);
 
 dofLocTri = zeros(3,dofm.numDofPerLIN);
 dofLocTri(1,:) = [1 2 dofm.locEdg(1,:)];
@@ -153,8 +193,8 @@ for tri=1:mesh.numTri
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
-        [xQ, yQ] = locToGloLIN(uQ, V1, V2);
-        Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
+        [xQ, yQ] = locToGloLIN(uLinQ, V1, V2);
+        detJdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
         
         % Solution function
         [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
@@ -167,13 +207,14 @@ for tri=1:mesh.numTri
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
         
         % Shape function
-        shapeOrQ = shapeQ * orientation;
+        shapeOrQ = shapeLinQ * orientation;
         
         % Elemental matrix
-        matMel = shapeOrQ' * weights * shapeOrQ * Jdxdu;
-        rhsPel = shapeOrQ' * weights * solQ * Jdxdu;
-        rhsUel = shapeOrQ' * weights * solDxQ * Jdxdu / (1i*k);
-        rhsVel = shapeOrQ' * weights * solDyQ * Jdxdu / (1i*k);
+        weightsQ = weightsLinQ .* detJdxdu;
+        matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+        rhsPel = transpose(shapeOrQ) * (weightsQ .* solQ);
+        rhsUel = transpose(shapeOrQ) * (weightsQ .* solDxQ / (1i*k));
+        rhsVel = transpose(shapeOrQ) * (weightsQ .* solDyQ / (1i*k));
         
         % Exterior normal
         nx = normal(fac,1);
@@ -286,10 +327,8 @@ sysA.rhsA = rhsA;
 % Preconditionning
 if (PREC == 1)
     sysA.matP = matP;
-    sysA.matPinv = matPinv;
 else
     sysA.matP = 1;
-    sysA.matPinv = 1;
 end
 
 % Compute solution

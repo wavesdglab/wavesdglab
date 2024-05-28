@@ -110,10 +110,12 @@ geo.numSurfaces = data(3);
 geo.numVolumes = data(4);
 for i=1:geo.numPoints
     data = str2num(fgetl(file));
-    geo.pointTag(i) = data(1);
-    geo.X(i) = data(2);
-    geo.Y(i) = data(3);
-    geo.Z(i) = data(4);
+    geo.pointGeoTag(i) = data(1);
+    if(data(5) > 0)
+        geo.pointPhyTag(i) = data(6);
+    else
+        geo.pointPhyTag(i) = -1;
+    end
 end
 for i=1:geo.numCurves
     data = str2num(fgetl(file));
@@ -166,9 +168,12 @@ while (~strcmp(fgetl(file),'$Elements'))
 end
 data = str2num(fgetl(file));
 numEntityBlocks = data(1);
+numElementsPNT      = 0;
 numElementsLIN      = 0;
 numElementsTRI      = 0;
 mesh.mapTriToVer    = [];
+mesh.tagPntFile  = [];
+mesh.mapPntToVer = [];
 mesh.tagEdgBndFile  = [];
 mesh.mapEdgBndToVer = [];
 for ent=1:numEntityBlocks
@@ -177,6 +182,15 @@ for ent=1:numEntityBlocks
     entityTag = data(2);
     entityType = data(3);
     numElementsInBlock = data(4);
+    if(entityType == 15)
+        for i=1:numElementsInBlock
+            data = str2num(fgetl(file));
+            phyTag = geo.pointPhyTag(geo.pointGeoTag == entityTag);
+            mesh.tagPntFile  = [mesh.tagPntFile; phyTag];
+            mesh.mapPntToVer = [mesh.mapPntToVer; data(2)];
+        end
+        numElementsPNT = numElementsPNT + numElementsInBlock;
+    end
     if(entityType == 1)
         for i=1:numElementsInBlock
             data = str2num(fgetl(file));

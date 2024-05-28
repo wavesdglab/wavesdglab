@@ -7,7 +7,7 @@ function [errorL2, normL2] = computeNormError1D_DG(mesh, dofm, vecSol)
 % Quadrature and shape functions
 Q = 16;
 [nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
+shapeQ = functionsShapeLIN(nodes,dofm.degree);
 
 normRef2 = 0;
 normErr2 = 0;

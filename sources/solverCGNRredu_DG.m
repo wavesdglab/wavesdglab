@@ -2,22 +2,31 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-% CGNR with symmetric preconditioning
+% Preconditioned CGNR
 
 function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matS;
 b = sys.rhsS;
+P = sys.matP;
 Pinv = sys.matPinv;
 
+% % Right-preconditioning
+% x = zeros(size(A,2),1);
+% r = b - A*x;
+% z = Pinv*(A'*r);
+% p = z;
+% rrini = r'*r;
+% zzini = z'*z;
+% zzold = zzini;
+
+% Symmetric-preconditioning
 x = zeros(size(A,2),1);
-r = b-A*x;
-s = Pinv*r;  % s=r for left-preconditioning
-y = A'*s;
-z = Pinv*y;
+r = b - A*x;
+z = Pinv*(A'*(Pinv*r));
 p = z;
 rrini = r'*r;
-zzini = y'*z;
+zzini = z'*P*z;
 zzold = zzini;
 
 resRedVec = zeros(iMax/iOut+1,1);
@@ -38,17 +47,28 @@ flag = 0;
 i = 1;
 while(i <= iMax)
     
-    v = A*p;
-    w = Pinv*v;  % w=v for left-preconditioning
-    alpha = zzold/(v'*w);
+%     % Right-preconditioning
+%     q = A*(Pinv*p);
+%     alpha = zzold/(q'*q);
+%     x = x + alpha*(Pinv*p);
+%     r = r - alpha*q;
+%     z = Pinv*(A'*r);
+%     rrnew = r'*r;
+%     zznew = z'*z;
+%     beta = zznew/zzold;
+%     p = z + beta*p;
+%     zzold = zznew;
+    
+    % Symmetric-preconditioning
+    q = Pinv*(A*p);
+    alpha = zzold/(q'*P*q);
     x = x + alpha*p;
-    r = r - alpha*v;
-    s = Pinv*r;  % s=r for left-preconditioning
-    y = A'*s;
-    z = Pinv*y;
+    r = r - alpha*A*p;
+    z = Pinv*(A'*(Pinv*r));
     rrnew = r'*r;
-    zznew = y'*z;
-    p = z + (zznew/zzold)*p;
+    zznew = z'*P*z;
+    beta = zznew/zzold;
+    p = z + beta*p;
     zzold = zznew;
     
     %%%%%%%

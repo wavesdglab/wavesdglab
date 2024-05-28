@@ -1,6 +1,8 @@
 function mesh = myBenchmark()
 
-global h edgTagToBC
+global h edgTagToBC theta
+
+theta = pi/4;
 
 % BCWest, BCNorth, BCEast, BCSouth
 edgTag = {1, 2, 3, 4};

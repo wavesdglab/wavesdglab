@@ -11,11 +11,11 @@ global k BCLeft BCRight
 % -------------------------------------------------------------------------
 
 Q = 16;
-[nodes, weights] = quadratureGaussLIN(Q);
-shapeQ = functionsShape1D(nodes,dofm.degree);
-shapeDerQ = functionsShapeDer1D(nodes,dofm.degree);
-matMelem = shapeQ' * (weights .* shapeQ);
-matDelem = shapeQ' * (weights .* shapeDerQ);
+[uQ, weightsQ] = quadratureGaussLIN(Q);
+shapeQ = functionsShapeLIN(uQ, dofm.degree);
+shapeDerQ = functionsShapeDerLIN(uQ, dofm.degree);
+matMelem = transpose(shapeQ) * (weightsQ .* shapeQ);
+matDelem = transpose(shapeQ) * (weightsQ .* shapeDerQ);
 
 % -------------------------------------------------------------------------
 % Build local systems
@@ -27,15 +27,15 @@ rhsI = zeros(2*dofm.numDof,1);
 for e=1:mesh.numE
     
     % Mapping
-    coord1 = mesh.coordV(mesh.listE(e,1));
-    coord2 = mesh.coordV(mesh.listE(e,2));
-    length = abs(coord2 - coord1);
-    coordGlo = coord1*(1-nodes)/2 + coord2*(1+nodes)/2;
+    V1 = mesh.coordV(mesh.listE(e,1));
+    V2 = mesh.coordV(mesh.listE(e,2));
+    length = abs(V2 - V1);
+    xQ = V1*(1-uQ)/2 + V2*(1+uQ)/2;
     
     % Local RHS vector
-    [~, ~, ~, ~, souP, souU] = mySol(coordGlo);
-    rhsPloc = (shapeQ .* souP).' * weights * (length/2);
-    rhsUloc = (shapeQ .* souU).' * weights * (length/2);
+    [~, ~, ~, ~, souP, souU] = mySol(xQ);
+    rhsPloc = (shapeQ .* souP).' * weightsQ * (length/2);
+    rhsUloc = (shapeQ .* souU).' * weightsQ * (length/2);
     
     % Local matrix
     matMloc = matMelem * length/2;
@@ -182,7 +182,7 @@ sysA.rhsS = rhsS;
 sysA.matPhy = matPhy;
 sysA.rhsPhy = rhsPhy;
 
-% TO IMPROVE IN THE FUTURE
+% No preconditioning
 sysA.matP = 1;
 sysA.matPinv = 1;
 

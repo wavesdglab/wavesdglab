@@ -5,6 +5,7 @@
 function [solI, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC)
 
 global k edgTagToBC
+global LdomX LdomY LpmlX LpmlY Rdom Rpml
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -80,16 +81,62 @@ for tri=1:mesh.numTri
     % Source terms
     [~, ~, ~, rhsQ] = mySol(xQ, yQ);
     
-    % Elemental matrices and RHS vectors
-    matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    matDXel = shapeDxQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    matDYel = shapeDyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
+    % Elemental matrices/vectors
+    weightsQ = weightsTriQ .* detJdxdu;
+    matMel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
+    matDXel = transpose(shapeDxQ) * (weightsQ .* shapePhyQ);
+    matDYel = transpose(shapeDyQ) * (weightsQ .* shapePhyQ);
+    rhsPel = transpose(shapePhyQ) * (weightsQ .* rhsQ);
     
     matIIel = [
         -1i*k*matMel  -matDXel                          -matDYel                         ;
         -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI) ;
         -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                     ];
+    
+    % PML stretching (rectangular PML)
+    if(~isempty(LdomX) && ~isempty(LdomY))
+        if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
+            sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
+            sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            coefPml = gammaPmlX.*gammaPmlY;
+            tensPmlInvXX = gammaPmlX./gammaPmlY;
+            tensPmlInvYY = gammaPmlY./gammaPmlX;
+            matMelP = transpose(shapePhyQ) * (weightsQ .* coefPml .* shapePhyQ);
+            matMelU = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXX .* shapePhyQ);
+            matMelV = transpose(shapePhyQ) * (weightsQ .* tensPmlInvYY .* shapePhyQ);
+            matIIel = [
+                -1i*k*matMelP  -matDXel                          -matDYel                         ;
+                -matDXel      -1i*k*matMelU                      zeros(numDofPerTRI,numDofPerTRI) ;
+                -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMelV                     ];
+        end
+    end
+    
+    % PML stretching (circular PML)
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            coefPml = gammaPmlR.*gammaPmlT;
+            tensPmlInvXX = (gammaPmlR./gammaPmlT) .* cosT.*cosT + (gammaPmlT./gammaPmlR) .* (sinT.*sinT);
+            tensPmlInvXY = (gammaPmlR./gammaPmlT) .* cosT.*sinT - (gammaPmlT./gammaPmlR) .* (cosT.*sinT);
+            tensPmlInvYY = (gammaPmlR./gammaPmlT) .* sinT.*sinT + (gammaPmlT./gammaPmlR) .* (cosT.*cosT);
+            matMelP = transpose(shapePhyQ) * (weightsQ .* coefPml .* shapePhyQ);
+            matMelXX = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXX .* shapePhyQ);
+            matMelXY = transpose(shapePhyQ) * (weightsQ .* tensPmlInvXY .* shapePhyQ);
+            matMelYY = transpose(shapePhyQ) * (weightsQ .* tensPmlInvYY .* shapePhyQ);
+            matIIel = [
+                -1i*k*matMelP  -matDXel        -matDYel       ;
+                -matDXel       -1i*k*matMelXX  -1i*k*matMelXY ;
+                -matDYel       -1i*k*matMelXY  -1i*k*matMelYY ];
+        end
+    end
     
     rhsIel = [
         -1/(1i*k)*rhsPel    ;
@@ -119,6 +166,7 @@ for tri=1:mesh.numTri
         V2 = mesh.coord(n2(fac),:);
         [xQ, yQ] = locToGloLIN(uLinQ,V1,V2);
         Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
+        detJdxdu = abs(det(Jdxdu));
         
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
@@ -133,20 +181,22 @@ for tri=1:mesh.numTri
         % Shape functions (physical space)
         shapePhyQ = shapePhyLinQ * orientation;
         if (BASIS == 1)
-            shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(Jdxdu);
+            shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(detJdxdu);
         else
             shapeAuxQ = shapePhyQ;
         end
         
-        % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
+        
+        weightsQ = weightsLinQ .* detJdxdu;
+        
+        % Mass matrices (physical space)
+        matM_IIel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
+        matM_IGel = transpose(shapePhyQ) * (weightsQ .* shapeAuxQ);
+        matM_GIel = transpose(shapeAuxQ) * (weightsQ .* shapePhyQ);
+        matM_GGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
         
         % -----------------------------------------------------------------
         % Physical equations
@@ -209,16 +259,15 @@ for tri=1:mesh.numTri
             
             % Source terms
             [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k);
+            rhsPel = transpose(shapeAuxQ) * (weightsQ .* solQ);
+            rhsNUel = transpose(shapeAuxQ) * (weightsQ .* (nx.*solDxQ + ny.*solDyQ)) / (1i*k);
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
             
             % Elemental matrices and RHS vectors (boundary conditions)
-            matGGel = matM_GGel;
+            matGGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
             matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
@@ -226,17 +275,17 @@ for tri=1:mesh.numTri
                     matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
                 case 'DIR'
                     matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel];
-                    rhsGel  = +2*tau*rhsPel;
+                    rhsGel = +2*tau*rhsPel;
                 case 'NEU0'
                     matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
                 case 'NEU'
                     matGIel = [-tau*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
-                    rhsGel  = -2*(nx*rhsUel + ny*rhsVel);
+                    rhsGel = -2*rhsNUel;
                 case 'ABC'
                     matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);
                 case 'ROB'
                     matGIel = [+tau*matM_GIel, +nx*matM_GIel, +ny*matM_GIel] * (1-tau)/(1+tau);
-                    rhsGel  = +(rhsPel - (nx*rhsUel + ny*rhsVel)) * (2*tau)/(1+tau);
+                    rhsGel = +(rhsPel - rhsNUel) * (2*tau)/(1+tau);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -282,7 +331,7 @@ for tri=1:mesh.numTri
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
     
-    condLoc(tri) = cond(full(matIIel));
+    %condLoc(tri) = cond(full(matIIel));
     
 end
 

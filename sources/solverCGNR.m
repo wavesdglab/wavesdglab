@@ -2,23 +2,31 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-% CGNR with symmetric preconditioning
+% Preconditined CGNR
 
 function [resVec, errorVec, i, flag, x] = solverCGNR(mesh, dofm, sys, tol, iMax, iOut, computeError)
 
 A = sys.matA;
 b = sys.rhsA;
-Pinv = sys.matPinv;
+P = sys.matP;
 
+% Right-preconditioning
 x = zeros(size(A,2),1);
 r = b - A*x;
-s = Pinv*r;
-y = A'*s;
-z = Pinv*y;
+z = P'\(A'*r);
 p = z;
 rrini = r'*r;
-zzini = y'*z;
+zzini = z'*z;
 zzold = zzini;
+
+% Symmetric-preconditioning
+% x = zeros(size(A,2),1);
+% r = b - A*x;
+% z = P\(A'*(P\r));
+% p = z;
+% rrini = r'*r;
+% zzini = z'*P*z;
+% zzold = zzini;
 
 resVec = zeros(iMax/iOut+1,1);
 errorVec = zeros(iMax/iOut+1,1);
@@ -33,18 +41,29 @@ flag = 0;
 i = 1;
 while(i <= iMax)
     
-    v = A*p;
-    w = Pinv*v;
-    alpha = zzold/(v'*w);
-    x = x + alpha*p;
-    r = r - alpha*v;
-    s = Pinv*r;
-    y = A'*s;
-    z = Pinv*y;
+    % Right-preconditioning
+    q = A*(P\p);
+    alpha = zzold/(q'*q);
+    x = x + alpha*(P\p);
+    r = r - alpha*q;
+    z = P'\(A'*r);
     rrnew = r'*r;
-    zznew = y'*z;
-    p = z + (zznew/zzold)*p;
+    zznew = z'*z;
+    beta = zznew/zzold;
+    p = z + beta*p;
     zzold = zznew;
+    
+    % Symmetric-preconditioning
+%     q = P\(A*p);
+%     alpha = zzold/(q'*P*q);
+%     x = x + alpha*p;
+%     r = r - alpha*A*p;
+%     z = P\(A'*(P\r));
+%     rrnew = r'*r;
+%     zznew = z'*P*z;
+%     beta = zznew/zzold;
+%     p = z + beta*p;
+%     zzold = zznew;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
