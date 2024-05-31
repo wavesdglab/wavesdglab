@@ -6,6 +6,7 @@ function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, 
 
 global omega edgTagToBC
 global rhoArray cArray etaArray kArray
+global pntSouTag pntSouVal
 
 rho = rhoArray;
 c = cArray;
@@ -91,7 +92,7 @@ rhsF = zeros(numDofFAC,1);
 
 tic
 for tri=1:mesh.numTri
-    tri
+    tri;
     % ---------------------------------------------------------------------
     % Volume terms
     % ---------------------------------------------------------------------
@@ -126,7 +127,20 @@ for tri=1:mesh.numTri
     
     % Source terms
     rhsQ = mySourceVolume(xQ, yQ);
-    
+
+    if(~isempty(pntSouTag))
+%         vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+%         x0 = mesh.coord(vertSou,1);
+%         y0 = mesh.coord(vertSou,2);
+%         rhsQ = eta(tri)*pntSouVal*exp(-(4*k(tri)/pi)^2*((xQ-x0).^2+(yQ-y0).^2));
+%         if(mesh.mapTriToVer(tri,1) == vertSou || mesh.mapTriToVer(tri,2) == vertSou || mesh.mapTriToVer(tri,3) == vertSou)
+%             tri
+%         end
+        if tri == mesh.numTri
+            rhsQ = 0*xQ + pntSouVal;
+        end
+    end
+
     % Elemental matrices and RHS vectors
     matMel = shapeLinQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
     matDXel = shapeTriDxQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
@@ -142,7 +156,7 @@ for tri=1:mesh.numTri
         -1/(1i*k(tri)*eta(tri))*rhsPel ;
         zeros(numDofPerTRI,1)          ;
         zeros(numDofPerTRI,1)          ];
-    
+
     % ---------------------------------------------------------------------
     % Surface terms
     % ---------------------------------------------------------------------
@@ -205,7 +219,7 @@ for tri=1:mesh.numTri
         matM_Lin = shapeLinQ' * (weightsLinQ .* shapeLinQ) * Jdxdu;
         matK_Lin = shapeLinDsQ' * (weightsLinQ .* shapeLinDsQ) / (Jdxdu);
 %         matC_Lin = 0*matM_Lin; matC_Lin(1,1) = 1; matC_Lin(2,2) = 1;
-        
+
         if (A == 1)
             matB_Lin = matM_Lin;
         end
@@ -439,6 +453,13 @@ matFH = sparse(matFHx, matFHy, matFHv, numDofFAC, numDofFAC);
 matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
+
+% JUST ADDED TO TREAT THE POINT SOURCE
+% if(~isempty(pntSouTag))
+%     Isou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag); % Isou = # of vertix associated to the source
+% %     rhsI(Isou) = rhsI(Isou) + pntSouVal;
+%     rhsI(Isou) = rhsI(Isou) + pntSouVal;                   % TO CHANGE: index of rhsI
+% end
 
 % -------------------------------------------------------------------------
 % Build and solve full system

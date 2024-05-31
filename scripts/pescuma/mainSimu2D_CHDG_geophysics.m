@@ -6,8 +6,8 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-omega = 100*pi;
-degree = 1;
+omega = 10*pi;
+degree = 3;
 nLambda = 10/(degree+1);
 PREC = 0;
 A = 1;
