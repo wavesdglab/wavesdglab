@@ -90,13 +90,27 @@ rhsG = zeros(numDofFAC,1);
 rhsH = zeros(numDofFAC,1);
 rhsF = zeros(numDofFAC,1);
 
+TOT = 0;
+SouEl = 0;
+
 tic
 for tri=1:mesh.numTri
-    tri;
+
     % ---------------------------------------------------------------------
     % Volume terms
     % ---------------------------------------------------------------------
-    
+
+    if(~isempty(pntSouTag))
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+            end
+        end
+    end
+
     % Mapping
     verTri = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(verTri(1),:);
@@ -128,25 +142,21 @@ for tri=1:mesh.numTri
     % Source terms
     rhsQ = mySourceVolume(xQ, yQ);
 
-    if(~isempty(pntSouTag))
-%         vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
-%         x0 = mesh.coord(vertSou,1);
-%         y0 = mesh.coord(vertSou,2);
-%         rhsQ = eta(tri)*pntSouVal*exp(-(4*k(tri)/pi)^2*((xQ-x0).^2+(yQ-y0).^2));
-%         if(mesh.mapTriToVer(tri,1) == vertSou || mesh.mapTriToVer(tri,2) == vertSou || mesh.mapTriToVer(tri,3) == vertSou)
-%             tri
+%     ASSIGNING VOLUME TERM FOR THE POINT SOURCE 
+%     if(~isempty(pntSouTag))
+%         for pos = 1:3
+%             if(mesh.mapTriToVer(tri,pos) == vertSou)
+%                 rhsQ = 0*xQ + pntSouVal;
+%             end
 %         end
-        if tri == mesh.numTri
-            rhsQ = 0*xQ + pntSouVal;
-        end
-    end
+%     end
 
     % Elemental matrices and RHS vectors
     matMel = shapeLinQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
     matDXel = shapeTriDxQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
     matDYel = shapeTriDyQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
     rhsPel = shapeLinQ' * (weightsTriQ .* rhsQ) * detJdxdu;
-    
+
     matIIel = [
         -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                         ;
         -matDXel                    -1i*k(tri)*eta(tri)*matMel        zeros(numDofPerTRI,numDofPerTRI) ;
@@ -454,12 +464,13 @@ matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
-% JUST ADDED TO TREAT THE POINT SOURCE
-% if(~isempty(pntSouTag))
-%     Isou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag); % Isou = # of vertix associated to the source
-% %     rhsI(Isou) = rhsI(Isou) + pntSouVal;
-%     rhsI(Isou) = rhsI(Isou) + pntSouVal;                   % TO CHANGE: index of rhsI
-% end
+% ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE 
+if(~isempty(pntSouTag))
+    for ind=1:TOT
+        dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+        rhsI(dofSou) = rhsI(dofSou) + pntSouVal / TOT;
+    end
+end
 
 % -------------------------------------------------------------------------
 % Build and solve full system
