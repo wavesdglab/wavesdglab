@@ -117,10 +117,10 @@ for tri=1:mesh.numTri
                 TOT = TOT+1;
                 SouEl(1,TOT) = tri;
                 SouEl(2,TOT) = pos;
-%                 SouEl(3,TOT) = 0;
-%                 if (V1(1,2) == 0 && V2(1,2) == 0) || (V1(1,2) == 0 && V3(1,2) == 0) || (V2(1,2) == 0 && V3(1,2) == 0)
-%                     SouEl(3,TOT) = 1;
-%                 end
+                SouEl(3,TOT) = 0;
+                if (V1(1,2) == 0 && V2(1,2) == 0) || (V1(1,2) == 0 && V3(1,2) == 0) || (V2(1,2) == 0 && V3(1,2) == 0)
+                    SouEl(3,TOT) = 1;
+                end
             end
         end
     end
@@ -145,15 +145,6 @@ for tri=1:mesh.numTri
     
     % Source terms
     rhsQ = mySourceVolume(xQ, yQ);
-
-%     ASSIGNING VOLUME TERM FOR THE POINT SOURCE 
-%     if(~isempty(pntSouTag))
-%         for pos = 1:3
-%             if(mesh.mapTriToVer(tri,pos) == vertSou && (V1(2) == 0 || V2(2) == 0 || V3(2) == 0))
-%                 rhsQ = 0*xQ + pntSouVal;
-%             end
-%         end
-%     end
 
     % Elemental matrices and RHS vectors
     matMel = shapeLinQ' * (weightsTriQ .* shapeLinQ) * detJdxdu;
@@ -468,23 +459,15 @@ matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
-% % ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE (rhsI)
 if(~isempty(pntSouTag))
     for ind=1:TOT
-        dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
-             % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
-        rhsI(dofSou) = rhsI(dofSou) - 1/(1i*k(SouEl(1,ind))*eta(SouEl(1,ind))) * pntSouVal / TOT;
+        if (SouEl(3,ind) == 1)
+            dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+            % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
+            rhsI(dofSou) = rhsI(dofSou) - 1/(1i*omega) * pntSouVal;
+        end
     end
 end
-
-% ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE (rhsG)
-% if(~isempty(pntSouTag))
-%     for ind=1:TOT
-%         dofSou = 3 * (dofm.degree + 1) * (SouEl(1,ind)-1) + SouEl(2,ind);
-%              % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
-%         rhsG(dofSou) = rhsG(dofSou) + pntSouVal / TOT;
-%     end
-% end
 
 % -------------------------------------------------------------------------
 % Build and solve full system

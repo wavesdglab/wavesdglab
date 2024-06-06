@@ -38,6 +38,7 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, B);
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
