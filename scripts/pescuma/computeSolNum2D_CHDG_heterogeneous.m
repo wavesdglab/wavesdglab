@@ -100,17 +100,6 @@ for tri=1:mesh.numTri
     % Volume terms
     % ---------------------------------------------------------------------
 
-    if(~isempty(pntSouTag))
-        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
-        for pos = 1:3
-            if(mesh.mapTriToVer(tri,pos) == vertSou)
-                TOT = TOT+1;
-                SouEl(1,TOT) = tri;
-                SouEl(2,TOT) = pos;
-            end
-        end
-    end
-
     % Mapping
     verTri = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(verTri(1),:);
@@ -121,6 +110,21 @@ for tri=1:mesh.numTri
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
     
+    if(~isempty(pntSouTag))
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+%                 SouEl(3,TOT) = 0;
+%                 if (V1(1,2) == 0 && V2(1,2) == 0) || (V1(1,2) == 0 && V3(1,2) == 0) || (V2(1,2) == 0 && V3(1,2) == 0)
+%                     SouEl(3,TOT) = 1;
+%                 end
+            end
+        end
+    end
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(verTri(1) > verTri(2))
@@ -145,7 +149,7 @@ for tri=1:mesh.numTri
 %     ASSIGNING VOLUME TERM FOR THE POINT SOURCE 
 %     if(~isempty(pntSouTag))
 %         for pos = 1:3
-%             if(mesh.mapTriToVer(tri,pos) == vertSou)
+%             if(mesh.mapTriToVer(tri,pos) == vertSou && (V1(2) == 0 || V2(2) == 0 || V3(2) == 0))
 %                 rhsQ = 0*xQ + pntSouVal;
 %             end
 %         end
@@ -464,13 +468,23 @@ matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
-% ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE 
+% % ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE (rhsI)
 if(~isempty(pntSouTag))
     for ind=1:TOT
         dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
-        rhsI(dofSou) = rhsI(dofSou) + pntSouVal / TOT;
+             % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
+        rhsI(dofSou) = rhsI(dofSou) - 1/(1i*k(SouEl(1,ind))*eta(SouEl(1,ind))) * pntSouVal / TOT;
     end
 end
+
+% ASSIGNING THE EXACT DOF ASSOCIATED TO THE NODE FOR THE POINT SOURCE (rhsG)
+% if(~isempty(pntSouTag))
+%     for ind=1:TOT
+%         dofSou = 3 * (dofm.degree + 1) * (SouEl(1,ind)-1) + SouEl(2,ind);
+%              % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
+%         rhsG(dofSou) = rhsG(dofSou) + pntSouVal / TOT;
+%     end
+% end
 
 % -------------------------------------------------------------------------
 % Build and solve full system
