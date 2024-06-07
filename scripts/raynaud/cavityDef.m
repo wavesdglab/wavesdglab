@@ -22,7 +22,7 @@ switch benchmark
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
         k = 3.01*sqrt(2)*pi;
-        h = 1/32;
+        h = 1/64;
         tol = 1e-6; maxit = 2000; itout =4;
         L = 1;
     case 'scatteringPML'
@@ -166,10 +166,10 @@ xPAD = MinvP_Q*xPAD;
 
 %%% Save results %%%
 
-% folder = "output/freq_"+num2str(k);
-% if ~exist(folder, 'dir')
-%     mkdir(folder);
-% end
+folder = "output/freq_"+num2str(k);
+if ~exist(folder, 'dir')
+    mkdir(folder);
+end
 
 % for i=1:nbEigVec
 %     writeField2D(dofm, mesh, eigvec(:,i), folder+"/eigvec"+num2str(i)+".pos", "eigvec"+num2str(i));
@@ -182,19 +182,19 @@ xPAD = MinvP_Q*xPAD;
 % writeField2D(dofm, mesh, xPD, folder+"/solDefP.pos", "solDefP");
 % writeField2D(dofm, mesh, xPAD, folder+"/solADefP.pos", "solADefP");
 
-% csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
-% csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
-% csvwrite([folder+"/rrD.csv"],rrD);
-% csvwrite([folder+"/rrAD.csv"],rrAD);
-% csvwrite([folder+"/rrPD.csv"],rrPD);
-% csvwrite([folder+"/rrPAD.csv"],rrPAD);
+csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
+csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
+csvwrite([folder+"/rrD.csv"],rrD);
+csvwrite([folder+"/rrAD.csv"],rrAD);
+csvwrite([folder+"/rrPD.csv"],rrPD);
+csvwrite([folder+"/rrPAD.csv"],rrPAD);
 
-% csvwrite([folder+"/evA.csv"],evA);
+csvwrite([folder+"/evA.csv"],evA);
 % csvwrite([folder+"/evMA.csv"],evMA);
-% csvwrite([folder+"/evdef.csv"],evdef);
+csvwrite([folder+"/evdef.csv"],evdef);
 
 it = [itGMRES itGMRESP itD itAD itPD itPAD];
-% csvwrite([folder+"/it.csv"],it');
+csvwrite([folder+"/it.csv"],it');
 
 %%% Plot results %%%
 

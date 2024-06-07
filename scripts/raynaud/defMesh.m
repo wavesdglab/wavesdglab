@@ -186,61 +186,12 @@ for h = tabh
 
 end
 
-%%% Plot results %%%
-
-% green = [0.4660 0.6740 0.1880];
-% magenta = [0.4940 0.1840 0.5560];
-% orange = [0.9290 0.6940 0.1250];
-% cyan = [0.3010 0.7450 0.9330];
 
 
+csvwrite('output/nbitGMRES.csv', nbitGMRES');
+csvwrite('output/nbitADAnalyProj.csv', nbitADAnalyProj');
+csvwrite('output/nbitADNum.csv', nbitADNum');
 
-
-%%% Residuals
-
-% maxIt = max(max(nbitGMRES), max(max(nbitADAnalyProj), max(nbitADNum)));
-% minIt = min(min(nbitGMRES), min(min(nbitADAnalyProj), min(nbitADNum)));
-
-
-% figure
-% hold on
-% set(0,'DefaultFigureWindowStyle','docked')
-
-% p1 = semilogy(1:nbitGMRES(1),resvecGMRES(1:nbitGMRES(1),1),'b-o','DisplayName','rrGMRES h=1/8','linewidth', 2,'markersize', 10);
-% p2 = semilogy(1:nbitADAnalyProj(1),resvecADAnalyProj(1:nbitADAnalyProj(1),1),'b-+','DisplayName','rrADAnalyProj h=1/8','linewidth', 2,'markersize', 10);
-% p3 = semilogy(1:nbitADNum(1),resvecADNum(1:nbitADNum(1),1),'b-x','DisplayName','rrADNum h=1/8','linewidth', 2,'markersize', 10);
-
-% p4 = semilogy(1:nbitGMRES(2),resvecGMRES(1:nbitGMRES(2),2),'r-o','DisplayName','rrGMRES h=1/16','linewidth', 2,'markersize', 10);
-% p5 = semilogy(1:nbitADAnalyProj(2),resvecADAnalyProj(1:nbitADAnalyProj(2),2),'r-+','DisplayName','rrADAnalyProj h=1/16','linewidth', 2,'markersize', 10);
-% p6 = semilogy(1:nbitADNum(2),resvecADNum(1:nbitADNum(2),2),'r-x','DisplayName','rrADNum h=1/16','linewidth', 2,'markersize', 10);
-
-% p7 = semilogy(1:nbitGMRES(3),resvecGMRES(1:nbitGMRES(3),3),'g-o','DisplayName','rrGMRES h=1/32','linewidth', 2,'markersize', 10);
-% % p7.Color = green;
-% p8 = semilogy(1:nbitADAnalyProj(3),resvecADAnalyProj(1:nbitADAnalyProj(3),3),'g-+','DisplayName','rrADAnalyProj h=1/32','linewidth', 2,'markersize', 10);
-% % p8.Color = green;
-% p9 = semilogy(1:nbitADNum(3),resvecADNum(1:nbitADNum(3),3),'g-x','DisplayName','rrADNum h=1/32','linewidth', 2,'markersize', 10);
-% % p9.Color = green;
-
-% p10 = semilogy(1:nbitGMRES(4),resvecGMRES(1:nbitGMRES(4),4),'m-o','DisplayName','rrGMRES h=1/64','linewidth', 2,'markersize', 10);
-% % p10.Color = magenta;
-% p11 = semilogy(1:nbitADAnalyProj(4),resvecADAnalyProj(1:nbitADAnalyProj(4),4),'m-+','DisplayName','rrADAnalyProj h=1/64','linewidth', 2,'markersize', 10);
-% % p11.Color = magenta;
-% p12 = semilogy(1:nbitADNum(4),resvecADNum(1:nbitADNum(4),4),'m-x','DisplayName','rrADNum h=1/64','linewidth', 2,'markersize', 10);
-% % p12.Color = magenta;
-
-% p13 = semilogy(1:nbitGMRES(5),resvecGMRES(1:nbitGMRES(5),5),'c-o','DisplayName','rrGMRES h=1/128','linewidth', 2,'markersize', 10);
-% % p13.Color = cyan;
-% p14 = semilogy(1:nbitADAnalyProj(5),resvecADAnalyProj(1:nbitADAnalyProj(5),5),'c-+','DisplayName','rrADAnalyProj h=1/128','linewidth', 2,'markersize', 10);
-% % p14.Color = cyan;
-% p15 = semilogy(1:nbitADNum(5),resvecADNum(1:nbitADNum(5),5),'c-x','DisplayName','rrADNum h=1/128','linewidth', 2,'markersize', 10);
-% % p15.Color = cyan;
-
-% set(gca, 'YScale', 'log')
-% box on
-% grid on
-% xlim([0 maxIt+1]);
-% ylim auto;
-% title(['CG - ' benchmark ' - GMRES - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree) ' - nbEigvec=' num2str(nbEigVec)], 'interpreter', 'latex', 'fontsize', 20)
-% xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
-% ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
-% legend('Location', 'southwest', 'fontsize', 15)
+csvwrite('output/resvecGMRES.csv', resvecGMRES);
+csvwrite('output/resvecADAnalyProj.csv', resvecADAnalyProj);
+csvwrite('output/resvecADNum.csv', resvecADNum);
