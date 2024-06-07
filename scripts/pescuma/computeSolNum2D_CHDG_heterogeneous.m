@@ -459,13 +459,14 @@ matFF = sparse(matFFx, matFFy, matFFv, numDofFAC, numDofFAC);
 
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 
+% THE GOOD ONE!
 if(~isempty(pntSouTag))
     for ind=1:TOT
-        if (SouEl(3,ind) == 1)
+%         if (SouEl(3,ind) == 1)
             dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
             % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
-            rhsI(dofSou) = rhsI(dofSou) - 1/(1i*omega) * pntSouVal;
-        end
+            rhsI(dofSou) = rhsI(dofSou) - 1/(1i*omega) * pntSouVal / TOT;
+%         end
     end
 end
 
@@ -521,7 +522,7 @@ sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
 toc
 
 % Preconditionning
-disp('--- Preconditionning ---');
+disp('--- Preconditioning ---');
 tic
 sysA.matGGinv = matGGinv;
 if (PREC == 1)
@@ -541,20 +542,4 @@ sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
 solI = sol(1:3*numDofTRI);
 toc
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

@@ -6,7 +6,7 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-omega = 5*pi; %10*pi
+omega = 100*pi; %10*pi
 degree = 3;
 nLambda = 10/(degree+1);
 PREC = 0;
@@ -37,8 +37,8 @@ disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, B);
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, B);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
