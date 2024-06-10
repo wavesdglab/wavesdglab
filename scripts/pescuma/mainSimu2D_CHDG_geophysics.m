@@ -6,7 +6,8 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-omega = 100*pi; %10*pi
+freq = 30; %40
+omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
 PREC = 0;
@@ -38,7 +39,7 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, B);
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC); % 0th-order symmetric fluxes
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
