@@ -3,7 +3,6 @@ clear all;
 
 global omega edgTagToBC
 global rhoArray cArray etaArray kArray
-global pntSouTag pntSouVal
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -17,19 +16,12 @@ run(benchmark,degree,tol,iMax,iOut,restart);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function run(benchmark,degree,tol,iMax,iOut,restart)
-global omega edgTagToBC nLambda
-global rhoArray cArray etaArray kArray
-global pntSouTag pntSouVal
+global omega nLambda
+global rhoArray cArray
 
 freq = 2.5;
 omega = 2*pi*freq;
 nLambda = 10/(degree+1);
-PREC = 0;
-
-rho = rhoArray;
-c = cArray;
-eta = etaArray;
-k = kArray;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -54,30 +46,60 @@ PREC = 1;
 
 disp('---------------------------------------------------------');
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-system('gmsh output/solNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% system('gmsh output/solNum.pos&');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp('--- Solver CGNR');
-[resRedVecA, resPhyVec1A, error1A] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
+[resRedVec1A, resPhyVec1A, error1A] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
 
 iterVec = (0:iOut:iMax)';
 
 rezu1A = ["iter" "resRed" "resPhy" "error"];
-rezu2A = [iterVec resRedVecA, resPhyVec1A, error1A];
+rezu2A = [iterVec resRedVec1A, resPhyVec1A, error1A];
 name = sprintf('output/historyCGNR_CHDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
 writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- Solver GMRES']);
-[resRedVecA, resPhyVec3A, error3A] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
+disp('--- Solver GMRES');
+
+% First step of GMRES with restart, using a null initial guess x0
+A = sysA.matS;
+x0 = zeros(size(A,2),1);
+it = 0;
+[resRedVec3Anew, resPhyVec3Anew, error3Anew, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
+resRedVec3Anew = resRedVec3Anew';
+resPhyVec3Anew = resPhyVec3Anew';
+error3Anew = error3Anew';
+
+% Update initial guess for second step of GMRES with restart
+x0 = xS;
+
+T = iMax / restart;
+
+for it = 1:T-1
+
+    [resRedVec3A, resPhyVec3A, error3A, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
+
+    resRedVec3Anew = [resRedVec3Anew; resRedVec3A'];
+    resPhyVec3Anew = [resPhyVec3Anew; resPhyVec3A'];
+    error3Anew = [error3Anew; error3A'];
+
+    % Update initial guess for restart #(it+1)
+    x0 = xS;
+
+end
+
+resRedVec3A = resRedVec3Anew;
+resPhyVec3A = resPhyVec3Anew;
+error3A = error3Anew;
 
 iterVec = (0:iOut:iMax)';
 
 rezu1A = ["iter" "resRed" "resPhy" "error"];
-rezu2A = [iterVec resRedVecA, resPhyVec3A, error3A];
+rezu2A = [iterVec resRedVec3A, resPhyVec3A, error3A];
 name = sprintf('output/historyGMRES_CHDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
 writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
@@ -94,7 +116,19 @@ box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
+ylabel('Norm physical residual');
+axis([0 iMax 1e-6 1]);
+
+figure;
+hold off
+semilogy(iterVec,error1A,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+hold on
+semilogy(iterVec,error3A,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
 ylabel('Relative error');
-axis([0 iMax 0.005 1]);
+axis([0 iMax 1e-6 1]);
 
 end
