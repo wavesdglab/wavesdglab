@@ -7,7 +7,7 @@ clear all;
 iMax = 1000; iOut = 50; restart = 10;
 benchmark = 'geophysics_marmousi';
 
-degree = 3; freq = 10; tol = 1e-100;
+degree = 3; freq = 30; tol = 1e-100;
 run(benchmark,degree,tol,iMax,iOut,restart,freq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,7 +41,7 @@ PREC = 1;
 
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
 [solB, sysB] = computeSolNum2D_HDG_heterogeneous_2(mesh, dofm, PREC); 
-[solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw_2(mesh, dofm, PREC);
+% [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw_2(mesh, dofm, PREC);
 
 disp('---------------------------------------------------------');
 
@@ -53,7 +53,7 @@ disp('---------------------------------------------------------');
 disp('--- Solver CGNR');
 [resRedVec1A, resPhyVec1A, error1A] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
 [resRedVec1B, resPhyVec1B, error1B] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysB, solB, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
-[resRedVec1C, resPhyVec1C, error1C] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
+% [resRedVec1C, resPhyVec1C, error1C] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
 
 iterVec = (0:iOut:iMax)';
 
@@ -67,10 +67,10 @@ rezu2B = [iterVec resRedVec1B, resPhyVec1B, error1B];
 name = sprintf('output/historyCGNR_HDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
 writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 
-rezu1C = ["iter" "resRed" "resPhy" "error"];
-rezu2C = [iterVec resRedVec1C, resPhyVec1C, error1C];
-name = sprintf('output/historyCGNR_CHDG_upwind_%s_p%i_omega%g.csv', benchmark, degree, omega);
-writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+% rezu1C = ["iter" "resRed" "resPhy" "error"];
+% rezu2C = [iterVec resRedVec1C, resPhyVec1C, error1C];
+% name = sprintf('output/historyCGNR_CHDG_upwind_%s_p%i_omega%g.csv', benchmark, degree, omega);
+% writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -154,44 +154,44 @@ rezu2B = [iterVec resRedVec3B, resPhyVec3B, error3B];
 name = sprintf('output/historyGMRES_HDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
 writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 
-%% CHDG - upw
-% First step of GMRES with restart, using a null initial guess x0
-A = sysC.matS;
-x0 = zeros(size(A,2),1);
-it = 0;
-[resRedVec3Cnew, resPhyVec3Cnew, error3Cnew, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
-resRedVec3Cnew = resRedVec3Cnew';
-resPhyVec3Cnew = resPhyVec3Cnew';
-error3Cnew = error3Cnew';
-
-% Update initial guess for second step of GMRES with restart
-x0 = xS;
-
-T = iMax / restart;
-
-for it = 1:T-1
-
-    [resRedVec3C, resPhyVec3C, error3C, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
-
-    resRedVec3Cnew = [resRedVec3Cnew; resRedVec3C'];
-    resPhyVec3Cnew = [resPhyVec3Cnew; resPhyVec3C'];
-    error3Cnew = [error3Cnew; error3C'];
-
-    % Update initial guess for restart #(it+1)
-    x0 = xS;
-
-end
-
-resRedVec3C = resRedVec3Cnew;
-resPhyVec3C = resPhyVec3Cnew;
-error3C = error3Cnew;
-
-iterVec = (0:iOut:iMax)';
-
-rezu1C = ["iter" "resRed" "resPhy" "error"];
-rezu2C = [iterVec resRedVec3C, resPhyVec3C, error3C];
-name = sprintf('output/historyGMRES_CHDG_upwind_%s_p%i_omega%g.csv', benchmark, degree, omega);
-writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+% %% CHDG - upw
+% % First step of GMRES with restart, using a null initial guess x0
+% A = sysC.matS;
+% x0 = zeros(size(A,2),1);
+% it = 0;
+% [resRedVec3Cnew, resPhyVec3Cnew, error3Cnew, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
+% resRedVec3Cnew = resRedVec3Cnew';
+% resPhyVec3Cnew = resPhyVec3Cnew';
+% error3Cnew = error3Cnew';
+% 
+% % Update initial guess for second step of GMRES with restart
+% x0 = xS;
+% 
+% T = iMax / restart;
+% 
+% for it = 1:T-1
+% 
+%     [resRedVec3C, resPhyVec3C, error3C, ~, ~, ~, xS] = solverGMRESredu_DG_Marmousi(mesh, dofm, sysC, solC, tol, restart, iMax, iOut, x0, it, @computeNormError2D_DG_Marmousi);
+% 
+%     resRedVec3Cnew = [resRedVec3Cnew; resRedVec3C'];
+%     resPhyVec3Cnew = [resPhyVec3Cnew; resPhyVec3C'];
+%     error3Cnew = [error3Cnew; error3C'];
+% 
+%     % Update initial guess for restart #(it+1)
+%     x0 = xS;
+% 
+% end
+% 
+% resRedVec3C = resRedVec3Cnew;
+% resPhyVec3C = resPhyVec3Cnew;
+% error3C = error3Cnew;
+% 
+% iterVec = (0:iOut:iMax)';
+% 
+% rezu1C = ["iter" "resRed" "resPhy" "error"];
+% rezu2C = [iterVec resRedVec3C, resPhyVec3C, error3C];
+% name = sprintf('output/historyGMRES_CHDG_upwind_%s_p%i_omega%g.csv', benchmark, degree, omega);
+% writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -202,8 +202,8 @@ hold on
 semilogy(iterVec,resPhyVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
 semilogy(iterVec,resPhyVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
 semilogy(iterVec,resPhyVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-semilogy(iterVec,resPhyVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
-semilogy(iterVec,resPhyVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+% semilogy(iterVec,resPhyVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
+% semilogy(iterVec,resPhyVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
@@ -218,8 +218,8 @@ hold on
 semilogy(iterVec,error3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
 semilogy(iterVec,error1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
 semilogy(iterVec,error3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-semilogy(iterVec,error1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
-semilogy(iterVec,error3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+% semilogy(iterVec,error1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
+% semilogy(iterVec,error3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
@@ -234,8 +234,8 @@ hold on
 semilogy(iterVec,resRedVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
 semilogy(iterVec,resRedVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
 semilogy(iterVec,resRedVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-semilogy(iterVec,resRedVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
-semilogy(iterVec,resRedVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+% semilogy(iterVec,resRedVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
+% semilogy(iterVec,resRedVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
