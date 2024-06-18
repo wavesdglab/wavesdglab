@@ -21,7 +21,7 @@ cs = zeros(restart,1);
 beta = zeros(restart+1,1);
 
 r = Pinv*(b-A*x);
-beta(1) = sqrt(r'*P*r);
+beta(1) = sqrt(r'*P*r);     % = norm(r)
 Q(:,1) = r/beta(1);
 
 resRedVec = [];
@@ -30,9 +30,17 @@ errorVec  = [];
 
 %%%%%%%
 
-xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
+% rPhy = sys.rhsPhy - sys.matPhy*xPhy;
+% resRedIni = abs(beta(1));
+% resPhyIni = sqrt(rPhy'*rPhy);
+
+% To compute the initial value of resRedIni and resPhyIni with the initial guess x0 = 0
+z = 0.*x;
+xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*z);
 rPhy = sys.rhsPhy - sys.matPhy*xPhy;
-resRedIni = abs(beta(1));
+w = Pinv*b;
+resRedIni = abs(sqrt(w'*P*w));
 resPhyIni = sqrt(rPhy'*rPhy);
 
 if (~any(x))
@@ -89,18 +97,17 @@ while(i <= restart)
 
     %%%%%%%
 
-    if(mod(i,restart) == 0)
+    if(mod(i,restart) == 0 || mod((i+it*restart),iOut) == 0)
 
         y = H(1:i,1:i) \ beta(1:i);
-        x = Q(:,1:i) * y;
+        x = x + Q(:,1:i) * y;
 
         if(mod((i+it*restart),iOut) == 0)
-            computeError(mesh, dofm, xPhy, sol);
             xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
             rPhy = sys.rhsPhy - sys.matPhy*xPhy;
             resPhyNew = sqrt(rPhy'*rPhy);
             resRedVec(count) = relRes;
-            resPhyVec(count) = resPhyNew/resPhyIni;
+            resPhyVec(count) = resPhyNew/resPhyIni; 
             errorVec(count) = computeError(mesh, dofm, xPhy, sol);
             fprintf('[%i] %g %g %g\n', i+it*restart, resRedVec(count), resPhyVec(count), errorVec(count));
             count = count + 1;

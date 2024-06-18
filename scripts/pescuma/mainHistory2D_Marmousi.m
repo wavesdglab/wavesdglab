@@ -1,25 +1,21 @@
 % close all;
 clear all;
 
-global omega edgTagToBC
-global rhoArray cArray etaArray kArray
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % MARMOUSI
 iMax = 1000; iOut = 50; restart = 10;
 benchmark = 'geophysics_marmousi';
 
-degree = 3; freq = 2.5; omega = 2*pi*freq; tol = 1e-100;
-run(benchmark,degree,tol,iMax,iOut,restart);
+degree = 3; freq = 2.5; tol = 1e-100;
+run(benchmark,degree,tol,iMax,iOut,restart,freq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run(benchmark,degree,tol,iMax,iOut,restart)
+function run(benchmark,degree,tol,iMax,iOut,restart,freq)
 global omega nLambda
 global rhoArray cArray
 
-freq = 2.5;
 omega = 2*pi*freq;
 nLambda = 10/(degree+1);
 
@@ -46,8 +42,8 @@ PREC = 1;
 
 disp('---------------------------------------------------------');
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% system('gmsh output/solNum.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+system('gmsh output/solNum.pos&');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -117,18 +113,30 @@ grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Norm physical residual');
-axis([0 iMax 1e-6 1]);
+axis([0 iMax 1e-8 1]);
 
 figure;
 hold off
-semilogy(iterVec,error1A,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+semilogy(iterVec,error1A,'-or','MarkerFaceColor','r','DisplayName','CHDG - CGNR');
 hold on
-semilogy(iterVec,error3A,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+semilogy(iterVec,error3A,'-or','MarkerFaceColor','w','DisplayName','CHDG - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Relative error');
-axis([0 iMax 1e-6 1]);
+axis([0 iMax 1e-8 1]);
+
+figure;
+hold off
+semilogy(iterVec,resRedVec1A,'-og','MarkerFaceColor','g','DisplayName','CHDG - CGNR');
+hold on
+semilogy(iterVec,resRedVec3A,'-og','MarkerFaceColor','w','DisplayName','CHDG - GMRES');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
+ylabel('Norm reduced residual');
+axis([0 iMax 1e-8 1]);
 
 end
