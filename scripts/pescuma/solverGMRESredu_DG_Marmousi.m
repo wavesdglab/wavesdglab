@@ -21,7 +21,7 @@ cs = zeros(restart,1);
 beta = zeros(restart+1,1);
 
 r = Pinv*(b-A*x);
-beta(1) = sqrt(r'*P*r);     % = norm(r)
+beta(1) = sqrt(r'*P*r);
 Q(:,1) = r/beta(1);
 
 resRedVec = [];
@@ -30,12 +30,6 @@ errorVec  = [];
 
 %%%%%%%
 
-% xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
-% rPhy = sys.rhsPhy - sys.matPhy*xPhy;
-% resRedIni = abs(beta(1));
-% resPhyIni = sqrt(rPhy'*rPhy);
-
-% To compute the initial value of resRedIni and resPhyIni with the initial guess x0 = 0
 z = 0.*x;
 xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*z);
 rPhy = sys.rhsPhy - sys.matPhy*xPhy;

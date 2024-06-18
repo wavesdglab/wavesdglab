@@ -106,8 +106,8 @@ hold off
 semilogy(iterVec,resPhyVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
 hold on
 semilogy(iterVec,resPhyVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
-% semilogy(iterVec,error1A,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% semilogy(iterVec,error3A,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+% semilogy(iterVec,resPhyVec1A,'-xb','MarkerFaceColor','b','DisplayName','HDG - CGNR');
+% semilogy(iterVec,resPhyVec3A,'-xb','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
@@ -120,6 +120,8 @@ hold off
 semilogy(iterVec,error1A,'-or','MarkerFaceColor','r','DisplayName','CHDG - CGNR');
 hold on
 semilogy(iterVec,error3A,'-or','MarkerFaceColor','w','DisplayName','CHDG - GMRES');
+% semilogy(iterVec,error1A,'-xr','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+% semilogy(iterVec,error3A,'-xr','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
@@ -132,6 +134,8 @@ hold off
 semilogy(iterVec,resRedVec1A,'-og','MarkerFaceColor','g','DisplayName','CHDG - CGNR');
 hold on
 semilogy(iterVec,resRedVec3A,'-og','MarkerFaceColor','w','DisplayName','CHDG - GMRES');
+% semilogy(iterVec,resRedVec1A,'-xg','MarkerFaceColor','g','DisplayName','HDG - CGNR');
+% semilogy(iterVec,resRedVec3A,'-xg','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 box on;
 grid on;
 legend('Location','southwest');
