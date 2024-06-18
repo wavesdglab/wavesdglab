@@ -6,7 +6,7 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-freq = 10; %40
+freq = 10; %30
 omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
@@ -39,15 +39,19 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC, A, B);
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC); % CHDG with 0th-order symmetric fluxes
-[solB, sysB] = computeSolNum2D_HDG_heterogeneous_2(mesh, dofm, PREC);  % HDG with 0th-order symmetric fluxes
+% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC); % CHDG with 0th-order symmetric fluxes
+% [solB, sysB] = computeSolNum2D_HDG_heterogeneous_2(mesh, dofm, PREC);  % HDG with 0th-order symmetric fluxes
+[solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw_2(mesh, dofm, PREC);
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "solNum");
-system('gmsh output/solNumA.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "solNum");
+% system('gmsh output/solNumA.pos&');
+% 
+% writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "solNum");
+% system('gmsh output/solNumB.pos&');
 
-writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "solNum");
-system('gmsh output/solNumB.pos&');
+writeField2D(dofm, mesh, solC, 'output/solNumC.pos', "solNum");
+system('gmsh output/solNumC.pos&');
