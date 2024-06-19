@@ -248,7 +248,7 @@ for tri=1:mesh.numTri
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
             matGGvInv(idGloG,:) = inv(matGGel);
-            
+
         else
             
             % Source terms

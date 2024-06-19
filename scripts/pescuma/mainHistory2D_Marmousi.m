@@ -7,7 +7,7 @@ clear all;
 iMax = 1000; iOut = 50; restart = 10;
 benchmark = 'geophysics_marmousi';
 
-degree = 3; freq = 1; tol = 1e-100;
+degree = 3; freq = 2.5; tol = 1e-100;
 run(benchmark,degree,tol,iMax,iOut,restart,freq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -213,7 +213,7 @@ grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Norm physical residual');
-axis([0 iMax 1e-8 1]);
+axis([0 iMax 1e-3 1]);
 
 figure;
 hold off
@@ -230,7 +230,7 @@ grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Relative error');
-axis([0 iMax 1e-8 1]);
+axis([0 iMax 1e-3 1]);
 
 figure;
 hold off
@@ -247,6 +247,6 @@ grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Norm reduced residual');
-axis([0 iMax 1e-8 1]);
+axis([0 iMax 1e-3 1]);
 
 end
