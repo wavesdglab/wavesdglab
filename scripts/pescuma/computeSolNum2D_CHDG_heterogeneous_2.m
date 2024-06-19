@@ -323,8 +323,6 @@ for tri=1:mesh.numTri
 %     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
     
-    %condLoc(tri) = cond(full(matIIel));
-    
 end
 toc
 
