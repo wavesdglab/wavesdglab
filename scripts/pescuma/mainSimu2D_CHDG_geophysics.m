@@ -43,6 +43,9 @@ disp(['---------------------------------------------------------']);
 [solB, sysB] = computeSolNum2D_HDG_heterogeneous_2(mesh, dofm, PREC);  % HDG with 0th-order symmetric fluxes
 % [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw_2(mesh, dofm, PREC);
 
+sysB.matGGinv*sysB.matGG
+
+
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------

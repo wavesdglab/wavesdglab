@@ -4,10 +4,10 @@ clear all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % MARMOUSI
-iMax = 1000; iOut = 50; restart = 10;
+iMax = 10000; iOut = 200; restart = 10;
 benchmark = 'geophysics_marmousi';
 
-degree = 3; freq = 20; tol = 1e-100;
+degree = 3; freq = 5; tol = 1e-100;
 run(benchmark,degree,tol,iMax,iOut,restart,freq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,11 +45,24 @@ PREC = 1;
 
 disp('---------------------------------------------------------');
 
-% writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "solNum");
-% system('gmsh output/solNumA.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "solNum");
+system('gmsh output/solNumA.pos&');
 
 writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "solNum");
 system('gmsh output/solNumB.pos&');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVec2A, resPhyVec2A, error2A] = solverRichardsonRedu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, alpha, @computeNormError2D_DG_Marmousi);
+
+iterVec = (0:iOut:iMax)';
+
+rezu1A = ["iter" "resRed" "resPhy" "error"];
+rezu2A = [iterVec resRedVec2A, resPhyVec2A, error2A];
+name = sprintf('output/historyRichardson_CHDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -208,12 +221,13 @@ semilogy(iterVec,resPhyVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CG
 semilogy(iterVec,resPhyVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 % % semilogy(iterVec,resPhyVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
 % % semilogy(iterVec,resPhyVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+semilogy(iterVec,resPhyVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
 box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Norm physical residual');
-axis([0 iMax 1e-3 1]);
+axis([0 iMax 1e-16 1]);
 
 figure;
 hold off
@@ -221,16 +235,17 @@ semilogy(iterVec,error1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-or
 hold on
 semilogy(iterVec,error3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
 semilogy(iterVec,error1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% hold on
+% % hold on
 semilogy(iterVec,error3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 % % semilogy(iterVec,error1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
 % % semilogy(iterVec,error3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+semilogy(iterVec,error2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
 box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Relative error');
-axis([0 iMax 1e-3 1]);
+axis([0 iMax 1e-16 1]);
 
 figure;
 hold off
@@ -238,15 +253,16 @@ semilogy(iterVec,resRedVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0t
 hold on
 semilogy(iterVec,resRedVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
 semilogy(iterVec,resRedVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% hold on
+% % hold on
 semilogy(iterVec,resRedVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
 % % semilogy(iterVec,resRedVec1C,'-og','MarkerFaceColor','g','DisplayName','CHDG (upw) - CGNR');
 % % semilogy(iterVec,resRedVec3C,'-og','MarkerFaceColor','w','DisplayName','CHDG (upw) - GMRES');
+semilogy(iterVec,resRedVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
 box on;
 grid on;
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Norm reduced residual');
-axis([0 iMax 1e-3 1]);
+axis([0 iMax 1e-16 1]);
 
 end

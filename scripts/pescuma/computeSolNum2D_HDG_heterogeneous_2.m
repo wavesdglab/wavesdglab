@@ -654,12 +654,13 @@ for tri=1:mesh.numTri
         matGGx(dofGloG,:) = dofGloG'*ones(1,size(dofGloG,2));
         matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
         matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
+
         if triNeigh > 0
             matGGvInv(dofGloG,:) = 1/2*inv(matGGel(dofLocG,dofLocG));  % NEW
         else
             matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));  % NEW
         end
-        % it works but what is the meaning?
+        % it works, but why?
 
 %         matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));  % NEW
         rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
