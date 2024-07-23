@@ -21,7 +21,7 @@ switch benchmark
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 3.1*sqrt(2)*pi;
+        k = 3.01*sqrt(2)*pi;
         h = 1/64;
         tol = 1e-6; maxit = 2000; itout =4;
         L = 1;
@@ -35,7 +35,8 @@ switch benchmark
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'scattering_rec'
         global LdomX LdomY LpmlX LpmlY
-        k = 23.598;
+%         k = 23.598;
+        k = 5;
         h = 1/8;
         tol = 1e-6; maxit = 5000; itout = 10;
         LdomX = 0.95;
@@ -71,93 +72,120 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
+disp(['| Compute system and deflation subspace...']);
+
 [~, sysA] = computeSolNum2D(mesh, dofm, PREC);
 
 A = sysA.matA;
 M = sysA.matP;
 b = sysA.rhsA;
-
-if maxit > size(A,2)
-    maxit = size(A,2);
-end
-
-[~, evA] = eigs(A,50,'smallestabs');
-evA = diag(evA);
-
-[~, evMA] = eigs(M\A,50,'smallestabs');
-evMA = diag(evMA);
-
-
-
-%%%%%%%%%%% No deflation %%%%%%%%%%%
-
-% Compute GMRES with prec
-[xGMRESP, ~, ~, itGMRESP, rrGMRESP] = gmres(A/M,b,[],tol,maxit);
-itGMRESP = itGMRESP(2);
-rrGMRESP = rrGMRESP(:)./rrGMRESP(1);
-rrGMRESP = rrGMRESP(1:itout:end);
-xGMRESP = M\xGMRESP;
-
-
-
-% Compute GMRES without prec
-[xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
-itGMRES = itGMRES(2);
-rrGMRES = rrGMRES(:)./rrGMRES(1);
-rrGMRES = rrGMRES(1:itout:end);
-
-
-
-%%%%%%%%%%% Deflation %%%%%%%%%%%
+AMinv = A/M;
 
 [eigvec,~] = eigs(A,nbEigVec,'smallestabs');
 
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
 
-[~, evdef] = eigs((P+Q)*A,50-nbEigVec,'smallestabs');
-evdef = diag(evdef);
+MinvP = M\P;
 
+if maxit > size(A,2)
+    maxit = size(A,2);
+end
+
+
+disp(['|             Done']);
+
+% disp(['| Compute eigenvalues of A...']);
+% 
+% [~, evA] = eigs(A,size(A,2),'smallestabs');
+% evA = diag(evA);
+% evA = [real(evA) imag(evA)];
+% csvwrite(["output/evA.csv"],evA);
+
+% disp(['|             Done']);
+
+
+% disp(['| Compute eigenvalues of A/M...']);
+% [~, evAMinv] = eigs(AMinv,50,'smallestabs');
+% evAMinv = diag(evAMinv);
+% evAMinv = [real(evAMinv) imag(evAMinv)];
+% csvwrite(["output/spectrum_prec.csv"],evAMinv);
+% disp(['|             Done']);
+
+
+% disp(['| Compute eigenvalues of A*(P+Q)...']);
+% [~, evD] = eigs(A*(P+Q),50-nbEigVec,'smallestabs');
+% evD = diag(evD);
+% evD = [real(evD) imag(evD)];
+% disp(['|             Done']);
+
+% disp(['| Compute eigenvalues of A*(M\P+Q)...']);
+% [~, evPD] = eigs(A*(MinvP+Q),50-nbEigVec,'smallestabs');
+% evPD = diag(evPD);
+% evPD = [real(evPD) imag(evPD)];
+% disp(['|             Done']);
+
+
+%%%%%%%%%%% No deflation %%%%%%%%%%%
+
+% Compute GMRES with prec
+disp(['| Preconditioned GMRES...']);
+[xGMRESP, ~, ~, itGMRESP, rrGMRESP] = gmres(AMinv,b,[],tol,maxit);
+itGMRESP = itGMRESP(2);
+rrGMRESP = rrGMRESP(:)./rrGMRESP(1);
+rrGMRESP = rrGMRESP(1:itout:end);
+iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
+rrGMRESP = [iterGMRESP' rrGMRESP];
+xGMRESP = M\xGMRESP;
+disp(['|             converges in ' num2str(itGMRESP) ' iterations']);
+
+
+
+% Compute GMRES without prec
+disp(['| GMRES...']);
+[xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
+itGMRES = itGMRES(2);
+rrGMRES = rrGMRES(:)./rrGMRES(1);
+rrGMRES = rrGMRES(1:itout:end);
+iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
+rrGMRES = [iterGMRES' rrGMRES];
+disp(['|             converges in ' num2str(itGMRES) ' iterations']);
+
+
+
+%%%%%%%%%%% Deflation %%%%%%%%%%%
 
 
 %%% No preconditioner :
 
-% Compute GMRES with DEF1 : P*A*x = P*b
-[xD, ~, ~, itD, rrD] = gmres(P*A,P*b,[],tol,maxit);
-itD = itD(2);
-rrD = rrD(:)./rrD(1);
-rrD = rrD(1:itout:end);
-xD = P'*xD + Q*b;
 
-
-
-% Compute GMRES with ADEF1 : (P+Q)*A*x = (P+Q)*b
-[xAD, ~, ~, itAD, rrAD] = gmres((P+Q)*A,(P+Q)*b,[],tol,maxit);
+% Compute GMRES with ADEF1 and closest eigvec : A*(P+Q)*u = b, x = (P+Q)*u
+disp(['| GMRES with ADEF1...']);
+[uAD, ~, ~, itAD, rrAD] = gmres(A*(P+Q),b,[],tol,maxit);
 itAD = itAD(2);
 rrAD = rrAD(:)./rrAD(1);
 rrAD = rrAD(1:itout:end);
-xAD = (P+Q)*xAD;
+iterAD = 0:itout:itout*size(rrAD,1)-1;
+rrAD = [iterAD' rrAD];
+xAD = (P+Q)*uAD;
+disp(['|             converges in ' num2str(itAD) ' iterations']);
+
 
 
 
 %%% Add preconditioner :
 
-% Compute GMRES with DEF1 and prec : P*A/M*u = P*b, x = M\u
-[xPD, ~, ~, itPD, rrPD] = gmres(P*A/M,P*b,[],tol,maxit);
-itPD = itPD(2);
-rrPD = rrPD(:)./rrPD(1);
-rrPD = rrPD(1:itout:end);
-xPD = P'/M*xPD + Q*b;
 
 
-
-% Compute GMRES with ADEF1 and prec : A*(M\P+Q)u = b, x = (M\P+Q)u
-MinvP_Q = M\P+Q;
-[xPAD, ~, ~, itPAD, rrPAD] = gmres(A*MinvP_Q,b,[],tol,maxit);
+% Compute GMRES with ADEF1 and closest eigvec and prec : A*(M\P+Q)*u = b, x = (M\P+Q)*u
+disp(['| Preconditoned  GMRES with ADEF1...']);
+[uPAD, ~, ~, itPAD, rrPAD] = gmres(A*(MinvP+Q),b,[],tol,maxit);
 itPAD = itPAD(2);
 rrPAD = rrPAD(:)./rrPAD(1);
 rrPAD = rrPAD(1:itout:end);
-xPAD = MinvP_Q*xPAD;
-
+iterPAD = 0:itout:itout*size(rrPAD,1)-1;
+rrPAD = [iterPAD' rrPAD];
+xPAD = (MinvP+Q)*uPAD;
+disp(['|             converges in ' num2str(itPAD) ' iterations']);
 
 
 %%% Save results %%%
@@ -167,37 +195,39 @@ if ~exist(folder, 'dir')
     mkdir(folder);
 end
 
-for i=1:nbEigVec
-    writeField2D(dofm, mesh, eigvec(:,i), folder+"/eigvec"+num2str(i)+".pos", "eigvec"+num2str(i));
-end
+% for i=1:nbEigVec
+%     writeField2D(dofm, mesh, eigvec(:,i), folder+"/eigvec"+num2str(i)+".pos", "eigvec"+num2str(i));
+% end
+
+global WRITE_FIELD_ABSOLUTE
+WRITE_FIELD_ABSOLUTE = 1;
 
 writeField2D(dofm, mesh, xGMRESP, folder+"/solGMRESP.pos", "solGMRESP");
 writeField2D(dofm, mesh, xGMRES, folder+"/solGMRES.pos", "solGMRES");
-writeField2D(dofm, mesh, xD, folder+"/solDef.pos", "solDef");
 writeField2D(dofm, mesh, xAD, folder+"/solADef.pos", "solADef");
-writeField2D(dofm, mesh, xPD, folder+"/solDefP.pos", "solDefP");
 writeField2D(dofm, mesh, xPAD, folder+"/solADefP.pos", "solADefP");
 
 csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
 csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
-csvwrite([folder+"/rrD.csv"],rrD);
 csvwrite([folder+"/rrAD.csv"],rrAD);
-csvwrite([folder+"/rrPD.csv"],rrPD);
 csvwrite([folder+"/rrPAD.csv"],rrPAD);
 
-csvwrite([folder+"/evA.csv"],evA);
-csvwrite([folder+"/evMA.csv"],evMA);
-csvwrite([folder+"/evdef.csv"],evdef);
 
-it = [itGMRES itGMRESP itD itAD itPD itPAD];
-csvwrite([folder+"/it.csv"],it');
+% csvwrite([folder+"/evA.csv"],evA);
+% csvwrite([folder+"/evAMinv.csv"],evAMinv);
+% csvwrite([folder+"/evD.csv"],evD);
+% csvwrite([folder+"/evPD.csv"],evPD);
+
+it = [ itGMRES itGMRESP itAD itPAD];
+
+% csvwrite([folder+"/it.csv"],it');
 
 %%% Plot results %%%
 
-% green = [0.4660 0.6740 0.1880];
-% magenta = [0.4940 0.1840 0.5560];
-% orange = [0.9290 0.6940 0.1250];
-% cyan = [0.3010 0.7450 0.9330];
+green = [0.4660 0.6740 0.1880];
+magenta = [0.4940 0.1840 0.5560];
+orange = [0.9290 0.6940 0.1250];
+cyan = [0.3010 0.7450 0.9330];
 
 %%% Spectra
 
@@ -208,13 +238,17 @@ csvwrite([folder+"/it.csv"],it');
 % s1.Marker = '+';
 % s1.MarkerEdgeColor = 'b';
 % 
-% s2 = scatter(real(evMA),imag(evMA),100, 'DisplayName','Eigenvalues of P\A');
+% s2 = scatter(real(evAMinv),imag(evAMinv),100, 'DisplayName','Eigenvalues of P\A');
 % s2.Marker = 'x';
 % s2.MarkerEdgeColor = 'k';
 % 
-% s3 = scatter(real(evdef),imag(evdef),100, 'DisplayName','Eigenvalues of (P+Q)*A');
+% s3 = scatter(real(evD),imag(evD),100, 'DisplayName','Eigenvalues of (P+Q)*A');
 % s3.Marker = 'o';
 % s3.MarkerEdgeColor = 'r';
+% 
+% s4 = scatter(real(evPD),imag(evPD),100, 'DisplayName','Eigenvalues of (M\P+Q)*A');
+% s4.Marker = 'o';
+% s4.MarkerEdgeColor = 'g';
 % 
 % legend('Location', 'southwest', 'fontsize', 15)
 % 
@@ -233,35 +267,20 @@ minIt = min(it);
 
 disp(['GMRES: ' num2str(itGMRES)]);
 disp(['GMRES and Shift: ' num2str(itGMRESP)]);
-disp(['DEF1 : ' num2str(itD)]);
 disp(['ADEF1 : ' num2str(itAD)]);
-disp(['DEF1 and Shift : ' num2str(itPD)]);
 disp(['ADEF1 and Shift : ' num2str(itPAD)]);
-
-disp(['Difference: ' num2str(100*(maxIt-minIt)/maxIt) '%']);
-
-iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
-iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
-iterDef = 0:itout:itout*size(rrD,1)-1;
-iterADef = 0:itout:itout*size(rrAD,1)-1;
-iterDefP = 0:itout:itout*size(rrPD,1)-1;
-iterADefP = 0:itout:itout*size(rrPAD,1)-1;
 
 
 figure
 hold on
 set(0,'DefaultFigureWindowStyle','docked')
 
-p1 = semilogy(iterGMRES,rrGMRES,'b-o','DisplayName','Relative residual','linewidth', 2,'markersize', 10);
-p2 = semilogy(iterGMRESP,rrGMRESP,'r-o','DisplayName','Relative residual with shift','linewidth', 2,'markersize', 10);
-p3 = semilogy(iterDef,rrD,'g-o','DisplayName','Relative residual with DEF1','linewidth', 2,'markersize', 10);
-p3.Color = green;
-p4 = semilogy(iterADef,rrAD,'c-o','DisplayName','Relative residual with ADEF1','linewidth', 2,'markersize', 10);
-p4.Color = cyan;
-p5 = semilogy(iterDefP,rrPD,'m-o','DisplayName','Relative residual with DEF1 and shift','linewidth', 2,'markersize', 10);
-p5.Color = magenta;
-p6  = semilogy(iterADefP,rrPAD,'y-o','DisplayName','Relative residual with ADEF1 and shift','linewidth', 2,'markersize', 10);
-p6.Color = orange;
+p1 = semilogy(rrGMRES(:,1),rrGMRES(:,2),'b-o','DisplayName','Relative residual','linewidth', 2,'markersize', 10);
+p2 = semilogy(rrGMRESP(:,1),rrGMRESP(:,2),'r-o','DisplayName','Relative residual with shift','linewidth', 2,'markersize', 10);
+p3 = semilogy(rrAD(:,1),rrAD(:,2),'c-o','DisplayName','Relative residual with ADEF1','linewidth', 2,'markersize', 10);
+p3.Color = cyan;
+p4  = semilogy(rrPAD(:,1),rrPAD(:,2),'y-o','DisplayName','Relative residual with ADEF1 and shift','linewidth', 2,'markersize', 10);
+p4.Color = orange;
 % plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
 
 set(gca, 'YScale', 'log')
