@@ -35,9 +35,9 @@ switch benchmark
         computeSolNum2D = @computeSolNum2DPML_CG;
     case 'scattering_rec'
         global LdomX LdomY LpmlX LpmlY
-%         k = 23.598;
-        k = 5;
-        h = 1/8;
+        k = 23.597;
+%         k = 10;
+        h = 1/20;
         tol = 1e-6; maxit = 5000; itout = 10;
         LdomX = 0.95;
         LdomY = 0.5;
@@ -50,7 +50,7 @@ switch benchmark
 end
 degree = 3; % P1
 PREC = 1; % for preconditioner
-nbEigVec=10;
+nbEigVec=1;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -187,6 +187,10 @@ rrPAD = [iterPAD' rrPAD];
 xPAD = (MinvP+Q)*uPAD;
 disp(['|             converges in ' num2str(itPAD) ' iterations']);
 
+% compute incident field
+disp(['Compute incident field']);
+
+solInc = -computeSolProjL2_2D_CG(mesh, dofm);
 
 %%% Save results %%%
 
@@ -202,10 +206,10 @@ end
 global WRITE_FIELD_ABSOLUTE
 WRITE_FIELD_ABSOLUTE = 1;
 
-writeField2D(dofm, mesh, xGMRESP, folder+"/solGMRESP.pos", "solGMRESP");
-writeField2D(dofm, mesh, xGMRES, folder+"/solGMRES.pos", "solGMRES");
-writeField2D(dofm, mesh, xAD, folder+"/solADef.pos", "solADef");
-writeField2D(dofm, mesh, xPAD, folder+"/solADefP.pos", "solADefP");
+writeField2D(dofm, mesh, xGMRESP+solInc, folder+"/solGMRESP.pos", "solGMRESP");
+writeField2D(dofm, mesh, xGMRES+solInc, folder+"/solGMRES.pos", "solGMRES");
+writeField2D(dofm, mesh, xAD+solInc, folder+"/solADef.pos", "solADef");
+writeField2D(dofm, mesh, xPAD+solInc, folder+"/solADefP.pos", "solADefP");
 
 csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
 csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
