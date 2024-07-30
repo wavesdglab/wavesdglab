@@ -2,6 +2,12 @@
 clear all;
 %close all;
 
+
+disp(['---------------------------------------------------------']);
+disp(['WARNING : deflation for Neumann BC not implemented']);
+disp(['---------------------------------------------------------']);
+
+
 global k h
 
 N=15;
