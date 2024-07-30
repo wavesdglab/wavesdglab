@@ -81,8 +81,8 @@ M = sysA.matP;
 b = sysA.rhsA;
 AMinv = A/M;
 
-% [eigvec,nbEigVec] = computeEigVec2D_cav_dir(mesh, dofm, nbEigVec,'closesteigvec');
-[eigvec, evA] = eigs(A,1,'smallestabs');
+[eigvec,nbEigVec] = computeEigVec2D_cav_dir(mesh, dofm, nbEigVec,'closesteigvec');
+% [eigvec, evA] = eigs(A,1,'smallestabs');
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
 
 
@@ -95,61 +95,61 @@ end
 
 disp(['|             Done']);
 
-% disp(['| Compute eigenvalues of A...']);
-% 
-% [~, evA] = eigs(A,size(A,2),'smallestabs');
-% evA = diag(evA);
-% evA = [real(evA) imag(evA)];
-% csvwrite(["output/evA.csv"],evA);
+disp(['| Compute eigenvalues of A...']);
 
-% disp(['|             Done']);
+[~, evA] = eigs(A,size(A,2),'smallestabs');
+evA = diag(evA);
+evA = [real(evA) imag(evA)];
+csvwrite(["output/evA.csv"],evA);
 
-
-% disp(['| Compute eigenvalues of A/M...']);
-% [~, evAMinv] = eigs(AMinv,50,'smallestabs');
-% evAMinv = diag(evAMinv);
-% evAMinv = [real(evAMinv) imag(evAMinv)];
-% csvwrite(["output/spectrum_prec.csv"],evAMinv);
-% disp(['|             Done']);
+disp(['|             Done']);
 
 
-% disp(['| Compute eigenvalues of A*(P+Q)...']);
-% [~, evD] = eigs(A*(P+Q),50-nbEigVec,'smallestabs');
-% evD = diag(evD);
-% evD = [real(evD) imag(evD)];
-% disp(['|             Done']);
+disp(['| Compute eigenvalues of A/M...']);
+[~, evAMinv] = eigs(AMinv,50,'smallestabs');
+evAMinv = diag(evAMinv);
+evAMinv = [real(evAMinv) imag(evAMinv)];
+csvwrite(["output/spectrum_prec.csv"],evAMinv);
+disp(['|             Done']);
 
-% disp(['| Compute eigenvalues of A*(M\P+Q)...']);
-% [~, evPD] = eigs(A*(MinvP+Q),50-nbEigVec,'smallestabs');
-% evPD = diag(evPD);
-% evPD = [real(evPD) imag(evPD)];
-% disp(['|             Done']);
+
+disp(['| Compute eigenvalues of A*(P+Q)...']);
+[~, evD] = eigs(A*(P+Q),50-nbEigVec,'smallestabs');
+evD = diag(evD);
+evD = [real(evD) imag(evD)];
+disp(['|             Done']);
+
+disp(['| Compute eigenvalues of A*(M\P+Q)...']);
+[~, evPD] = eigs(A*(MinvP+Q),50-nbEigVec,'smallestabs');
+evPD = diag(evPD);
+evPD = [real(evPD) imag(evPD)];
+disp(['|             Done']);
 
 
 %%%%%%%%%%% No deflation %%%%%%%%%%%
 
 % Compute GMRES with prec
-% disp(['| Preconditioned GMRES...']);
-% [xGMRESP, ~, ~, itGMRESP, rrGMRESP] = gmres(AMinv,b,[],tol,maxit);
-% itGMRESP = itGMRESP(2);
-% rrGMRESP = rrGMRESP(:)./rrGMRESP(1);
-% rrGMRESP = rrGMRESP(1:itout:end);
-% iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
-% rrGMRESP = [iterGMRESP' rrGMRESP];
-% xGMRESP = M\xGMRESP;
-% disp(['|             converges in ' num2str(itGMRESP) ' iterations']);
+disp(['| Preconditioned GMRES...']);
+[xGMRESP, ~, ~, itGMRESP, rrGMRESP] = gmres(AMinv,b,[],tol,maxit);
+itGMRESP = itGMRESP(2);
+rrGMRESP = rrGMRESP(:)./rrGMRESP(1);
+rrGMRESP = rrGMRESP(1:itout:end);
+iterGMRESP = 0:itout:itout*size(rrGMRESP,1)-1;
+rrGMRESP = [iterGMRESP' rrGMRESP];
+xGMRESP = M\xGMRESP;
+disp(['|             converges in ' num2str(itGMRESP) ' iterations']);
 
 
 
 % Compute GMRES without prec
-% disp(['| GMRES...']);
-% [xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
-% itGMRES = itGMRES(2);
-% rrGMRES = rrGMRES(:)./rrGMRES(1);
-% rrGMRES = rrGMRES(1:itout:end);
-% iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
-% rrGMRES = [iterGMRES' rrGMRES];
-% disp(['|             converges in ' num2str(itGMRES) ' iterations']);
+disp(['| GMRES...']);
+[xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
+itGMRES = itGMRES(2);
+rrGMRES = rrGMRES(:)./rrGMRES(1);
+rrGMRES = rrGMRES(1:itout:end);
+iterGMRES = 0:itout:itout*size(rrGMRES,1)-1;
+rrGMRES = [iterGMRES' rrGMRES];
+disp(['|             converges in ' num2str(itGMRES) ' iterations']);
 
 
 
@@ -207,25 +207,24 @@ end
 global WRITE_FIELD_ABSOLUTE
 WRITE_FIELD_ABSOLUTE = 1;
 
-% writeField2D(dofm, mesh, xGMRESP+solInc, folder+"/solGMRESP.pos", "solGMRESP");
-% writeField2D(dofm, mesh, xGMRES+solInc, folder+"/solGMRES.pos", "solGMRES");
+writeField2D(dofm, mesh, xGMRESP+solInc, folder+"/solGMRESP.pos", "solGMRESP");
+writeField2D(dofm, mesh, xGMRES+solInc, folder+"/solGMRES.pos", "solGMRES");
 writeField2D(dofm, mesh, xAD+solInc, folder+"/solADef.pos", "solADef");
 writeField2D(dofm, mesh, xPAD+solInc, folder+"/solADefP.pos", "solADefP");
 
-% csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
-% csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
+csvwrite([folder+"/rrGMRES.csv"],rrGMRES);
+csvwrite([folder+"/rrGMRESP.csv"],rrGMRESP);
 csvwrite([folder+"/rrAD.csv"],rrAD);
 csvwrite([folder+"/rrPAD.csv"],rrPAD);
-return;
 
-% csvwrite([folder+"/evA.csv"],evA);
-% csvwrite([folder+"/evAMinv.csv"],evAMinv);
-% csvwrite([folder+"/evD.csv"],evD);
-% csvwrite([folder+"/evPD.csv"],evPD);
+csvwrite([folder+"/evA.csv"],evA);
+csvwrite([folder+"/evAMinv.csv"],evAMinv);
+csvwrite([folder+"/evD.csv"],evD);
+csvwrite([folder+"/evPD.csv"],evPD);
 
 it = [ itGMRES itGMRESP itAD itPAD];
 
-% csvwrite([folder+"/it.csv"],it');
+csvwrite([folder+"/it.csv"],it');
 
 %%% Plot results %%%
 
