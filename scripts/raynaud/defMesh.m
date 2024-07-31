@@ -54,14 +54,18 @@ nbEigVec=1;
 
 
 tabh = [1/8 1/16 1/32 1/64 1/128];
-resvecGMRES = zeros(maxit, length(tabh));
+resvecGMRES = zeros(maxit, length(tabh)+1);
 % resvecADAnalyInterpol = zeros(maxit, length(tabh));
-resvecADAnalyProj = zeros(maxit, length(tabh));
-resvecADNum = zeros(maxit, length(tabh));
+resvecADAnalyProj = zeros(maxit, length(tabh)+1);
+resvecADNum = zeros(maxit, length(tabh)+1);
 nbitGMRES = zeros(1, length(tabh));
 % nbitADAnalyInterpol = zeros(1, length(tabh));
 nbitADAnalyProj = zeros(1, length(tabh));
 nbitADNum = zeros(1, length(tabh));
+
+resvecGMRES(:,1) = 0:itout:itout*maxit-1;
+resvecADAnalyProj(:,1) = 0:itout:itout*maxit-1;
+resvecADNum(:,1) = 0:itout:itout*maxit-1;
 
 for h = tabh
 
@@ -103,7 +107,7 @@ for h = tabh
     rrGMRES = rrGMRES(:)./rrGMRES(1);
     rrGMRES = rrGMRES(1:itout:end);
 
-    resvecGMRES(1:length(rrGMRES), tabh == h) = rrGMRES;
+    resvecGMRES(1:length(rrGMRES), find(tabh == h) + 1) = rrGMRES;
     nbitGMRES(tabh == h) = itGMRES;
 
 
@@ -131,28 +135,28 @@ for h = tabh
 
 
 
-    % Compute GMRES with ADEF1 and closest eigvec : (P+Q)*A*x = (P+Q)*b
-    [xAD, ~, ~, itAD, rrAD] = gmres((P+Q)*A,(P+Q)*b,[],tol,maxit);
+    % Compute GMRES with ADEF1 and closest eigvec : A*(P+Q)*u = b, x = (P+Q)*u
+    [uAD, ~, ~, itAD, rrAD] = gmres(A*(P+Q),b,[],tol,maxit);
     itAD = itAD(2);
     rrAD = rrAD(:)./rrAD(1);
     rrAD = rrAD(1:itout:end);
 
-    resvecADAnalyProj(1:length(rrAD), tabh == h) = rrAD;
+    resvecADAnalyProj(1:length(rrAD), find(tabh == h) + 1) = rrAD;
     nbitADAnalyProj(tabh == h) = itAD;
 
-    writeField2D(dofm, mesh, eigvec(:,1), "output/eigenvec_analy" + string(h) + ".pos", "eigenvec_analy" + string(h));
+    % writeField2D(dofm, mesh, eigvec(:,1), "output/eigenvec_analy" + string(h) + ".pos", "eigenvec_analy" + string(h));
 
     %%%%%%%%%%% Deflation numérique %%%%%%%%%%%
 
     [eigvec,~] = eigs(A,nbEigVec,'smallestabs');
     [P,Q] = computeDefOp(nbEigVec, eigvec, A);
-    % Compute GMRES with ADEF1 and closest eigvec : (P+Q)*A*x = (P+Q)*b
-    [xAD, ~, ~, itAD, rrAD] = gmres((P+Q)*A,(P+Q)*b,[],tol,maxit);
+    % Compute GMRES with ADEF1 and closest eigvec : A*(P+Q)*u = b, x = (P+Q)*u
+    [uAD, ~, ~, itAD, rrAD] = gmres(A*(P+Q),b,[],tol,maxit);
     itAD = itAD(2);
     rrAD = rrAD(:)./rrAD(1);
     rrAD = rrAD(1:itout:end);
 
-    resvecADNum(1:length(rrAD), tabh == h) = rrAD;
+    resvecADNum(1:length(rrAD), find(tabh == h) + 1) = rrAD;
     nbitADNum(tabh == h) = itAD;
 
     disp(['---------------------------------------------------------']);
@@ -161,7 +165,7 @@ for h = tabh
     disp(['Number of iterations GMRES with ADEF numérique: ' num2str(nbitADNum(tabh == h))]);
     disp(['---------------------------------------------------------']);
 
-    writeField2D(dofm, mesh, eigvec(:,1), "output/eigenvec_num" + string(h) + ".pos", "eigenvec_num" + string(h));
+    % writeField2D(dofm, mesh, eigvec(:,1), "output/eigenvec_num" + string(h) + ".pos", "eigenvec_num" + string(h));
 
     maxIt = max(max(nbitGMRES), max(max(nbitADAnalyProj), max(nbitADNum)));
     minIt = min(min(nbitGMRES), min(min(nbitADAnalyProj), min(nbitADNum)));

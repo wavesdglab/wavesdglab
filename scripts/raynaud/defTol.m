@@ -89,8 +89,9 @@ nbitD(1,:) = tabTol';
 [eigvec,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec,"closesteigvec");
 
 A = sysA.matA;
-% M = sysA.matP;
+M = sysA.matP;
 b = sysA.rhsA;
+AMinv = A/M;
 
 if maxit > size(A,2)
     maxit = size(A,2);
@@ -98,6 +99,7 @@ end
 
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
 
+MinvP = M\P;
 
 for tol = tabTol
     
@@ -105,26 +107,26 @@ for tol = tabTol
     %%%%%%%%%%% No deflation %%%%%%%%%%%
     
     % Compute GMRES without prec
+    disp(['| GMRES...']);
     [xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
     itGMRES = itGMRES(2);
-    % rrGMRES = rrGMRES(:)./rrGMRES(1);
-    % rrGMRES = rrGMRES(1:itout:end);
+    disp(['|             converges in ' num2str(itGMRES) ' iterations']);
     
     nbitGMRES(2, tabTol == tol) = itGMRES;
     
-    % Compute GMRES with ADEF1 and closest eigvec : (P+Q)*A*x = (P+Q)*b
-    [xAD, ~, ~, itAD, rrAD] = gmres((P+Q)*A,(P+Q)*b,[],tol,maxit);
+    % Compute GMRES with ADEF1 and closest eigvec : A*(P+Q)*u = b, x = (P+Q)*u
+    disp(['| GMRES with ADEF1...']);
+    [uAD, ~, ~, itAD, rrAD] = gmres(A*(P+Q),b,[],tol,maxit);
     itAD = itAD(2);
-    % rrAD = rrAD(:)./rrAD(1);
-    % rrAD = rrAD(1:itout:end);
+    disp(['|             converges in ' num2str(itAD) ' iterations']);
     
     nbitAD(2, tabTol == tol) = itAD;
     
     % Compute GMRES with DEF1 and closest eigvec : P*A*x = P*b
+    disp(['| GMRES with DEF1...']);
     [xD, ~, ~, itD, rrD] = gmres(P*A,P*b,[],tol,maxit);
     itD = itD(2);
-    % rrD = rrD(:)./rrD(1);
-    % rrD = rrD(1:itout:end);
+    disp(['|             converges in ' num2str(itD) ' iterations']);
 
     nbitD(2, tabTol == tol) = itD;
     

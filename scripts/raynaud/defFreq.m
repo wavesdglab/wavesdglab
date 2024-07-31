@@ -58,16 +58,12 @@ mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree); % espace fonctionnel discret
 
 tabfreq = 2.851*sqrt(2)*pi:0.001*sqrt(2)*pi:3.251*sqrt(2)*pi;
-% rrGMRES = zeros(maxit, length(tabfreq));
 
-% rrAD = zeros(maxit, length(tabfreq));
-% rrD = zeros(maxit, length(tabfreq)); 
-nbitGMRES = zeros(1, length(tabfreq));
 
-nbitAD = zeros(1, length(tabfreq));
-nbitD = zeros(1, length(tabfreq));
+nbit = zeros(length(tabfreq), 4);
+nbit(:,1) = tabfreq;
 
-    [eigvec,nbEigVec] = computeEigVec2D_cavity_at_freq(mesh, dofm, nbEigVec,3.00001*sqrt(2)*pi);
+[eigvec,nbEigVec] = computeEigVec2D_cavity_at_freq(mesh, dofm, nbEigVec,3.00001*sqrt(2)*pi);
 
 for k = tabfreq
     
@@ -104,44 +100,24 @@ for k = tabfreq
     % Compute GMRES without prec
     [xGMRES, ~, ~, itGMRES, rrGMRES] = gmres(A,b,[],tol,maxit);
     itGMRES = itGMRES(2);
-    % rrGMRES = rrGMRES(:)./rrGMRES(1);
-    % rrGMRES = rrGMRES(1:itout:end);
-    
-    % rrGMRES(1:length(rrGMRES), tabfreq == k) = rrGMRES;
-    nbitGMRES(tabfreq == k) = itGMRES;
-    
-    
-    
-
-    
-
-    
-    
-    
+    nbit(tabfreq == k, 2) = itGMRES;
     
     
     % Compute GMRES with ADEF1 and closest eigvec : (P+Q)*A*x = (P+Q)*b
-    [xAD, ~, ~, itAD, rrAD] = gmres((P+Q)*A,(P+Q)*b,[],tol,maxit);
+    [uAD, ~, ~, itAD, rrAD] = gmres(A*(P+Q),b,[],tol,maxit);
     itAD = itAD(2);
-    % rrAD = rrAD(:)./rrAD(1);
-    % rrAD = rrAD(1:itout:end);
-    
-    % rrAD(1:length(rrAD), tabfreq == k) = rrAD;
-    nbitAD(tabfreq == k) = itAD;
+    nbit(tabfreq == k, 3) = itAD;
     
     
     % Compute GMRES with DEF1 and closest eigvec : P*A*x = P*b
     [xD, ~, ~, itD, rrD] = gmres(P*A,P*b,[],tol,maxit);
     itD = itD(2);
-    % rrD = rrD(:)./rrD(1);
-    % rrD = rrD(1:itout:end);
-    
-    nbitD(tabfreq == k) = itD;
+    nbit(tabfreq == k, 4) = itD;
     
     disp(['---------------------------------------------------------']);
     disp(['Number of iterations GMRES: ' num2str(itGMRES)]);
-    disp(['Number of iterations GMRES with ADEF: ' num2str(nbitAD(tabfreq == k))]);
-    disp(['Number of iterations GMRES with DEF: ' num2str(nbitD(tabfreq == k))]);
+    disp(['Number of iterations GMRES with ADEF: ' num2str(itAD)]);
+    disp(['Number of iterations GMRES with DEF: ' num2str(itD)]);
     disp(['---------------------------------------------------------']);
     
     
@@ -149,30 +125,28 @@ for k = tabfreq
     
 end
 
-csvwrite('output/nbitGMRES.csv', nbitGMRES);
-csvwrite('output/nbitAD.csv', nbitAD);
-csvwrite('output/nbitD.csv', nbitD);
+csvwrite('output/nbit.csv',nbit);
 
-maxIt = max(max(nbitGMRES), max(max(nbitAD), max(nbitD)));
-minIt = min(min(nbitGMRES), min(min(nbitAD), min(nbitD)));
+% maxIt = max(nbit(:,2:4));
+% minIt = min(nbit(:,2:4));
 
-figure
-hold on
-set(0,'DefaultFigureWindowStyle','docked')
+% figure
+% hold on
+% set(0,'DefaultFigureWindowStyle','docked')
 
-p1 = semilogy(tabfreq,nbitGMRES,'b-o','DisplayName','rrGMRES','linewidth', 2,'markersize', 10);
-p2 = semilogy(tabfreq,nbitAD,'r-+','DisplayName','rrAD','linewidth', 2,'markersize', 10);
-p3 = semilogy(tabfreq,nbitD,'g-x','DisplayName','rrD','linewidth', 2,'markersize', 10);
+% p1 = semilogy(tabfreq,nbit(:,2),'b-o','DisplayName','GMRES','linewidth', 2,'markersize', 10);
+% p2 = semilogy(tabfreq,nbit(:,3),'r-+','DisplayName','rrAD','linewidth', 2,'markersize', 10);
+% p3 = semilogy(tabfreq,nbit(:,4),'g-x','DisplayName','rrD','linewidth', 2,'markersize', 10);
 
-set(gca, 'YScale', 'log')
-box on
-grid on
-xlim([2.5*sqrt(2)*pi 3.5*sqrt(2)*pi]);
-ylim auto;
-title(['CG - ' benchmark ' - GMRES - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree) ' - nbEigvec=' num2str(nbEigVec)], 'interpreter', 'latex', 'fontsize', 20)
-xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
-ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
-legend('Location', 'southwest', 'fontsize', 15)
+% set(gca, 'YScale', 'log')
+% box on
+% grid on
+% xlim([2.5*sqrt(2)*pi 3.5*sqrt(2)*pi]);
+% ylim auto;
+% title(['CG - ' benchmark ' - GMRES - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree) ' - nbEigvec=' num2str(nbEigVec)], 'interpreter', 'latex', 'fontsize', 20)
+% xlabel('Iteration', 'interpreter', 'Latex', 'fontsize', 15)
+% ylabel('Values', 'interpreter', 'Latex', 'fontsize', 15)
+% legend('Location', 'southwest', 'fontsize', 15)
 
 
 function [eigenvec,nbEigVec] = computeEigVec2D_cavity_at_freq(mesh, dofm, nbEigVec,freq)
