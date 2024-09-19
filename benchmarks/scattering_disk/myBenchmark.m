@@ -22,7 +22,7 @@ switch PML_TYPE
         BC = {'NEU', 'NEU0'};
         edgTagToBC = containers.Map(edgTag,BC);
         
-        linkMsh = 'benchmarks/scattering_disk/scatteringDisk_RectangularPML.msh';
+        linkMsh = 'output/mesh.msh';
         linkGeo = 'benchmarks/scattering_disk/scatteringDisk_RectangularPML.geo';
         system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ...
             ' -setnumber LdomX ' num2str(LdomX) ' -setnumber LdomY ' num2str(LdomY) ...
@@ -41,7 +41,7 @@ switch PML_TYPE
         BC = {'NEU', 'NEU0'};
         edgTagToBC = containers.Map(edgTag,BC);
         
-        linkMsh = 'benchmarks/scattering_disk/scatteringDisk_CircularPML.msh';
+        linkMsh = 'output/mesh.msh';
         linkGeo = 'benchmarks/scattering_disk/scatteringDisk_CircularPML.geo';
         system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ...
             ' -setnumber Rdisk ' num2str(Rdisk) ...
