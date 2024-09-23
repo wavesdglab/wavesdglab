@@ -19,11 +19,11 @@ switch benchmark
         %k = 12*pi; h = 1/17;
         tol = 1e-6; maxit = 4000; itout = 200;
     case 'scattering_disk'
-        k = 2*pi; h = 1/10;
+        k = 4*pi; h = 1/10;
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
 end
-degree = 3;
+degree = 5;
 PREC = 0;
 
 % Build mesh and DOF manager
@@ -61,11 +61,13 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-% global PML_HIDE; PML_HIDE = 1;
-% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-% system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+global WRITE_FIELD_ABSOLUTE
+WRITE_FIELD_ABSOLUTE = 1;
+writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+global PML_HIDE; PML_HIDE = 1;
+writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.pos output/mesh.msh&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
