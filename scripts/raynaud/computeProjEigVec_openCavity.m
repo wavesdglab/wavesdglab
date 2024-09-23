@@ -4,10 +4,9 @@
 
 % This function computes the nbEigVec closest eigenvectors to k for the Laplacian problem on a rectagular domain with homogeneous Dirichlet boundary conditions
 
-function [eigenvec,nbEigVec] = computeEigVec2D_cav_dir(mesh, dofm, nbEigVec, varargin)
+function [eigenvec,nbEigVec] = computeProjEigVec_openCavity(mesh, dofm, nbEigVec, varargin)
 
 global k
-
 
 if varargin{1} == "firsteigvec"
     mn = smallest_sum_of_squares(nbEigVec);

@@ -81,7 +81,7 @@ M = sysA.matP;
 b = sysA.rhsA;
 AMinv = A/M;
 
-[eigvec,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec,eigvecToDeflate);
+[eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,eigvecToDeflate);
 
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
 

@@ -4,7 +4,7 @@
 
 % This function computes the nbEigVec first eigenvectors or the nbEigVec closest eigenvectors to k for the Laplacian problem on a square domain with homogeneous Dirichlet boundary conditions
 
-function [eigenvec,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec, varargin)
+function [eigenvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec, varargin)
 
 global k
 
