@@ -11,7 +11,6 @@ disp(['Previous maximum number of threads ' num2str(LASTN) ]);
 disp(['Current maximum number of threads ' num2str(N) ]);
 disp(['---------------------------------------------------------']);
 
-computeSolNum2D = @computeSolNum2D_CG;
 
 % Setup benchmark and parameters
 benchmark = 'cavity';
@@ -21,19 +20,19 @@ h = 1/32;
 tol = 1e-8; maxit = 2000; itout =4;
 L = 1;
 
-degree = 1; % P1
-PREC = 1; % for preconditioner
+degree = 1;
+PREC = 1;
 nbEigVec=30;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
-dofm = buildDofManager2D_CG(mesh, degree); % espace fonctionnel discret
+dofm = buildDofManager2D_CG(mesh, degree);
 
-Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1); % nb de points par longueur d'onde
+Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 
 % -------------------------------------------------------------------------
-% Compute solution and error
+% Compute solution
 % -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
@@ -45,7 +44,7 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-[~, sysA] = computeSolNum2D(mesh, dofm, PREC);
+[~, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 
 A = sysA.matA;
 M = sysA.matP;
@@ -88,7 +87,7 @@ rrGMRES = rrGMRES(1:itout:end);
 
 
 
-[~,nbEigVec] = computeEigVec2D_cavity(mesh, dofm, nbEigVec,"firsteigvec");
+[~,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,"firstEigvec");
 [eigvec,~] = eigs(A,nbEigVec,'smallestabs');
 
 [P,Q] = computeDefOp(nbEigVec, eigvec, A);
