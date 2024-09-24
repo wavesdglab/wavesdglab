@@ -2,11 +2,11 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Timothee Raynaud, Axel Modave, Pierre Marchand
 
-% This function computes the nbEigVec first eigenvectors or the nbEigVec closest eigenvectors to k for the Laplacian problem on a square domain with homogeneous Dirichlet boundary conditions
+% This function computes the nbEigVec first eigenvectors or the nbEigVec
+% closest eigenvectors to k for the Laplacian problem on a square domain
+% with homogeneous Dirichlet BC
 
 function [eigenvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec, varargin)
-
-
 
 if varargin{1} == "firstEigvec"
     mn = computeFirstEigVec_cavity(nbEigVec);
@@ -87,4 +87,61 @@ eigenvec = matP\rhsP;
 %     fprintf('field [%i] saved \n', i);
 % end
 
+end
+
+% This function compute the number of the nbEigVec first eigenvectors for
+% the Laplacian problem on a square domain with homogeneous Dirichlet BC
+
+function indices = computeFirstEigVec_cavity(nb)
+    
+    limit = 100;
+    [M, N] = meshgrid(1:limit, 1:limit);
+    
+    
+    sum_squares = M.^2 + N.^2;
+    
+    
+    [~, sorted_indices] = sort(sum_squares(:));
+    
+    
+    nb_smallest_indices = sorted_indices(1:nb+1);
+    
+    
+    [m, n] = ind2sub(size(sum_squares), nb_smallest_indices);
+
+    
+    if sum_squares(m(nb), n(nb)) == sum_squares(m(nb+1), n(nb+1))
+        indices = [m(1:nb+1), n(1:nb+1)];
+    else
+        indices = [m(1:nb), n(1:nb)];
+    end
+end
+
+% This function compute the number of the nbEigVec closest eigenvectors
+% to k for the Laplacian problem on a square domain with homogeneous
+% Dirichlet BC
+
+function indices = computeCloseEigVec_cavity(nb, k)
+    
+    limit = 100;
+    [M, N] = meshgrid(1:limit, 1:limit);
+    
+    
+    diff = abs(M.^2 + N.^2 - k^2/pi^2);
+    
+    
+    [~, sorted_indices] = sort(diff(:));
+    
+    
+    indices = sorted_indices(1:nb+1);
+
+    
+    [m, n] = ind2sub(size(diff), indices);
+
+    
+    if diff(m(nb), n(nb)) == diff(m(nb+1), n(nb+1))
+        indices = [m(1:nb+1), n(1:nb+1)];
+    else
+        indices = [m(1:nb), n(1:nb)];
+    end
 end

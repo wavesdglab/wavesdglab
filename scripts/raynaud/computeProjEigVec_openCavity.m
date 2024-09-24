@@ -6,7 +6,6 @@
 
 function [eigenvec,nbEigVec] = computeProjEigVec_openCavity(mesh, dofm, nbEigVec, k)
 
-
 mn = computeCloseEigVec_openCavity(nbEigVec, k);
 
 nbEigVec = size(mn, 1);
@@ -82,4 +81,25 @@ eigenvec = matP\rhsP;
 %     fprintf('field [%i] saved \n', i);
 % end
 
+end
+
+% This function compute the number of the nbEigVec closest eigenvectors to
+% k for the Laplacian problem on a rectangular domain with homogeneous
+% Dirichlet BC
+
+function indices = computeCloseEigVec_openCavity(nb, k)
+    
+    limit = 100;
+    N = 1:limit;
+    
+    diff = abs((N./0.4).^2 - k^2/pi^2);
+    [~, sorted_indices] = sort(diff(:));
+    indices = sorted_indices(1:nb+1);
+
+    n = ind2sub(size(diff), indices);
+    if diff(n(nb)) == diff(n(nb+1))
+        indices = n(1:nb+1);
+    else
+        indices = n(1:nb);
+    end
 end
