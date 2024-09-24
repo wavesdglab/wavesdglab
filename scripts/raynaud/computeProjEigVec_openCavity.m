@@ -4,17 +4,11 @@
 
 % This function computes the nbEigVec closest eigenvectors to k for the Laplacian problem on a rectagular domain with homogeneous Dirichlet boundary conditions
 
-function [eigenvec,nbEigVec] = computeProjEigVec_openCavity(mesh, dofm, nbEigVec, varargin)
+function [eigenvec,nbEigVec] = computeProjEigVec_openCavity(mesh, dofm, nbEigVec)
 
 global k
 
-if varargin{1} == "firsteigvec"
-    mn = smallest_sum_of_squares(nbEigVec);
-elseif varargin{1} == "closesteigvec"
-    mn = closest_to_k(nbEigVec, k);
-else
-    error('Invalid input: varargin{1} must be "firsteigvec" or "closesteigvec"')
-end
+mn = computeCloseEigVec_openCavity(nbEigVec, k);
 
 nbEigVec = size(mn, 1);
 
@@ -89,29 +83,4 @@ eigenvec = matP\rhsP;
 %     fprintf('field [%i] saved \n', i);
 % end
 
-end
-
-
-function indices = closest_to_k(nb, k)
-        % Generate a grid of integer indices up to a certain limit
-        limit = 100;
-        N = 1:limit;
-        
-        % Compute the difference between m^2 + n^2 and k^2/pi^2
-        diff = abs((N./0.4).^2 - k^2/pi^2);
-        
-        % Flatten the matrices and sort the indices based on the difference
-        [~, sorted_indices] = sort(diff(:));
-        
-        % Extract the nb+1 smallest indices
-        indices = sorted_indices(1:nb+1);
-
-        % Convert linear indices to subscripts
-        n = ind2sub(size(diff), indices);
-
-        if diff(n(nb)) == diff(n(nb+1))
-            indices = n(1:nb+1);
-        else
-            indices = n(1:nb);
-        end
 end
