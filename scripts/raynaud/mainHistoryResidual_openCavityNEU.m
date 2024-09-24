@@ -17,43 +17,18 @@ disp(['Previous maximum number of threads ' num2str(LASTN) ]);
 disp(['Current maximum number of threads ' num2str(N) ]);
 disp(['---------------------------------------------------------']);
 
-computeSolNum2D = @computeSolNum2D_CG;
 
 % Setup benchmark and parameters
 benchmark = 'scattering_rec';
-switch benchmark
-    case 'open'
-        k = 15*pi;
-        h = 1/16;
-        tol = 1e-10; maxit = 1000; itout = 50;
-    case 'cavity'
-        k = 3.01*sqrt(2)*pi;
-        h = 1/64;
-        tol = 1e-6; maxit = 2000; itout =4;
-        L = 1;
-    case 'scatteringPML'
-        k = 25;
-        h = 0.05;
-        tol = 1e-10; maxit = 2000; itout = 50;
-        L = 1.1;
-        R_disk = 1;
-        L_PML = 0.2;
-        computeSolNum2D = @computeSolNum2DPML_CG;
-    case 'scattering_rec'
-        global LdomX LdomY LpmlX LpmlY
-        k = 23.597;
-%         k = 10;
-        h = 1/20;
-        tol = 1e-6; maxit = 5000; itout = 10;
-        LdomX = 0.95;
-        LdomY = 0.5;
-        LpmlX = 0.2;
-        LpmlY = 0.2;
-    case 'waveguide'
-        k = 6*pi;
-        h = 1/8;
-        tol = 1e-10; maxit = 4000; itout = 200;
-end
+
+global LdomX LdomY LpmlX LpmlY
+k = 23.597;
+h = 1/20;
+tol = 1e-6; maxit = 5000; itout = 10;
+LdomX = 0.95;
+LdomY = 0.5;
+LpmlX = 0.2;
+LpmlY = 0.2;
 degree = 3; % P1
 PREC = 1; % for preconditioner
 nbEigVec=1;
@@ -80,7 +55,7 @@ disp(['---------------------------------------------------------']);
 
 disp(['| Compute system and deflation subspace...']);
 
-[~, sysA] = computeSolNum2D(mesh, dofm, PREC);
+[~, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
 
 A = sysA.matA;
 M = sysA.matP;
@@ -200,7 +175,7 @@ solInc = -computeSolProjL2_2D_CG(mesh, dofm);
 
 %%% Save results %%%
 
-folder = "output/freq_"+num2str(k);
+folder = "output/mainHistoryResidual_openCavityNEU";
 if ~exist(folder, 'dir')
     mkdir(folder);
 end
