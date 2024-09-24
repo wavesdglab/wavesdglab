@@ -4,7 +4,7 @@
 
 % GMRES with symmetric preconditioning
 
-function [resVec, errorVec, i_array, flag_array, err_array,X,hrvArray,rvArray,distArrayHRV,distArrayRV] = solverGMRES_dev(mesh, dofm, sys, tol_array, iMax, iOut, computeError)
+function [resVec, errorVec, i_array, flag_array, err_array,X,hrvArray,rvArray,distArrayHRV,distArrayRV] = solverGMRES_nP(mesh, dofm, sys, tol_array, iMax, iOut, computeError)
 
 
 min_tol = min(tol_array);
@@ -24,7 +24,6 @@ X = zeros(size(sys.matA,2),length(tol_array));
 A = sys.matA;
 b = sys.rhsA;
 P = sys.matP;
-Pinv = sys.matPinv;
 
 x = zeros(size(A,2),1);
 H = zeros(iMax+1,iMax+1);
@@ -35,9 +34,8 @@ beta = zeros(iMax+1,1);
 % resbrut = zeros(iMax+1,1);
 % rb = norm(b-A*x);
 
-r = P\(b-A*x);
-%beta(1) = sqrt(r'*P*r);
-beta(1) = sqrt(r'*P*r);
+r = b-A*x;
+beta(1) = sqrt(r'*r);
 Q(:,1) = r/beta(1);
 
 resVec = zeros(iMax/iOut+1,1);
@@ -54,10 +52,10 @@ resVec(1) = 1;
 
 %%%%%% Initialisation
 smallEig = 5;
-hrvArray = zeros(iMax, size(A,2));
-rvArray = zeros(iMax, size(A,2));
-distArrayHRV = zeros(iMax, smallEig);
-distArrayRV = zeros(iMax, smallEig);
+hrvArray = zeros(iMax/iOut+1, size(A,2));
+rvArray = zeros(iMax/iOut+1, size(A,2));
+distArrayHRV = zeros(iMax/iOut+1, smallEig);
+distArrayRV = zeros(iMax/iOut+1, smallEig);
 %%%%%%
 
 
@@ -102,12 +100,12 @@ i = 1;
 while(i <= iMax)
     
     % Arnoldi iteration – Add one vector to basis Q and orthogonalize it
-    Q(:,i+1) = P\(A*Q(:,i));
+    Q(:,i+1) = A*Q(:,i);
     for j = 1:i
-        H(j,i) = Q(:,j)' * P *Q(:,i+1);
+        H(j,i) = Q(:,j)' *Q(:,i+1);
         Q(:,i+1) = Q(:,i+1) - H(j,i) * Q(:,j);
     end
-    H(i+1,i) = sqrt(Q(:,i+1)' * P * Q(:,i+1));
+    H(i+1,i) = sqrt(Q(:,i+1)' * Q(:,i+1));
     Q(:,i+1) = Q(:,i+1) / H(i+1,i);
 
     % Apply the previous Givens matrix to ith column
@@ -137,17 +135,17 @@ while(i <= iMax)
         resVec(i/iOut+1) = relRes;
 %         resbrut(i/iOut+1) = norm(b-A*x)/rb;
         % errorVec(i/iOut+1) = computeError(mesh, dofm, x);
-        % fprintf('[%i] %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1));
+        % fprintf('[%i] %g \n', i, resVec(i/iOut+1));
         %xRef = gmres(A,b,[],1e-10,i);
         %eRef = computeError(mesh, dofm, xRef);
         %fprintf('[%i] %g %g %g\n', i, resVec(i/iOut+1), errorVec(i/iOut+1), eRef);
 
         %%%%%% Compute harmonic Ritz values and Ritz values
-        % [hrv, dist_hrv] = computeHRV(H,cs, sn, i, P\A, smallEig);
-        % hrvArray(i, 1:length(hrv)) = hrv';
+        % [hrv, dist_hrv] = computeHarmRitzVal(H,cs, sn, i, P\A, smallEig);
+        % hrvArray(i/iOut+1, 1:length(hrv)) = hrv';
         
         %%%%%% Compute the distance to the eigenvalues
-        % distArrayHRV(i, :) = dist_hrv;
+        % distArrayHRV(i/iOut+1, :) = dist_hrv;
 
         %%%%%% Plot
         % clf;
@@ -199,7 +197,7 @@ while(i <= iMax)
     for(j=1:length(tol_array))
         tol = tol_array(j);
         if (relRes <= tol & flag_array(j) == 0)
-            disp(['    GMRES for tol=' num2str(tol) ' converged at iteration ' num2str(i)]);
+            % disp(['    GMRES for tol=' num2str(tol) ' converged at iteration ' num2str(i)]);
             i_array(j) = i;
             flag_array(j) = 1;
 

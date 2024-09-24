@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Authors: Axel Modave, Timothée Raynaud
 
-function [solA, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_CG_heterogeneous2(mesh, dofm, PREC)
 
 global kArray rhoArray
 global edgTagToBC
