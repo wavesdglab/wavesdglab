@@ -6,15 +6,15 @@
 
 function [eigenvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec, varargin)
 
-global k
 
 
-if varargin{1} == "firsteigvec"
+if varargin{1} == "firstEigvec"
     mn = computeFirstEigVec_cavity(nbEigVec);
-elseif varargin{1} == "closesteigvec"
+elseif varargin{1} == "closestEigvec"
+    k = varargin{2};
     mn = computeCloseEigVec_cavity(nbEigVec, k);
 else
-    error('Invalid input: varargin{1} must be "firsteigvec" or "closesteigvec"')
+    error('Invalid input: varargin{1} must be "firstEigvec" or "closestEigvec". In the last case, varargin{2} must be the frequency k you want to compute the eigenvectors for.');
 end
 
 % Quadrature and shape functions
