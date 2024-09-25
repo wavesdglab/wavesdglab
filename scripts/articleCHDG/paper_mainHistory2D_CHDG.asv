@@ -1,0 +1,199 @@
+% close all;
+clear all;
+
+global h
+global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
+global rho c eta k
+
+degree = 3;
+tol = 1e-100;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% PLANE WAVE
+% iMax = 1000; iOut = 50;
+% benchmark = 'open_heterogeneous';
+% 
+% degree = 3; h = 1/10; omega = 15*pi;
+% rho1 = 1; c1 = 1.3; rho2 = 1; c2 = 0.8;
+% eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+% run(benchmark,degree,BASIS,PREC,A,B,tol,iMax,iOut);
+% 
+% degree = 3; h = 1/10; omega = 15*pi;
+% rho1 = 1; c1 = 1.3; rho2 = 1; c2 = 0.8;
+% eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+% run(benchmark,degree,BASIS,PREC,A,B,tol,iMax,iOut);
+
+% CAVITY 
+iMax = 1000; iOut = 50;
+benchmark = 'disk_heterogeneous';
+
+degree = 3; h = 0.065; omega = 36;
+rho1 = 1; c1 = 1; rho2 = 1; c2 = 1;
+eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+run(benchmark,degree,A,B,tol,iMax,iOut);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function run(benchmark,degree,tol,iMax,iOut)
+global h
+global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
+global rho c eta k
+
+% Build mesh and dofManager
+mesh = setupBenchmark2D(benchmark);
+mesh = buildConnectivity2D(mesh);
+dofm = buildDofManager2D_DG(mesh, degree);
+setParameters(mesh,benchmark);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['---------------------------------------------------------']);
+disp(['Method CHDG (' benchmark ')']);
+disp(['---------------------------------------------------------']);
+disp(['    h                   ' num2str(h)]);
+disp(['    degree              ' num2str(degree)]);
+disp(['---------------------------------------------------------']);
+
+BASIS = 0; PREC = 1;
+
+A=2;
+B=2;
+
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+
+[solB, sysB] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
+
+[solC, sysC] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+
+normErrC= computeNormError2D_DG_ALL(mesh, dofm, solC)
+
+solP = computeSolProjL2_2D_DG(mesh, dofm);
+normProjErr = computeNormError2D_DG_ALL(mesh, dofm, solP);
+
+% disp(['    L2-Error (numSol)   ' num2str(normErrA,'%1.2e')]);
+disp(['    L2-Error (projSol)  ' num2str(normProjErr,'%1.2e')]);
+disp(['---------------------------------------------------------']);
+
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+writeField2D(dofm, mesh, solC, 'output/solNum.pos', "solNum");
+system('gmsh output/solNum.pos&');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['--- Solver Richardson']);
+alpha = 1;
+[resRedVecA, resPhyVecA, error0A] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG_ALL);
+[resRedVecB, resPhyVecB, error0B] = solverRichardsonRedu_DG(mesh, dofm, sysB, tol, iMax, iOut, alpha, @computeNormError2D_DG_ALL);
+
+iterVec = (0:iOut:iMax)';
+errorRefA = normErrA*ones(size(error0A));
+errorRefB = normErrB*ones(size(error0B));
+
+rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2A = [iterVec resRedVecA, resPhyVecA, error0A, errorRefA];
+name = sprintf('output/historyRichardson_CHDG_0thorder_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
+rezu1B = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2B = [iterVec resRedVecB, resPhyVecB, error0B, errorRefB];
+name = sprintf('output/historyRichardson_CHDG_upwind_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['--- Solver CGNR']);
+[resRedVecA, resPhyVecA, error1A] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecB, resPhyVecB, error1B] = solverCGNRredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecC, resPhyVecC, error1C] = solverCGNRredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+
+iterVec = (0:iOut:iMax)';
+errorRefA = normErrA*ones(size(error1A));
+errorRefB = normErrB*ones(size(error1B));
+errorRefC = normErrC*ones(size(error1C));
+
+rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2A = [iterVec resRedVecA, resPhyVecA, error1A, errorRefA];
+name = sprintf('output/historyCGNR_CHDG_0thorder_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
+rezu1B = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2B = [iterVec resRedVecB, resPhyVecB, error1B, errorRefB];
+name = sprintf('output/historyCGNR_CHDG_upwind_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC, resPhyVecC, error1C, errorRefC];
+name = sprintf('output/historyCGNR_HDG_highorder_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['--- Solver GMRES']);
+[resRedVecA, resPhyVecA, error3A] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecB, resPhyVecB, error3B] = solverGMRESredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecC, resPhyVecC, error3C] = solverGMRESredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+
+iterVec = (0:iOut:iMax)';
+errorRefA = normErrA*ones(size(error3A));
+errorRefB = normErrB*ones(size(error3B));
+errorRefC = normErrC*ones(size(error3C));
+
+rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2A = [iterVec resRedVecA, resPhyVecA, error3A, errorRefA];
+name = sprintf('output/historyGMRES_CHDG_0thorder_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
+rezu1B = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2B = [iterVec resRedVecB, resPhyVecB, error3B, errorRefB];
+name = sprintf('output/historyGMRES_CHDG_upwind_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC, resPhyVecC, error3C, errorRefC];
+name = sprintf('output/historyGMRES_HDG_highorder_%s_p%i_h%g_k1%g_k2%g.csv', benchmark, degree, h, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% errorNumA = normErrA*ones(size(error3A));
+% errorProj = normProjErr*ones(size(error3A));
+
+figure;
+hold off
+semilogy(iterVec,error0D,'-+y','DisplayName','CHDG (Sym-2) - Richardson');
+hold on
+semilogy(iterVec,error0B,'-xg','DisplayName','CHDG (upwind/Sym-0) - Richardson');
+semilogy(iterVec,error1B,'-oc','MarkerFaceColor','c','DisplayName','CHDG (upwind/Sym-0) - CGNR');
+semilogy(iterVec,error3B,'-oc','MarkerFaceColor','w','DisplayName','CHDG (upwind/Sym-0) - GMRES');
+
+semilogy(iterVec,error1D,'-oy','MarkerFaceColor','y','DisplayName','CHDG (Sym-2) - CGNR');
+semilogy(iterVec,error3D,'-oy','MarkerFaceColor','w','DisplayName','CHDG (Sym-2) - GMRES');
+semilogy(iterVec,error1C,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+hold on
+semilogy(iterVec,error3C,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+% semilogy(iterVec,errorNumA,'k--','DisplayName','Numerical error');
+% semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
+ylabel('Relative error');
+axis([0 iMax 0.005 1]);
+
+% figure;
+% hold off
+% semilogy(iterVec,resPhyVec,'-o','DisplayName','Relative residual (Phy)');
+% hold on
+% semilogy(iterVec,resRedVec,'-x','DisplayName','Relative residual (Red)');
+% semilogy(iterVec,error    ,'-o','DisplayName','Relative L2-error');
+% semilogy(iterVec,errorRef ,'k--','DisplayName','Relative L2-error (Ref)');
+% box on;
+% grid on;
+% legend('Location','southwest');
+% xlabel('Iteration');
+% ylabel('Value');
+% title(['CHDG ' benchmark ' — k=' num2str(k/pi) 'pi — h=' num2str(degree) ' — h=' num2str(h)]);
+% axis([0 iMax 1e-10 1]);
+
+end
