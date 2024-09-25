@@ -2,7 +2,7 @@ function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
 global eta1 eta2 k1 k2 c1 c2
 
-thetaI = pi/6;                           % thetaI \in [0, \pi/2]
+thetaI = pi/4;                           % thetaI \in [0, \pi/2]
 sinI = sin(thetaI);
 cosI = cos(thetaI);
 sinT = c2 / c1 * sinI;
