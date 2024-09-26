@@ -48,4 +48,6 @@ legend('p(r)')
 % name = sprintf('output/plot_radial_sol_k1%g_k2%g.csv', k1, k2);
 % writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
+det(mat)
+
 end

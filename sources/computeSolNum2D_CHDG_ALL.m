@@ -264,9 +264,17 @@ for tri=1:mesh.numTri
 
             % Source terms    
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
+            [dsR_dt] = mySol_Robin(xQ,yQ,nx,ny);
+
             rhsPel = shapeLinQ' * (weightsLinQ .* solQ) * Jdxdu; 
             rhsUel = shapeLinQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);  
             rhsVel = shapeLinQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
+            
+            rhsKel = shapeLinDsQ' * (weightsLinQ .* dsR_dt) * (Jdxdu);
+            
+            if (A==1 && B==1)
+                rhsKel = 0.*rhsKel;
+            end
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -289,7 +297,7 @@ for tri=1:mesh.numTri
                 case 'ROB'
                     matGGel = matB_Lin + matM_Lin;                         % ====================================
                     matGHel = matB_Lin - matM_Lin;                         % ====================================
-                    rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));   
+                    rhsGel  = +2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel)) + 1/kF^2*rhsKel;   
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
