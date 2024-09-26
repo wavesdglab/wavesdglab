@@ -36,7 +36,7 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'cavity_heterogeneous'
-        omega = 10*pi; 
+        omega = 36; %10*pi 
         h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
@@ -92,8 +92,8 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 2;              % order of numerical fluxes
-B = 2;              % order of transmission variables
+A = 1;              % order of numerical fluxes
+B = 1;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -123,16 +123,17 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution (High-order)
 [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
-% [solB, sysB] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+% [solA, sysA] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);   % TO BE COMPARED
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
+% [solA, sysA] = computeSolNum2D_HDG_TEST(mesh, dofm, PREC);         % NEW 25.08
 
 %%
 % Compute numerical error
-errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
+% errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
 % errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
 % errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
-errorL2 = errorL2_A
+% errorL2 = errorL2_A
 
 % e
 % Omega(e) = omega;
