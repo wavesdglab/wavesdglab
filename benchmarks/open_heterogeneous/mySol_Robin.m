@@ -22,22 +22,22 @@ if (min(x)<0.5)
     solDx = 1i * k1 * cosI * (I * exp(1i*k1*(cosI*x+sinI*y)) - R * exp(1i*k1*(-cosI*x+sinI*y)));
     solDy = 1i * k1 * sinI * (I * exp(1i*k1*(cosI*x+sinI*y)) + R * exp(1i*k1*(-cosI*x+sinI*y)));
 
-    if (nx == 0 && ny == -1)
+    if (abs(nx) < 1e-5 && ny < 0 && abs(ny+1) < 1e-5)   % nx == 0 && ny == -1
         A = solDx;
         B = 0;
         C = 1i * k1 * sinI * solDx;
     end
-    if (nx == 0 && ny == 1)
+    if (abs(nx) < 1e-5 && ny > 0 && abs(ny-1) < 1e-5)   % nx == 0 && ny == 1
         A = -solDx;
         B = 0;
         C = -1i * k1 * sinI * solDx;
     end
-    if (nx == -1 && ny == 0)
+    if (nx < 0 && abs(nx+1) < 1e-5 && abs(ny) < 1e-5)   % nx == -1 && ny == 0
         A = -solDy;
         B = -1i * k1 * sinI * solDx;
         C = 0;
     end
-    
+
     dsR_dt = A - 1/(1i * k1) * (nx * B + ny * C);
 
 else
@@ -45,17 +45,17 @@ else
     solDx = 1i * k2 * cosT * T * exp(1i*k2*(cosT*x + sinT*y));
     solDy = 1i * k2 * sinT * T * exp(1i*k2*(cosT*x + sinT*y));
 
-    if (nx == 0 && ny == -1)
+    if (abs(nx) < 1e-5 && ny < 0 && abs(ny+1) < 1e-5)   % nx == 0 && ny == -1
         A = solDx;
         B = 0;
         C = 1i * k2 * sinI * solDx;
     end
-    if (nx == 0 && ny == 1)
+    if (abs(nx) < 1e-5 && ny > 0 && abs(ny-1) < 1e-5)   % nx == 0 && ny == 1
         A = -solDx;
         B = 0;
         C = -1i * k2 * sinI * solDx;
     end
-    if (nx == 1 && ny == 0)
+    if (nx > 0 && abs(nx-1) < 1e-5 && abs(ny) < 1e-5)   % nx == 1 && ny == 0
         A = solDy;
         B = 1i * k2 * sinI * solDx;
         C = 0;
