@@ -4,7 +4,7 @@ clear all;
 global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
    
 % Setup benchmark and parameters
-benchmark = 'open_heterogeneous';
+benchmark = 'disk_heterogeneous';
 switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
@@ -19,7 +19,7 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 36.14; %10*pi;
+        omega = 10*pi; %10*pi;
         h = 0.055; % to be set directly in disk.geo
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
