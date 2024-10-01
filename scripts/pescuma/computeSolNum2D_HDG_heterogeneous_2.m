@@ -386,6 +386,8 @@ c = cArray;
 eta = etaArray;
 k = kArray;
 
+% global rho c eta k
+
 p=0;
 
 numDofTRI = dofm.numDofTRI;
@@ -614,7 +616,7 @@ for tri=1:mesh.numTri
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
             switch BC
-                case 'DIR0'  
+                case 'DIR0'
                 case 'DIR'
                     rhsGel = rhsPel;
                 case 'NEU'
@@ -708,8 +710,8 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-% sysA.matGGinv = inv(matGG);
-sysA.matGGinv = matGGinv;   % NEW
+sysA.matGGinv = inv(matGG);
+% sysA.matGGinv = matGGinv;   % NEW
 
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;

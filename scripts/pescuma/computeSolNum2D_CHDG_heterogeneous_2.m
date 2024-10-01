@@ -13,6 +13,9 @@ c = cArray;
 eta = etaArray;
 k = kArray;
 
+% global rho c eta k
+
+
 p = 0; % exponent of the power mean for the definition of \eta_F
 
 numDofTRI = dofm.numDofTRI;
