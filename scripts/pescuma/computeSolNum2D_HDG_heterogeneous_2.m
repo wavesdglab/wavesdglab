@@ -710,8 +710,8 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-sysA.matGGinv = inv(matGG);
-% sysA.matGGinv = matGGinv;   % NEW
+% sysA.matGGinv = inv(matGG);
+sysA.matGGinv = matGGinv;   % NEW
 
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
