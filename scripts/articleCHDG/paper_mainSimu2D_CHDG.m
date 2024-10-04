@@ -4,7 +4,7 @@ clear all;
 global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h1 h2
    
 % Setup benchmark and parameters
-benchmark = 'disk_heterogeneous';
+benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
@@ -33,10 +33,11 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
 end
-degree = 3;   % degree of polynomial basis functions
+degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 2;        % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
+% order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order
+A = 1;             
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
