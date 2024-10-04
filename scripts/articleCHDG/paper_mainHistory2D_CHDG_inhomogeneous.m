@@ -10,27 +10,27 @@ tol = 1e-100;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% PLANE WAVE
-iMax = 1000; iOut = 50; degree = 3;
-benchmark = 'open_heterogeneous';
-
-h = 1/16; omega = 15*pi;
-% h = 1/34; omega = 30*pi;
-
-rho1 = 1; c1 = 1; rho2 = 2; c2 = 1/2;
-eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
-run(benchmark,degree,tol,iMax,iOut);
-
-% % CAVITY 
+% % PLANE WAVE
 % iMax = 1000; iOut = 50; degree = 3;
-% benchmark = 'disk_heterogeneous';
+% benchmark = 'open_heterogeneous';
 % 
-% h = 0.065; omega = 10*pi;         % Case (1)
-% % h = 0.055; omega = 36.14;      % Case (2)
+% h = 1/16; omega = 15*pi;
+% % h = 1/34; omega = 30*pi;
 % 
-% rho1 = 1; c1 = 1; rho2 = 1; c2 = 2/3;
+% rho1 = 1; c1 = 1; rho2 = 2; c2 = 1/2;
 % eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 % run(benchmark,degree,tol,iMax,iOut);
+
+% CAVITY 
+iMax = 1000; iOut = 50; degree = 3;
+benchmark = 'disk_heterogeneous';
+
+h = 0.065; omega = 10*pi;         % Case (1)
+% h = 0.055; omega = 36.14;      % Case (2)
+
+rho1 = 1; c1 = 1; rho2 = 3/2; c2 = 2/3;
+eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+run(benchmark,degree,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -56,10 +56,15 @@ disp(['---------------------------------------------------------']);
 
 BASIS = 0; PREC = 1;
 
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
-[solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
+[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 2);
+[solB, sysB] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
 [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
 [solD, sysD] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+
+% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
+% [solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
+% [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
+% [solD, sysD] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 
 normErrA = computeNormError2D_DG_ALL(mesh, dofm, solA)
 normErrB = computeNormError2D_DG_ALL(mesh, dofm, solB)
