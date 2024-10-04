@@ -280,7 +280,7 @@ for tri=1:mesh.numTri
                 case 'ROB'
                     matGGel = matM_Lin / etaF + matB_Lin;                      
                     matGHel = matM_Lin / etaF - matB_Lin;  
-                    rhsGel = 2/etaF * matB_Lin * inv(matM_Lin) * (rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = 2/etaF * matB_Lin * inv(matM_Lin) * (rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
