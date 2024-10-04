@@ -42,7 +42,7 @@ B = 2;              % order of transmission variables
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
-setParameters(mesh, benchmark);
+% setParameters(mesh, benchmark);
 Dlambda = 2*pi/k(1) * (sqrt(dofm.numDofTRI) - 1);
 
 %%

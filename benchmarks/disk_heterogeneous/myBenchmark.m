@@ -47,4 +47,8 @@ for tri = 1:mesh.numTri
     k(tri) = omega / c(tri);
 end
 
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> 7deb7ba501a9ec67f0009decafc7fad1dc13f915

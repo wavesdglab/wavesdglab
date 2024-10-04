@@ -1,7 +1,7 @@
 % close all;
 clear all;
 
-global h
+global h1 h2
 global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
 global rho c eta k
 
@@ -14,8 +14,8 @@ tol = 1e-100;
 iMax = 1000; iOut = 50; degree = 3;
 benchmark = 'open_heterogeneous';
 
-h = 1/16; omega = 15*pi;
-% h = 1/34; omega = 30*pi;
+h1 = 1/16; h2 = 1/16; omega = 15*pi;
+% h1 = 1/34; h2 = 1/34; omega = 30*pi;
 
 rho1 = 1; c1 = 1; rho2 = 1; c2 = 1;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
@@ -35,22 +35,20 @@ run(benchmark,degree,tol,iMax,iOut);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function run(benchmark,degree,tol,iMax,iOut)
-global h
-global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
-global rho c eta k
+global h1 h2 k1 k2
 
 % Build mesh and dofManager
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
-setParameters(mesh,benchmark);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
-disp(['    h                   ' num2str(h)]);
+disp(['    h1                  ' num2str(h1)]);
+disp(['    h2                  ' num2str(h2)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
@@ -60,6 +58,7 @@ BASIS = 0; PREC = 1;
 [solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
 [solC, sysC] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 
+format long e
 normErrA = computeNormError2D_DG_ALL(mesh, dofm, solA)
 normErrB = computeNormError2D_DG_ALL(mesh, dofm, solB)
 normErrC = computeNormError2D_DG_ALL(mesh, dofm, solC)
@@ -74,6 +73,8 @@ disp(['---------------------------------------------------------']);
 % writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField2D(dofm, mesh, solC, 'output/solNum.pos', "solNum");
 system('gmsh output/solNum.pos&');
+
+pause;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
