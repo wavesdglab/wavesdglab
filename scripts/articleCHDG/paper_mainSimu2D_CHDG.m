@@ -1,20 +1,20 @@
 clear all;
 %close all;
 
-global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h1 h2
+global omega k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h1 h2
    
 % Setup benchmark and parameters
 benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h1 = 1/16;
-        h2 = 1/34;
+        h1 = 1/20;
+        h2 = 1/20;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
         rho2 = 1;
-        c2 = 1/2; 
+        c2 = 1; 
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -62,7 +62,7 @@ disp(['---------------------------------------------------------']);
 % Compute numerical solution
 % [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
 [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
+% [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, 0, 1);
 % [solA, sysA] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);  
 
