@@ -1,7 +1,7 @@
 % close all;
 clear all;
 
-global h
+global h1 h2
 global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
 global rho c eta k
 
@@ -10,60 +10,95 @@ tol = 1e-100;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+<<<<<<< HEAD
+% % PLANE WAVE
+=======
 % PLANE WAVE
 iMax = 1000; iOut = 50; degree = 3;
 benchmark = 'open_heterogeneous';
 
-h = 1/16; omega = 15*pi;
+%h1 = 1/16; h2 = 1/34; omega = 15*pi;
+h1 = 1/6; h2 = 1/15; omega = 3*pi;
 % h = 1/34; omega = 30*pi;
 
-rho1 = 1; c1 = 1; rho2 = 2; c2 = 1/2;
+rho1 = 1; c1 = 1; rho2 = 1; c2 = 1/2;
 eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+
+
 run(benchmark,degree,tol,iMax,iOut);
 
 % % CAVITY 
+>>>>>>> 7deb7ba501a9ec67f0009decafc7fad1dc13f915
 % iMax = 1000; iOut = 50; degree = 3;
-% benchmark = 'disk_heterogeneous';
+% benchmark = 'open_heterogeneous';
 % 
-% h = 0.065; omega = 10*pi;         % Case (1)
-% % h = 0.055; omega = 36.14;      % Case (2)
+% h = 1/16; omega = 15*pi;
+% % h = 1/34; omega = 30*pi;
 % 
-% rho1 = 1; c1 = 1; rho2 = 1; c2 = 2/3;
+% rho1 = 1; c1 = 1; rho2 = 2; c2 = 1/2;
 % eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
 % run(benchmark,degree,tol,iMax,iOut);
+
+% CAVITY 
+iMax = 1000; iOut = 50; degree = 3;
+benchmark = 'disk_heterogeneous';
+
+h = 0.065; omega = 10*pi;         % Case (1)
+% h = 0.055; omega = 36.14;      % Case (2)
+
+rho1 = 1; c1 = 1; rho2 = 3/2; c2 = 2/3;
+eta1 = rho1 * c1; eta2 = rho2 * c2; k1 = omega / c1; k2 = omega / c2;
+run(benchmark,degree,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function run(benchmark,degree,tol,iMax,iOut)
-global h
-global omega eta1 eta2 k1 k2 c1 c2 rho1 rho2
-global rho c eta k
+global h1 h2 k1 k2
 
 % Build mesh and dofManager
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
-setParameters(mesh,benchmark);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG (' benchmark ')']);
 disp(['---------------------------------------------------------']);
-disp(['    h                   ' num2str(h)]);
+disp(['    h1                  ' num2str(h1)]);
+disp(['    h2                  ' num2str(h2)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
 BASIS = 0; PREC = 1;
 
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
-[solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
+<<<<<<< HEAD
+[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 2);
+[solB, sysB] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
 [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
 [solD, sysD] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
 
+% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
+% [solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
+% [solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
+% [solD, sysD] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+
+=======
+format long e
+
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
+>>>>>>> 7deb7ba501a9ec67f0009decafc7fad1dc13f915
 normErrA = computeNormError2D_DG_ALL(mesh, dofm, solA)
+
+[solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
 normErrB = computeNormError2D_DG_ALL(mesh, dofm, solB)
-normErrC = computeNormError2D_DG_ALL(mesh, dofm, solC)
+
+pause;
+
+%[solC, sysC] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC);
+%[solD, sysD] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+
+%normErrC = computeNormError2D_DG_ALL(mesh, dofm, solC)
 normErrD = computeNormError2D_DG_ALL(mesh, dofm, solD)
 
 solP = computeSolProjL2_2D_DG(mesh, dofm);

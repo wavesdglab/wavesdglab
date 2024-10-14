@@ -156,7 +156,7 @@ for tri=1:mesh.numTri
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
             switch BC
-                case {'DIR', 'NEU', 'ABC', 'DIR0'}
+                case {'DIR', 'NEU', 'ABC', 'DIR0', 'ROB'}
                     etaNeigh = eta(tri);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
@@ -249,6 +249,9 @@ for tri=1:mesh.numTri
                     matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
                     rhsGel  = -2*eta(tri)*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
+                    matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
+                    rhsGel  = 0*(rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
+                case 'ROB'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
                     rhsGel  = (rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
                 otherwise

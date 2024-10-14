@@ -1,10 +1,14 @@
 function mesh = myBenchmark()
 
+<<<<<<< HEAD
 global edgTagToBC h1 h2
+=======
+global h1 h2 edgTagToBC
+>>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
 
 % BCWest, BCNorth, BCEast, BCSouth
 edgTag = {4};
-BC = {'DIR'};
+BC = {'DIR0'};
 edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'benchmarks/disk_heterogeneous/disk.msh';
@@ -12,6 +16,13 @@ linkGeo = 'benchmarks/disk_heterogeneous/disk.geo';
 system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
+<<<<<<< HEAD
+=======
+% -------------------------------------------------------------------------
+% Physical coefficients
+% -------------------------------------------------------------------------
+
+>>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
 % Physical parameters
 global omega c1 c2 rho1 rho2
 
