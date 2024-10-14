@@ -250,10 +250,6 @@ for tri=1:mesh.numTri
 
             % Source terms    
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
-<<<<<<< HEAD
-=======
-
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
             rhsPel = shapeLinQ' * (weightsLinQ .* solQ) * Jdxdu; 
             rhsUel = shapeLinQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);  
             rhsVel = shapeLinQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
@@ -267,19 +263,11 @@ for tri=1:mesh.numTri
                 case 'DIR'
                     matGGel = matM_Lin;                                    
                     matGHel = matM_Lin;                                    
-<<<<<<< HEAD
                     rhsGel  = 2 * matB_Lin * inv(matM_Lin) * rhsPel;   
                 case 'DIR0'
                     matGGel = matM_Lin;                                    
                     matGHel = matM_Lin;                                    
-                    rhsGel  = 0*rhsPel;
-=======
-                    rhsGel  = 2*matB_Lin*rhsPel;
-                case 'DIR0'
-                    matGGel = matM_Lin;                                    
-                    matGHel = matM_Lin;                                    
                     rhsGel  = 2*0*matB_Lin*rhsPel; 
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
                 case 'NEU'
                     matGGel = matM_Lin;
                     matGHel = -matM_Lin;
@@ -351,13 +339,8 @@ for tri=1:mesh.numTri
         
         % Elemental matrices (interface condition)
         matFFel = matB_Lin;
-<<<<<<< HEAD
         matFHel = - 0.5 * matM_Lin;
         matFGel = - 0.5 * matM_Lin;
-=======
-        matFHel = - 0.5 * matM_Lin;                                        % ====================================
-        matFGel = - 0.5 * matM_Lin;                                        % ====================================
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
         
         % Global ID for flux and exterior unknowns
         idGloG = dofm.locToGloFAC(tri,idLocG);

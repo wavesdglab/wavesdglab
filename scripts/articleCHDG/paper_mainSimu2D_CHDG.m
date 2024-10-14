@@ -1,25 +1,15 @@
 clear all;
 %close all;
 
-<<<<<<< HEAD
-global omega k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h h1 h2
-=======
 global omega k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h1 h2
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
    
 % Setup benchmark and parameters
 benchmark = 'disk_heterogeneous';
 switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-<<<<<<< HEAD
-        h = 1/16;  % to be set directly in open.geo 
         h1 = 1/16;
         h2 = 1/16;
-=======
-        h1 = 1/20;
-        h2 = 1/20;
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
@@ -30,21 +20,14 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-<<<<<<< HEAD
         omega = 36; %10*pi;
-        h = 0.065; % to be set directly in disk.geo
-        h1 = 0.035;
-        h2 = 0.035;
-=======
-        omega = 10*pi; %10*pi;
-        h1 = 0.055;
+        h1 = 0.065;
         h2 = 0.065;
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
         rho2 = 1;
-        c2 = 2/3;
+        c2 = 1;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -53,12 +36,7 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-<<<<<<< HEAD
-A = 2;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order
-=======
-% order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order
-A = 1;             
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
+A = 2;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -80,16 +58,8 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-<<<<<<< HEAD
 [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
 % [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
-=======
-% [solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
-[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
-% [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, 0, 1);
-% [solA, sysA] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);  
->>>>>>> 51d25c5f96bc7ec1f21898009f162121a8e9812e
 
 % Compute numerical error
 errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
