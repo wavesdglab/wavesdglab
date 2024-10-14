@@ -1,6 +1,6 @@
 function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
 
-global eta1 eta2 k1 k2 c1 c2
+global eta1 eta2 k1 k2
 
 R1 = 0.25;
 R2 = 0.5;
