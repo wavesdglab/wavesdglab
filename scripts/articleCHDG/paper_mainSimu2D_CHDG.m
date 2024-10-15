@@ -9,25 +9,25 @@ switch benchmark
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
         h1 = 1/16;
-        h2 = 1/16;
+        h2 = 1/34;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho1 = 1;
         c1 = 1;  
         rho2 = 1;
-        c2 = 1; 
+        c2 = 1/2; 
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 36; %10*pi;
-        h1 = 0.065;
-        h2 = 0.065;
+        omega = 10*pi; %10*pi;
+        h1 = 0.1;
+        h2 = 0.075;
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
         rho2 = 1;
-        c2 = 1;
+        c2 = 2/3;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;
@@ -58,8 +58,11 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
+% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
 % [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
+
+[solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0, PREC);
+% [solA, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, 0, PREC);
 
 % Compute numerical error
 errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);

@@ -54,11 +54,10 @@ disp(['---------------------------------------------------------']);
 
 BASIS = 0; PREC = 1;
 
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 2, 2);
-[solB, sysB] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, 1, 1);
-[solC, sysC] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 2);
+[solB, sysB] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
+[solC, sysC] = computeSolNum2D_HDG_sym(mesh, dofm, BASIS, PREC);
 
-format long e
 normErrA = computeNormError2D_DG_ALL(mesh, dofm, solA)
 normErrB = computeNormError2D_DG_ALL(mesh, dofm, solB)
 normErrC = computeNormError2D_DG_ALL(mesh, dofm, solC)
