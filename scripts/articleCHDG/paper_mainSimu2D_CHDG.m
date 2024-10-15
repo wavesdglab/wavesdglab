@@ -36,7 +36,7 @@ end
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 2;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
+A = 1;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -58,10 +58,10 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
+[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
 % [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
 
-[solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0, PREC);
+% [solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0, PREC);
 % [solA, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, 0, PREC);
 
 % Compute numerical error
