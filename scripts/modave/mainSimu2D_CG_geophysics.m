@@ -2,7 +2,7 @@ clear all;
 close all;
 
 % benchmark = 'geophysics_BPmodel'; freq = 20;
-benchmark = 'geophysics_marmousi'; freq = 50;
+benchmark = 'geophysics_marmousi'; freq = 5;
 
 % Parameters
 global omega nLambda
@@ -17,9 +17,9 @@ mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_CG(mesh, degree);
 
 % Print coefficients
-global cArray rhoArray
-writeCoef2D(mesh, cArray, 'output/velocity.pos', "Velocity [m/s]");
-writeCoef2D(mesh, rhoArray, 'output/density.pos', "Density");
+global c rho
+writeCoef2D(mesh, c, 'output/velocity.pos', "Velocity [m/s]");
+writeCoef2D(mesh, rho, 'output/density.pos', "Density");
 system('gmsh output/mesh.msh output/velocity.pos output/density.pos&');
 
 % -------------------------------------------------------------------------
@@ -42,4 +42,4 @@ disp(['---------------------------------------------------------']);
 % -------------------------------------------------------------------------
 
 writeField2D(dofm, mesh, solA, 'output/solution.pos', "Solution");
-system('gmsh output/mesh.msh output/velocity.pos output/density.pos output/solution.pos output/mesh.msh&');
+system('gmsh output/mesh.msh output/velocity.pos output/density.pos output/solution.pos&');

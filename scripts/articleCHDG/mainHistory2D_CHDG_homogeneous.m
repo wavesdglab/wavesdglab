@@ -58,12 +58,12 @@ BASIS = 0; PREC = 1;
 [solB, sysB] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
 [solC, sysC] = computeSolNum2D_HDG_sym(mesh, dofm, BASIS, PREC);
 
-normErrA = computeNormError2D_DG_ALL(mesh, dofm, solA)
-normErrB = computeNormError2D_DG_ALL(mesh, dofm, solB)
-normErrC = computeNormError2D_DG_ALL(mesh, dofm, solC)
+normErrA = computeNormError2D_DG_heterogeneous(mesh, dofm, solA)
+normErrB = computeNormError2D_DG_heterogeneous(mesh, dofm, solB)
+normErrC = computeNormError2D_DG_heterogeneous(mesh, dofm, solC)
 
 solP = computeSolProjL2_2D_DG(mesh, dofm);
-normProjErr = computeNormError2D_DG_ALL(mesh, dofm, solP);
+normProjErr = computeNormError2D_DG_heterogeneous(mesh, dofm, solP);
 
 % disp(['    L2-Error (numSol)   ' num2str(normErrA,'%1.2e')]);
 disp(['    L2-Error (projSol)  ' num2str(normProjErr,'%1.2e')]);
@@ -78,8 +78,8 @@ system('gmsh output/solNum.pos&');
 
 disp(['--- Solver Richardson']);
 alpha = 1;
-[resRedVecA, resPhyVecA, error0A] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG_ALL);
-[resRedVecB, resPhyVecB, error0B] = solverRichardsonRedu_DG(mesh, dofm, sysB, tol, iMax, iOut, alpha, @computeNormError2D_DG_ALL);
+[resRedVecA, resPhyVecA, error0A] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous);
+[resRedVecB, resPhyVecB, error0B] = solverRichardsonRedu_DG(mesh, dofm, sysB, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous);
 
 iterVec = (0:iOut:iMax)';
 errorRefA = normErrA*ones(size(error0A));
@@ -98,9 +98,9 @@ writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNR']);
-[resRedVecA, resPhyVecA, error1A] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_ALL);
-[resRedVecB, resPhyVecB, error1B] = solverCGNRredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_ALL);
-[resRedVecC, resPhyVecC, error1C] = solverCGNRredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecA, resPhyVecA, error1A] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
+[resRedVecB, resPhyVecB, error1B] = solverCGNRredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
+[resRedVecC, resPhyVecC, error1C] = solverCGNRredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
 
 iterVec = (0:iOut:iMax)';
 errorRefA = normErrA*ones(size(error1A));
@@ -125,9 +125,9 @@ writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-[resRedVecA, resPhyVecA, error3A] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_ALL);
-[resRedVecB, resPhyVecB, error3B] = solverGMRESredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_ALL);
-[resRedVecC, resPhyVecC, error3C] = solverGMRESredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_ALL);
+[resRedVecA, resPhyVecA, error3A] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
+[resRedVecB, resPhyVecB, error3B] = solverGMRESredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
+[resRedVecC, resPhyVecC, error3C] = solverGMRESredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous);
 
 iterVec = (0:iOut:iMax)';
 errorRefA = normErrA*ones(size(error3A));

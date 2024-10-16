@@ -63,11 +63,11 @@ end
 global omega cAir cObj rhoAir rhoObj
 
 % Define tables of coefficients
-global rhoArray cArray etaArray kArray
-rhoArray = zeros(mesh.numTri,1);
-cArray = zeros(mesh.numTri,1);
-etaArray = zeros(mesh.numTri,1);
-kArray = zeros(mesh.numTri,1);
+global rho c eta k
+rho = zeros(mesh.numTri,1);
+c = zeros(mesh.numTri,1);
+eta = zeros(mesh.numTri,1);
+k = zeros(mesh.numTri,1);
 
 for tri = 1:mesh.numTri
     verTri = mesh.mapTriToVer(tri,:);
@@ -77,14 +77,14 @@ for tri = 1:mesh.numTri
     x = (V1(1,1)+V2(1,1)+V3(1,1))/3;
     y = (V1(1,2)+V2(1,2)+V3(1,2))/3;
     if(sqrt(x*x+y*y) < Rdisk)
-        cArray(tri) = cObj;
-        rhoArray(tri) = rhoObj;
+        c(tri) = cObj;
+        rho(tri) = rhoObj;
     else
-        cArray(tri) = cAir;
-        rhoArray(tri) = rhoAir;
+        c(tri) = cAir;
+        rho(tri) = rhoAir;
     end
-    etaArray(tri) = rhoArray(tri) * cArray(tri);
-    kArray(tri) = omega / cArray(tri);
+    eta(tri) = rho(tri) * c(tri);
+    k(tri) = omega / c(tri);
 end
 
 end

@@ -4,8 +4,7 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC)
 
-global omega edgTagToBC
-global rho c eta k
+global eta k edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;

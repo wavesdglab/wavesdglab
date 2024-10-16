@@ -2,10 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Authors: Axel Modave, Timothée Raynaud
 
-function [solA, sysA] = computeSolNum2D_CG_heterogeneous2(mesh, dofm, PREC)
+function [solA, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, PREC)
 
-global kArray rhoArray
-global edgTagToBC
+global k rho edgTagToBC
 global LdomX LdomY LpmlX LpmlY Rdom Rpml
 global pntSouTag pntSouVal
 
@@ -26,6 +25,7 @@ shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 % -------------------------------------------------------------------------
 % Volume terms
 % -------------------------------------------------------------------------
+disp('... matrix computing/assembling (volume terms) ...');
 
 matIv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matJv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
@@ -35,10 +35,8 @@ matAv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
 tic
-myWaitbar = waitbar(0,'   Volume terms...');
 for tri=1:mesh.numTri
-    waitbar(tri/mesh.numTri,myWaitbar,['   Volume terms... (' int2str(100*tri/mesh.numTri) '%)']);
-    
+
     % Mapping
     ver = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(ver(1),:);
@@ -48,7 +46,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -61,51 +59,47 @@ for tri=1:mesh.numTri
         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
+
     % Shape functions (f, dfdx, dfdy) with orientation
     shapeOrQ = shapeTriQ * orientation;
     shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
     shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
-    
-    % Coefficients on the element
-    k = kArray(tri);
-    rho = rhoArray(tri);
-    
+
     % RHS term
     rhsQ = mySourceVolume(xQ, yQ);
     weightsQ = weightsTriQ .* detJdxdu;
     rhsPel = transpose(shapeOrQ) * (weightsQ .* rhsQ);
-    
+
     % Elemental matrices/vectors
     weightsQ = weightsTriQ .* detJdxdu;
     matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
     matKel = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
-    matAel = (1/rho) * matKel - (k^2/rho) * matMel;
-    
+    matAel = (1/rho(tri)) * matKel - (k(tri)^2/rho(tri)) * matMel;
+
     % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
         if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
             sigmaPmlX = (LdomX <= abs(xQ))./(LdomX+LpmlX-abs(xQ));
             sigmaPmlY = (LdomY <= abs(yQ))./(LdomY+LpmlY-abs(yQ));
-            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k);
-            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k);
+            gammaPmlX = ones(size(xQ)) - sigmaPmlX/(1i*k(tri));
+            gammaPmlY = ones(size(yQ)) - sigmaPmlY/(1i*k(tri));
             detJdxdu = detJdxdu .* gammaPmlX .* gammaPmlY;
             shapeDxQ = shapeDxQ ./ gammaPmlX;
             shapeDyQ = shapeDyQ ./ gammaPmlY;
-            
+
             % Elemental matrices in PML
             weightsQ = weightsTriQ .* detJdxdu;
             matMpml = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
             matKpml = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
-            matApml = (1/rho) * matKpml - (k^2/rho) * matMpml;
-            
+            matApml = (1/rho(tri)) * matKpml - (k(tri)^2/rho(tri)) * matMpml;
+
             % Elemental RHS vector in PML
             rhsProj = matMel\rhsPel;
             rhsPel = matApml * rhsProj - matAel * rhsProj;
             matAel = matApml;
         end
     end
-    
+
     % PML stretching (circular PML)
     if(~isempty(Rdom))
         rQ = sqrt(xQ.*xQ + yQ.*yQ);
@@ -114,8 +108,8 @@ for tri=1:mesh.numTri
             sinT = yQ./rQ;
             sigmaPml = 1./(Rpml-(rQ-Rdom));
             sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
-            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k);
-            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k)./rQ;
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k(tri));
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k(tri))./rQ;
             invJacXX = (1./gammaPmlR) .* cosT.*cosT + (1./gammaPmlT) .* (sinT.*sinT);
             invJacXY = (1./gammaPmlR) .* cosT.*sinT - (1./gammaPmlT) .* (cosT.*sinT);
             invJacYY = (1./gammaPmlR) .* sinT.*sinT + (1./gammaPmlT) .* (cosT.*cosT);
@@ -124,52 +118,50 @@ for tri=1:mesh.numTri
             shapeDyQnew = invJacXY .* shapeDxQ + invJacYY .* shapeDyQ;
             shapeDxQ = shapeDxQnew;
             shapeDyQ = shapeDyQnew;
-            
+
             % Elemental matrices in PML
             weightsQ = weightsTriQ .* detJdxdu;
             matMpml = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
             matKpml = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
-            matApml = (1/rho) * matKpml - (k^2/rho) * matMpml;
-            
+            matApml = (1/rho(tri)) * matKpml - (k(tri)^2/rho(tri)) * matMpml;
+
             % Elemental RHS vector in PML
             rhsProj = matMel\rhsPel;
             rhsPel = matApml * rhsProj - matAel * rhsProj;
             matAel = matApml;
         end
     end
-    
+
     % Matrix assembling
     dof = dofm.locToGloTRI(tri,:);
     rhsA(dof) = rhsA(dof) + rhsPel;
-    
+
     iStart = (tri-1) * dofm.numDofPerTRI + 1;
     iEnd = tri * dofm.numDofPerTRI;
     matIv(iStart:iEnd,:) = dof' * ones(1,dofm.numDofPerTRI);
     matJv(iStart:iEnd,:) = ones(dofm.numDofPerTRI,1) * dof;
     matAv(iStart:iEnd,:) = matAel;
     % matMv(iStart:iEnd,:) = matMel;
-    % matPv(iStart:iEnd,:) = matKel + k^2*matMel;
-    
+    % matPv(iStart:iEnd,:) = matKel + k(tri)^2*matMel;
+
 end
 matA = sparse(matIv,matJv,matAv);
 % matM = sparse(matIv,matJv,matMv);
 % matP = sparse(matIv,matJv,matPv);
-close(myWaitbar)
 toc
 
 % -------------------------------------------------------------------------
 % Surface terms
 % -------------------------------------------------------------------------
+disp('... matrix computing/assembling (surface terms) ...');
 
 tic
 dofDIR0 = [];
 dofDIR = [];
-myWaitbar = waitbar(0,'   Surface terms...');
 for edgBnd=1:mesh.numEdgBnd
-    waitbar(edgBnd/mesh.numEdgBnd,myWaitbar,['   Surface terms... (' int2str(100*edgBnd/mesh.numEdgBnd) '%)']);
     edg = mesh.listEdgBnd(edgBnd);
     dof = dofm.locToGloBND(edgBnd,:);
-    
+
     % Normal
     tri = mesh.mapEdgToTri(edg,1);
     fac = mesh.mapEdgToFac(edg,1);
@@ -179,39 +171,35 @@ for edgBnd=1:mesh.numEdgBnd
     V3 = mesh.coord(ver(3),:);
     normal = getNormalTRI(V1,V2,V3);
     normal = normal(fac,:);
-    
+
     % Mapping
     ver = mesh.mapEdgToVer(edg,:);
     V1 = mesh.coord(ver(1),:);
     V2 = mesh.coord(ver(2),:);
     [xQ, yQ] = locToGloLIN(uLinQ, V1, V2);
     Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
-    
+
     % Solution function
     [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
     dirQ = solQ;
     neuQ = normal(1)*solDxQ + normal(2)*solDyQ;
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerLIN,1);
     if(ver(1) > ver(2))
         orientation(3:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
-    
+
     % Shape function with orientation
     shapeOrQ = shapeLinQ * orientation;
-    
+
     % Elemental matrices/vectors
     weightsQ = weightsLinQ * Jdxdu;
     matMel = shapeOrQ' * (weightsQ .* shapeOrQ);
     rhsDel = shapeOrQ' * (weightsQ .* dirQ);
     rhsNel = shapeOrQ' * (weightsQ .* neuQ);
-    
-    % Coefficients on the element
-    k = kArray(tri);
-    rho = rhoArray(tri);
-    
+
     % Boundary condition
     switch edgTagToBC(mesh.tagEdgBnd(edgBnd))
         case 'DIR0'
@@ -222,15 +210,14 @@ for edgBnd=1:mesh.numEdgBnd
         case 'NEU'
             rhsA(dof) = rhsA(dof) + rhsNel;
         case 'ABC'
-            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel/rho;
+            matA(dof,dof) = matA(dof,dof) - 1i*k(tri) * matMel/rho(tri);
         case 'ROB'
-            matA(dof,dof) = matA(dof,dof) - 1i*k * matMel/rho;
-            rhsA(dof) = rhsA(dof) + (rhsNel - 1i*k * rhsDel)/rho;
+            matA(dof,dof) = matA(dof,dof) - 1i*k(tri) * matMel/rho(tri);
+            rhsA(dof) = rhsA(dof) + (rhsNel - 1i*k(tri) * rhsDel)/rho(tri);
         otherwise
             error('BAD BOUNDARY CONDITION.');
     end
 end
-close(myWaitbar)
 
 if(~isempty(dofDIR0))
     dofDIR0 = unique(dofDIR0);
@@ -253,6 +240,7 @@ toc
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
+disp('... solution of the system ...');
 
 % Matrix partition
 numDofTRIred = mesh.numVer * dofm.numDofPerVer + mesh.numEdg * dofm.numDofPerEdg;

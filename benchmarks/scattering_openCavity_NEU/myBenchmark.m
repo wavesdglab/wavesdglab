@@ -13,7 +13,7 @@ edgTag = {1, 2};
 BC = {'DIR0', 'NEU'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/scattering_openCavity_NEU/scattering_openCavity.msh';
+linkMsh = 'output/mesh.msh';
 linkGeo = 'benchmarks/scattering_openCavity_NEU/scattering_openCavity.geo';
 system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ' -setnumber LdomX ' num2str(LdomX) ' -setnumber LdomY ' num2str(LdomY) ' -setnumber LpmlX ' num2str(LpmlX) ' -setnumber LpmlY ' num2str(LpmlY)]);
 mesh = readMesh2D(linkMsh);

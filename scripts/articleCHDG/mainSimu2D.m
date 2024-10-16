@@ -1,42 +1,24 @@
 clear all;
 %close all;
 
-global omega k eta1 eta2 k1 k2 c1 c2 rho1 rho2 h1 h2
-   
+global omega k c1 c2 rho1 rho2 h1 h2
+
 % Setup benchmark and parameters
-benchmark = 'disk_heterogeneous';
+benchmark = 'open_heterogeneous';
 switch benchmark
     case 'open_heterogeneous'
-        omega = 15*pi; %15*pi;
-        h1 = 1/16;
-        h2 = 1/34;
+        omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 2; h1 = 1/16; h2 = 1/34;
+        % omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
         tol = 1e-10; maxit = 1000; itout = 50;
-        rho1 = 1;
-        c1 = 1;  
-        rho2 = 1;
-        c2 = 1/2; 
-        eta1 = rho1 * c1;
-        eta2 = rho2 * c2;
-        k1 = omega / c1;
-        k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 10*pi; %10*pi;
-        h1 = 0.1;
-        h2 = 0.075;
+        omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 3/2; h1 = 0.06; h2 = 0.05;
+        % omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1; h1 = 0.1; h2 = 0.075;
         tol = 1e-10; maxit = 1000; itout = 100;
-        rho1 = 1;
-        c1 = 1; 
-        rho2 = 1;
-        c2 = 2/3;
-        eta1 = rho1 * c1;
-        eta2 = rho2 * c2;
-        k1 = omega / c1;
-        k2 = omega / c2;
 end
+
 degree = 3;
 BASIS = 0;
 PREC = 1;
-A = 1;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -58,34 +40,30 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
-[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A);
-% [solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
-
+% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
+% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 2);
+[solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
 % [solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0, PREC);
 % [solA, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, 0, PREC);
 
 % Compute numerical error
-errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
-% errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
-% errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
-errorL2 = errorL2_A
+errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 
-% Compute projection solution
+% Compute projection solution/error
 solP = computeSolProjL2_2D_DG(mesh, dofm);
-% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
-% 
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+errorProjL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solP);
+disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.pos&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors

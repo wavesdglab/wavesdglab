@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [normErr, normErrU, normErrV, normSol, normSolU, normSolV] = computeNormError2D_DG_ALL(mesh, dofm, vecSol, vecRef)
+function [normErr, normSol] = computeNormError2D_DG_heterogeneous(mesh, dofm, vecSol, vecRef)
 
-global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
+global eta c
 
 % Quadrature
 degreeQ = 4*dofm.degree;
@@ -13,10 +13,8 @@ degreeQ = 4*dofm.degree;
 % Shape functions (f, dfdu, dfdv)
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
-normSolU2 = 0;
-normSolV2 = 0;
-normErrU2 = 0;
-normErrV2 = 0;
+normSol2 = 0;
+normErr2 = 0;
 for tri=1:mesh.numTri
     
     % Mapping
@@ -68,26 +66,18 @@ for tri=1:mesh.numTri
     errVyQ = solVyQ(:) - refVyQ(:);
     
     % Error values
-%     normSolU2 = normSolU2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-%     normSolV2 = normSolV2 + weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-%     normErrU2 = normErrU2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-%     normErrV2 = normErrV2 + weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+%     normSol2 = normSol2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
+%     normSol2 = normSol2 + weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+%     normErr2 = normErr2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
+%     normErr2 = normErr2 + weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
 
-    normSolU2 = normSolU2 + (1/(eta(tri)*c(tri))) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-    normSolV2 = normSolV2 + (eta(tri)/c(tri)) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-    normErrU2 = normErrU2 + (1/(eta(tri)*c(tri))) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-    normErrV2 = normErrV2 + (eta(tri)/c(tri)) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+    normSol2 = normSol2 + (1/(eta(tri)*c(tri))) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
+    normSol2 = normSol2 + (eta(tri)/c(tri)) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+    normErr2 = normErr2 + (1/(eta(tri)*c(tri))) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
+    normErr2 = normErr2 + (eta(tri)/c(tri)) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
 end
 
-% normSolU = sqrt(normSolU2);
-% normErrU = sqrt(normErrU2)/normSolU;
-% normSolV = sqrt(normSolV2);
-% normErrV = sqrt(normErrV2)/normSolV2;
-% 
-% normSol = normSolU;
-% normErr = normErrU;
-
-normSol = sqrt(normSolU2 + normSolV2);
-normErr = sqrt(normErrU2 + normErrV2)/normSol;
+normSol = sqrt(normSol2);
+normErr = sqrt(normErr2)/normSol;
 
 end

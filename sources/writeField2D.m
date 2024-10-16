@@ -127,13 +127,13 @@ end
 
 global WRITE_FIELD_ABSOLUTE
 if(WRITE_FIELD_ABSOLUTE == 1)
-    
+
     % Print element node data (absolute value)
-    
+
     degreeQ = 2*dofm.degree;
     [uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
     shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
-    
+
     fprintf(file,'$ElementNodeData\n');
     fprintf(file,'2\n');
     fprintf(file,'"%s"\n',nameField);
@@ -147,7 +147,7 @@ if(WRITE_FIELD_ABSOLUTE == 1)
     fprintf(file,'0\n');
     for tri=1:mesh.numTri
         ver = mesh.mapTriToVer(tri,:);
-        
+
         if(PML_HIDE == 1)
             if(~isempty(LdomX) && ~isempty(LdomY))
                 VX = mesh.coord(ver,1);
@@ -166,7 +166,7 @@ if(WRITE_FIELD_ABSOLUTE == 1)
                 end
             end
         end
-        
+
         % Orientation
         orientation = ones(dofm.numDofPerTRI,1);
         if(ver(1) > ver(2))
@@ -179,12 +179,12 @@ if(WRITE_FIELD_ABSOLUTE == 1)
             orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
         end
         orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-        
+
         % Absolute value of field at quadrature nodes
         shapeOrQ = shapeQ * orientation;  % Shape function
         solQ = shapeOrQ * field(dofm.locToGloTRI(tri,:));
         solQ = abs(solQ);
-        
+
         % Absolute value of field
         V1 = mesh.coord(ver(1),:);
         V2 = mesh.coord(ver(2),:);
@@ -196,7 +196,7 @@ if(WRITE_FIELD_ABSOLUTE == 1)
         rhsPel = transpose(shapeOrQ) * (weightsQ .* solQ);
         fieldTri = matPel\rhsPel;
         fieldTri = orientation*fieldTri;
-        
+
         % Print
         fprintf(file,'%i %i ', mesh.tagTriFile(tri), dofm.numDofPerTRI);
         for n=1:dofm.numDofPerTRI
@@ -205,11 +205,11 @@ if(WRITE_FIELD_ABSOLUTE == 1)
         fprintf(file,'\n');
     end
     fprintf(file,'$EndElementNodeData\n');
-    
+
 else
-    
+
     % Print element node data (real part)
-    
+
     fprintf(file,'$ElementNodeData\n');
     fprintf(file,'2\n');
     fprintf(file,'"%s"\n',nameField);
@@ -223,7 +223,7 @@ else
     fprintf(file,'0\n');
     for tri=1:mesh.numTri
         ver = mesh.mapTriToVer(tri,:);
-        
+
         if(PML_HIDE == 1)
             if(~isempty(LdomX) && ~isempty(LdomY))
                 VX = mesh.coord(ver,1);
@@ -242,7 +242,7 @@ else
                 end
             end
         end
-        
+
         % Orientation
         orientation = ones(dofm.numDofPerTRI,1);
         if(ver(1) > ver(2))
@@ -255,10 +255,10 @@ else
             orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
         end
         orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-        
+
         fieldTri = real(field(dofm.locToGloTRI(tri,:)));
         fieldTri = orientation*fieldTri;
-        
+
         % Print
         fprintf(file,'%i %i ', mesh.tagTriFile(tri), dofm.numDofPerTRI);
         for n=1:dofm.numDofPerTRI
@@ -267,9 +267,9 @@ else
         fprintf(file,'\n');
     end
     fprintf(file,'$EndElementNodeData\n');
-    
+
     % Print element node data (imaginary part)
-    
+
     fprintf(file,'$ElementNodeData\n');
     fprintf(file,'2\n');
     fprintf(file,'"%s"\n',nameField);
@@ -283,7 +283,7 @@ else
     fprintf(file,'0\n');
     for tri=1:mesh.numTri
         ver = mesh.mapTriToVer(tri,:);
-        
+
         if(PML_HIDE == 1)
             if(~isempty(LdomX) && ~isempty(LdomY))
                 VX = mesh.coord(ver,1);
@@ -302,7 +302,7 @@ else
                 end
             end
         end
-        
+
         % Orientation
         orientation = ones(dofm.numDofPerTRI,1);
         if(ver(1) > ver(2))
@@ -315,10 +315,10 @@ else
             orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
         end
         orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-        
+
         fieldTri = imag(field(dofm.locToGloTRI(tri,:)));
         fieldTri = orientation*fieldTri;
-        
+
         % Print
         fprintf(file,'%i %i ', mesh.tagTriFile(tri), dofm.numDofPerTRI);
         for n=1:dofm.numDofPerTRI
@@ -327,7 +327,7 @@ else
         fprintf(file,'\n');
     end
     fprintf(file,'$EndElementNodeData\n');
-    
+
 end
 
 % Close file

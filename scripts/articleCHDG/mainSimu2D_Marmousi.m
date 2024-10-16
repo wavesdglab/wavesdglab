@@ -17,9 +17,9 @@ mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
 
 % Print coefficients
-global cArray rhoArray
-writeCoef2D(mesh, cArray, 'output/velocity.pos', "Velocity [m/s]");
-writeCoef2D(mesh, rhoArray, 'output/density.pos', "Density");
+global c rho
+writeCoef2D(mesh, c, 'output/velocity.pos', "Velocity [m/s]");
+writeCoef2D(mesh, rho, 'output/density.pos', "Density");
 system('gmsh output/velocity.pos output/density.pos&');
 
 % -------------------------------------------------------------------------

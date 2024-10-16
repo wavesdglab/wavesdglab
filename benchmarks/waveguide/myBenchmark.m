@@ -7,7 +7,7 @@ edgTag = {1, 2, 3, 4};
 BC = {'DIR0', 'DIR0', 'ROB', 'DIR0'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/waveguide/waveguide.msh';
+linkMsh = 'output/mesh.msh';
 linkGeo = 'benchmarks/waveguide/waveguide.geo';
 system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h)]);
 mesh = readMesh2D(linkMsh);
