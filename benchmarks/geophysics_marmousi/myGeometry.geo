@@ -1,16 +1,23 @@
 // Dimensions
-Lx = 67437.5;
-Ly = 11943.75;
+Lx = 9192;
+Ly = 2904;
 X0 = 0;
 Y0 = -Ly;
 
 // Parameters
-X_SOU = Lx/2;
+// X_SOU = Lx/2;
+// Y_SOU = -10;
+// X0 = 2*Lx/5;
+// Lx = Lx/5;
+// Ly = Ly/3;
+// Y0 = -Ly;
+
+X_SOU = 4585;
 Y_SOU = -10;
-X0 = 2*Lx/5;
-Lx = Lx/5;
-Ly = Ly/3;
-Y0 = -Ly;
+
+// https://hdl.handle.net/2268/174920:
+// X_SOU = 6200;
+// Y_SOU = -2300;
 
 // ====================================================================================================
 // Build DOMAIN
@@ -41,13 +48,14 @@ Point {p0} In Surface {s};
 // ====================================================================================================
 
 // Physical/mesh parameters
-// WAVENUMBER = 2*Pi*FREQ/C[X];
+// OMEGA = 2*Pi*FREQ
+// WAVENUMBER = OMEGA/C[X];
 // LAMBDA = 2*Pi/WAVENUMBER;
 // LC = LAMBDA/N_LAMBDA;
 // LC = cMin/FREQ/N_LAMBDA;
 
 Field[1] = Structured;
-Field[1].FileName = "benchmarks/geophysics_BPmodel/_velocityGmsh.txt";
+Field[1].FileName = "output/velocityGmsh.txt";
 Field[1].TextFormat = 1;
 Field[2] = MathEval;
 Field[2].F = Sprintf("F1 * %g", 1/FREQ/N_LAMBDA);
@@ -62,9 +70,15 @@ Mesh.MeshSizeFromCurvature = 0;
 // ====================================================================================================
 
 TAG_SOU = 1000;
-TAG_BND = 2000;
+TAG_BND_1 = 2001;
+TAG_BND_2 = 2002;
+TAG_BND_3 = 2003;
+TAG_BND_4 = 2004;
 TAG_DOM = 3000;
 
 Physical Point(TAG_SOU) = p0;
-Physical Line(TAG_BND) = {l1, l2, l3, l4};
+Physical Line(TAG_BND_1) = {l1}; // S
+Physical Line(TAG_BND_2) = {l2}; // E
+Physical Line(TAG_BND_3) = {l3}; // N
+Physical Line(TAG_BND_4) = {l4}; // W
 Physical Surface(TAG_DOM) = s;

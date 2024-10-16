@@ -12,19 +12,20 @@ Lx = Ix*dx; % 67437.5
 Ly = Iy*dy; % 11943.75
 
 fileVelocity = fopen('benchmarks/geophysics_BPmodel/data/vp.bin');
-fileDensity = fopen('benchmarks/geophysics_BPmodel/data/rho.bin');
 dataVelocity = fread(fileVelocity,[Iy Ix],'single');
-dataDensity = fread(fileDensity,[Iy Ix],'single');
 
-figure(1);
-imagesc(dataVelocity);
-title('Velocity');
-colorbar;
+% fileDensity = fopen('benchmarks/geophysics_BPmodel/data/rho.bin');
+% dataDensity = fread(fileDensity,[Iy Ix],'single');
 
-figure(2);
-imagesc(dataDensity);
-title('Density');
-colorbar;
+% figure(1);
+% imagesc(dataVelocity);
+% title('Velocity');
+% colorbar;
+% 
+% figure(2);
+% imagesc(dataDensity);
+% title('Density');
+% colorbar;
 
 % Data for structured GMSH data file:
 %   Ox Oy Oz
@@ -34,7 +35,7 @@ colorbar;
 padding = 10;
 
 data = round(dataVelocity(1:padding:end, 1:padding:end)');
-fileGmsh = fopen('benchmarks/geophysics_BPmodel/_velocityGmsh.txt','w');
+fileGmsh = fopen('output/velocityGmsh.txt','w');
 fprintf(fileGmsh,'%f %f %f\n', 0, 0, 0);
 fprintf(fileGmsh,'%f %f %f\n', Lx/size(data,1), -Ly/size(data,2), 1);
 fprintf(fileGmsh,'%i %i %i\n', size(data,1), size(data,2), 1);

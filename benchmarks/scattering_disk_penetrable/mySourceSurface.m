@@ -5,8 +5,8 @@ kAir = omega/cAir;
 
 souU = exp(1i*kAir*x);
 souDx = 1i*kAir*exp(1i*kAir*x);
-souDy = 0;
+souDy = zeros(size(x));
 souVx = souDx/(1i*omega*rhoAir);
-souVy = 0;
+souVy = zeros(size(x));
 
 end

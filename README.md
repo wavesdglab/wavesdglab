@@ -22,9 +22,9 @@ Authors
 How to use it?
 --------------
 
-  1) Create 'setup.m' from 'setup_default.m' and define 'directoryGmsh'
-  2) Run 'setup.m' in the root directory
-  3) Run a script in directory 'scripts'
+  1. Create 'setup.m' from 'setup_default.m' and define 'directoryGmsh'
+  2. Run 'setup.m' in the root directory
+  3. Run a script in directory 'scripts'
 
 General structure
 -----------------

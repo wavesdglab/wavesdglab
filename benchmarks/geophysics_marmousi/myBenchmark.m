@@ -7,13 +7,13 @@ global omega nLambda
 % -------------------------------------------------------------------------
 
 myData();
-linkMsh = 'benchmarks/geophysics_marmousi/myMesh.msh';
-linkGeo = 'benchmarks/geophysics_marmousi/myMesh.geo';
+linkMsh = 'output/mesh.msh';
+linkGeo = 'benchmarks/geophysics_marmousi/myGeometry.geo';
 system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega/(2*pi)) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
-% Boundary condition
+% Boundary conditions
 % -------------------------------------------------------------------------
 
 global edgTagToBC

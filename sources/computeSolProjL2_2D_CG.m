@@ -7,7 +7,6 @@ function [solP, sysP] = computeSolProjL2_2D_CG(mesh, dofm)
 % Quadrature and shape functions
 degreeQ = 2*dofm.degree;
 [uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
-weightsTriQ = sparse(1:size(weightsTriQ,1), 1:size(weightsTriQ,1), weightsTriQ);
 shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 
 % Build matrix and RHS vector
@@ -51,8 +50,6 @@ for tri=1:mesh.numTri
     % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
-    size(dof)
-    size(rhsPel)
     rhsP(dof) = rhsP(dof) + rhsPel;
 end
 

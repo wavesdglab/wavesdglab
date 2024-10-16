@@ -176,6 +176,7 @@ mesh.tagPntFile  = [];
 mesh.mapPntToVer = [];
 mesh.tagEdgBndFile  = [];
 mesh.mapEdgBndToVer = [];
+mesh.tagTriFile = [];
 for ent=1:numEntityBlocks
     data = str2num(fgetl(file));
     entityDim = data(1);
@@ -203,6 +204,7 @@ for ent=1:numEntityBlocks
     if(entityType == 2)
         for i=1:numElementsInBlock
             data = str2num(fgetl(file));
+            mesh.tagTriFile = [mesh.tagTriFile; data(1)];
             mesh.mapTriToVer = [mesh.mapTriToVer; data(2:4)];
         end
         numElementsTRI = numElementsTRI + numElementsInBlock;
