@@ -101,4 +101,7 @@ normErr = sqrt(normErrU2)/normSol;
 % normSol = sqrt(normSolU2 + normSolV2);
 % normErr = sqrt(normErrU2 + normErrV2)/normSol;
 
+normSol = normSolU;
+normErr = normErrU;
+
 end

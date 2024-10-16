@@ -3,13 +3,13 @@ function mesh = myBenchmark()
 global edgTagToBC h1 h2
 
 % BCWest, BCNorth, BCEast, BCSouth
-edgTag = {1, 2, 3, 4};
-BC = {'ROB', 'ROB', 'ROB', 'ROB'};
+edgTag = {4};
+BC = {'DIR'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
-linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
+linkMsh = 'benchmarks/disk_heterogeneous/disk.msh';
+linkGeo = 'benchmarks/disk_heterogeneous/disk.geo';
+system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
@@ -32,8 +32,10 @@ for tri = 1:mesh.numTri
     V2 = mesh.coord(verTri(2),:);
     V3 = mesh.coord(verTri(3),:);
     x = (V1(1,1)+V2(1,1)+V3(1,1))/3;
+    y = (V1(1,2)+V2(1,2)+V3(1,2))/3;
 
-    if min(x) < 0.5
+    R1 = 0.25;
+    if x^2 + y^2 < R1^2
         rho(tri) = rho1;
         c(tri) = c1;
     else

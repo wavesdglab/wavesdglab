@@ -2,12 +2,10 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous_upw(mesh, dofm, PREC)
 
 global omega edgTagToBC
 global rho c eta k
-
-p = 0; % exponent of the power mean for the definition of \eta_F
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -61,12 +59,6 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
-    % Physical parameters on the element
-    c_K   = c(tri);
-    eta_K = eta(tri);
-
-    k_K   = omega / c_K;
 
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -87,7 +79,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ,yQ);
+    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ, yQ);
 
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -101,7 +93,7 @@ for tri=1:mesh.numTri
         -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel                  ];
     
     rhsIel = [
-        -1/(1i*k(tri)*eta(tri))*rhsPel ; 
+        -1/(1i*k(tri)*eta(tri))*rhsPel  ; 
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -131,21 +123,14 @@ for tri=1:mesh.numTri
         
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
-        orientation2 = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
             orientation(3:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerEdg-1);
-            orientation2(1:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerLIN-1);
         end
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
-        orientation2 = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation2);
 
         % Shape functions (physical space)
         shapePhyQ = shapePhyLinQ * orientation;
-        if (BASIS == 1)
-            shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(Jdxdu);
-        else
-            shapeAuxQ = shapePhyQ;
-        end
+        shapeAuxQ = shapePhyQ;
 
         % Mass matrices (physical space)
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
@@ -161,26 +146,21 @@ for tri=1:mesh.numTri
         triNeigh = mesh.mapTriToTri(tri,fac);
 
         if(triNeigh>0)
-            etaNeigh = eta(triNeigh);
+            verTri = mesh.mapTriToVer(triNeigh,:);
+            V1 = mesh.coord(verTri(1),:);
+            V2 = mesh.coord(verTri(2),:);
+            V3 = mesh.coord(verTri(3),:);
+
+        etaNeigh = eta(triNeigh);
         else
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
             switch BC
-                case {'DIR', 'NEU', 'ABC', 'ROB'}
+                case {'DIR', 'NEU', 'ABC', 'DIR0', 'ROB'}
                     etaNeigh = eta(tri);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
-        end
-        
-        if p > 100
-            etaF = max(eta_K,etaNeigh);
-        elseif p < -100
-            etaF = min(eta_K,etaNeigh);
-        elseif p == 0
-            etaF = sqrt(eta_K*etaNeigh);
-        else
-            etaF = ((eta(tri)^p+eta(triNeigh)^p)/2)^(1/p);
         end
 
         % -----------------------------------------------------------------
@@ -194,22 +174,21 @@ for tri=1:mesh.numTri
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         
         % Element matrices (local element-wise system
-        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(2*etaF)                              * matM_IIel;
-        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 1/2                                * nx * matM_IIel;
-        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 1/2                                * ny * matM_IIel;
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/(2*etaF)                              * matM_IGel;
+        matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matM_IIel;
+        matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matM_IIel;
+        matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matM_IIel;
+        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/(eta(tri) + etaNeigh)                      * matM_IGel;
         
-        matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 1/2                                * nx * matM_IIel;
-        matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaF/2                        * nx * nx * matM_IIel;
-        matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaF/2                        * nx * ny * matM_IIel;
-        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 1/2                                * nx * matM_IGel;
+        matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * nx * matM_IIel;
+        matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * nx * matM_IIel;
+        matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matM_IIel;
+        matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matM_IGel;
 
-        matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 1/2                                * ny * matM_IIel;
-        matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaF/2                        * nx * ny * matM_IIel;
-        matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaF/2                        * ny * ny * matM_IIel;
-        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 1/2                                * ny * matM_IGel;
+        matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * ny * matM_IIel;
+        matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matM_IIel;
+        matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * ny * ny * matM_IIel;
+        matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matM_IGel;
 
-%         coefP = max(c1,c2)/c;
         coefP = 1;
 
         % -----------------------------------------------------------------
@@ -224,7 +203,7 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
-            matGIel = [-matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+            matGIel = [-matM_GIel, etaNeigh*nx*matM_GIel, etaNeigh*ny*matM_GIel];
             
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -248,10 +227,10 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ,yQ);
+            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;          
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k_K*eta_K);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k_K*eta_K);
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri)*eta(tri));
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri)*eta(tri));
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -260,18 +239,21 @@ for tri=1:mesh.numTri
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
             switch BC
+                case 'DIR0'
+                    matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                    rhsGel  = 0*rhsPel;
                 case 'DIR'
-                    matGIel = [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
                     rhsGel  = +2*rhsPel;
                 case 'NEU'
-                    matGIel = [-matM_GIel, -etaF*nx*matM_GIel, -etaF*ny*matM_GIel];
-                    rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);
+                    matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
+                    rhsGel  = -2*eta(tri)*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - etaF * (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = 0*(rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
                 case 'ROB'
                     matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - etaF * (nx*rhsUel  + ny*rhsVel));
+                    rhsGel  = (rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -359,13 +341,13 @@ sysA.matPhy = matII - matIG*(matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditionning
-% if (PREC == 1)
-%     sysA.matP = matPP;
-%     sysA.matPinv = matPPinv;
-% else
-%     sysA.matP = 1;
-%     sysA.matPinv = 1;
-% end
+if (PREC == 1)
+    sysA.matP = matPP;
+    sysA.matPinv = matPPinv;
+else
+    sysA.matP = 1;
+    sysA.matPinv = 1;
+end
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;

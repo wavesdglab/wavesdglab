@@ -2,10 +2,14 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_HDG_Marmousi(mesh, dofm, PREC)
 
 global omega edgTagToBC
-global rho c eta k
+global etaArray kArray
+global pntSouTag pntSouVal
+
+eta = etaArray;
+k = kArray;
 
 numDofTRI = dofm.numDofTRI;
 numDofLIN = dofm.numDofLIN;
@@ -19,7 +23,6 @@ degreeQ = 2*dofm.degree;
 % Shape functions and derivatives (reference space)
 shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);        % For physical variables (LIN)
 shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree); % For physical variables (TRI)
-shapeAuxLinQ = functionsLegendre(uLinQ, dofm.degree);        % For auxiliary variables (LIN)
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
@@ -36,12 +39,14 @@ matGGx = zeros(numDofLIN,dofm.numDofPerLIN);
 matGGy = zeros(numDofLIN,dofm.numDofPerLIN);
 matGGv = zeros(numDofLIN,dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
+matGGvInv = zeros(numDofLIN,dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofLIN,1);
 
-condLoc = zeros(mesh.numTri,1);
+TOT = 0;
+SouEl = 0;
 
 for tri=1:mesh.numTri
     
@@ -58,6 +63,21 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
+
+    if(~isempty(pntSouTag))
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+                SouEl(3,TOT) = 0;
+                if (V1(1,2) == 0 && V2(1,2) == 0) || (V1(1,2) == 0 && V3(1,2) == 0) || (V2(1,2) == 0 && V3(1,2) == 0)
+                    SouEl(3,TOT) = 1;
+                end
+            end
+        end
+    end
 
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -78,7 +98,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ, yQ);
+    rhsQ = mySourceVolume(xQ, yQ);
     
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -92,7 +112,7 @@ for tri=1:mesh.numTri
         -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel       ];
    
     rhsIel = [
-        -1/(1i*k(tri)*eta(tri))*rhsPel ;
+        -1/(1i*k(tri)*eta(tri))*rhsPel  ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -118,6 +138,16 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
         
+        triNeigh = mesh.mapTriToTri(tri,fac);
+
+        if (triNeigh>0)
+            etaF = sqrt(eta(tri)*eta(triNeigh));
+            kF = sqrt(k(tri)*k(triNeigh));
+        else
+            etaF = eta(tri);
+            kF = k(tri);
+        end
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -126,21 +156,14 @@ for tri=1:mesh.numTri
         
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
-        orientation2 = ones(dofm.numDofPerLIN,1);
         if(n1(fac) > n2(fac))
             orientation(3:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerEdg-1);
-            orientation2(1:dofm.numDofPerLIN) = (-1).^(0:dofm.numDofPerLIN-1);
         end
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
-        orientation2 = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation2);
         
         % Shape functions (physical space)
         shapePhyQ = shapePhyLinQ * orientation;
-        if (BASIS == 1)
-            shapeAuxQ = shapeAuxLinQ * orientation2 / sqrt(Jdxdu);
-        else
-            shapeAuxQ = shapePhyQ;
-        end
+        shapeAuxQ = shapePhyQ;
         
         % Mass matrices (physical space)
         matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
@@ -151,9 +174,6 @@ for tri=1:mesh.numTri
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-        
-        % Infos on neighboring element
-        triNeigh = mesh.mapTriToTri(tri,fac);
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -166,11 +186,11 @@ for tri=1:mesh.numTri
         dofLocI = [dofLocP, dofLocU, dofLocV];
         
         % Element matrices (local element-wise system)
-        matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / eta(tri) * matM_IIel;
+        matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / etaF * matM_IIel;
         matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) +      nx * matM_IIel;
         matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) +      ny * matM_IIel;
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
-        matIGel(dofLocP,:) = - 1 / eta(tri) * matM_IGel;
+        matIGel(dofLocP,:) = - 1 / etaF * matM_IGel;
         matIGel(dofLocU,:) =       nx  * matM_IGel;
         matIGel(dofLocV,:) =       ny  * matM_IGel;
         
@@ -189,15 +209,15 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = 0.5 * matM_GGel;
-            matGIel = - eta(tri) * eta(triNeigh) / (eta(tri) + eta(triNeigh)) * [1/eta(tri) * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+            matGIel = - etaF / 2 * [1/etaF * matM_GIel, nx*matM_GIel, ny*matM_GIel];
             
         else
             
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
+            [solQ, solDxQ, solDyQ, ~, ~] = mySol(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri)*eta(tri));
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri)*eta(tri));
+            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);
+            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
             
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -206,17 +226,19 @@ for tri=1:mesh.numTri
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
             switch BC
+                case 'DIR0'
                 case 'DIR'
                     rhsGel = rhsPel;
                 case 'NEU'
-                    matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = -eta(tri)*(nx*rhsUel + ny*rhsVel);
+                    matGIel = - [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    rhsGel = -etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;
+                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+%                     rhsGel = (rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;
+                    rhsGel = 0*(rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;
                 case 'ROB'
-                    matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;   
+                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
+                    rhsGel = (rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;    
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -226,11 +248,9 @@ for tri=1:mesh.numTri
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
         dofGloG = dofm.locToGloLIN(edgGlo,:);
         dofLocG = 1:dofm.numDofPerLIN;
-        if (BASIS ~= 1)
-            if(mesh.mapTriToEdg(tri,fac) < 0)
-                dofLocG(1) = 2;
-                dofLocG(2) = 1;
-            end
+        if(mesh.mapTriToEdg(tri,fac) < 0)
+            dofLocG(1) = 2;
+            dofLocG(2) = 1;
         end
         
         % -----------------------------------------------------------------
@@ -247,7 +267,17 @@ for tri=1:mesh.numTri
         matGGx(dofGloG,:) = dofGloG'*ones(1,size(dofGloG,2));
         matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
         matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
+
+        if triNeigh > 0
+            matGGvInv(dofGloG,:) = 1/2*inv(matGGel(dofLocG,dofLocG));  % NEW
+        else
+            matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));  % NEW
+        end
+        % it works, but why?
+
+%         matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));  % NEW
         rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
+
     end
     
     % -------------------------------------------------------------------------
@@ -261,8 +291,6 @@ for tri=1:mesh.numTri
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
     
-    condLoc(tri) = cond(full(matIIel));
-    
 end
 
 matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
@@ -270,10 +298,22 @@ matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
 matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
 matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
+matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofLIN, numDofLIN);
 
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
+
+% THE GOOD ONE!
+if(~isempty(pntSouTag))
+    for ind=1:TOT
+%         if (SouEl(3,ind) == 1)
+            dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+            % SouEl(1,ind) = tri; SouEl(2,ind) = DOF associated to the node for pressure
+            rhsI(dofSou) = rhsI(dofSou) - 1/(1i*omega) * pntSouVal / TOT;
+%         end
+    end
+end
 
 % Matrix partition
 sysA.matII = matII;
@@ -281,23 +321,35 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-sysA.matGGinv = inv(matGG);
+sysA.matGGinv = matGGinv;
+
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 
 % Full system
+disp('--- Full system ---');
+tic
 sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
+toc
 
 % Reduced system
+disp('--- Reduced system ---');
+tic
 sysA.matS = matGG - matGI*(matIIinv*matIG);
 sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
+toc
 
 % Physical system
+disp('--- Physical system ---');
+tic
 sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
+toc
 
 % Preconditioning
+disp('--- Preconditioning ---');
+tic
 if (PREC == 1)
     sysA.matP = matGG;
     sysA.matPinv = sysA.matGGinv;
@@ -305,25 +357,13 @@ else
     sysA.matP = 1;
     sysA.matPinv = 1;
 end
+toc
 
 % Compute solution
+disp('--- Compute direct solution ---');
+tic
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
+toc
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

@@ -2,10 +2,10 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B)
+function [solI, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A)
 
-global omega edgTagToBC
-global rho c eta k
+global edgTagToBC
+global eta k
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -158,6 +158,14 @@ for tri=1:mesh.numTri
 
         triNeigh = mesh.mapTriToTri(tri,fac);
 
+        if (triNeigh>0)
+            etaF = sqrt(eta(tri)*eta(triNeigh));
+            kF = sqrt(k(tri)*k(triNeigh));
+        else
+            etaF = eta(tri);
+            kF = k(tri);
+        end
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -177,21 +185,13 @@ for tri=1:mesh.numTri
         
         % Mass matrices (physical space)
         matM_Lin = shapeLinQ' * (weightsLinQ .* shapeLinQ) * Jdxdu;
-        matK_Lin = shapeLinDsQ' * (weightsLinQ .* shapeLinDsQ) / (Jdxdu);
+        matK_Lin = shapeLinDsQ' * (weightsLinQ .* shapeLinDsQ) / Jdxdu;
         
-        % Choice of numerical flux
-        if (triNeigh>0)
-            etaF = sqrt(eta(tri)*eta(triNeigh));
-            kF = sqrt(k(tri)*k(triNeigh));
-        else
-            etaF = eta(tri);
-            kF = k(tri);
-        end
         if (A == 1)
-            matB_Lin = matM_Lin/etaF;
+            matB_Lin = 1 / etaF * matM_Lin;
         end
         if (A == 2)
-            matB_Lin = (matM_Lin + 0.5/(kF^2) * matK_Lin)/etaF;
+            matB_Lin = 1 / etaF * (matM_Lin + 0.5/(kF^2) * matK_Lin);
         end
         
         % Exterior normal
@@ -211,11 +211,11 @@ for tri=1:mesh.numTri
         idLocF = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
         
         % Element matrices (local element-wise system)
-        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0.5 * matM_Lin;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 * matM_Lin;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0.5 * matM_Lin;
+        matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 * matM_Lin;
         
-        matIFel(idLocU,idLocF) = matIFel(idLocU,idLocF) + nx * matM_Lin;
-        matIFel(idLocV,idLocF) = matIFel(idLocV,idLocF) + ny * matM_Lin;
+        matIFel(idLocU,idLocF) = matIFel(idLocU,idLocF) + nx  * matM_Lin;
+        matIFel(idLocV,idLocF) = matIFel(idLocV,idLocF) + ny  * matM_Lin;
         
         % -----------------------------------------------------------------
         % Incoming characteristics
@@ -250,17 +250,9 @@ for tri=1:mesh.numTri
 
             % Source terms    
             [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
-            [dsR_dt] = mySol_Robin(xQ,yQ,nx,ny);
-
             rhsPel = shapeLinQ' * (weightsLinQ .* solQ) * Jdxdu; 
             rhsUel = shapeLinQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);  
             rhsVel = shapeLinQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
-            
-            rhsKel = shapeLinDsQ' * (weightsLinQ .* dsR_dt) * (Jdxdu);
-            
-            if (A==1 && B==1)
-                rhsKel = 0.*rhsKel;
-            end
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -269,31 +261,29 @@ for tri=1:mesh.numTri
             % Elemental matrices and RHS vectors (boundary conditions)
             switch BC
                 case 'DIR'
-                    matGGel = etaF*etaF*matB_Lin;                                    % ====================================
-                    matGHel = etaF*etaF*matB_Lin;                                    % ====================================
-                    rhsGel  = +2*rhsPel;                                   % ====================================
+                    matGGel = matM_Lin;                                    
+                    matGHel = matM_Lin;                                    
+                    rhsGel  = 2 * matB_Lin * inv(matM_Lin) * rhsPel;   
+                case 'DIR0'
+                    matGGel = matM_Lin;                                    
+                    matGHel = matM_Lin;                                    
+                    rhsGel  = 2*0*matB_Lin*rhsPel; 
                 case 'NEU'
-                    matGGel = etaF*matM_Lin;                                   % ====================================
-                    matGHel = -etaF*matM_Lin;                                   % ====================================
-                    rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);                                   % ====================================
+                    matGGel = matM_Lin;
+                    matGHel = -matM_Lin;
+                    rhsGel  = -2*etaF*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGGel = etaF*etaF*matB_Lin + etaF*matM_Lin;                         % ====================================
-                    matGHel = etaF*etaF*matB_Lin - etaF*matM_Lin;                         % ====================================
+                    matGGel = matM_Lin / etaF + matB_Lin;                        
+                    matGHel = matM_Lin / etaF - matB_Lin;                        
                     rhsGel  = 0*rhsPel;
                 case 'ROB'
-                    matGGel = matB_Lin + matM_Lin/etaF;                         % ====================================
-                    matGHel = matB_Lin - matM_Lin/etaF;                         % ====================================
-                    rhsGel  = +(2*(rhsPel - etaF*(nx*rhsUel  + ny*rhsVel)) + 1/kF^2*rhsKel)/etaF/etaF;      % ==================================== 
-
-                    %%%%% matGGel = matB_Lin + matM_Lin/eta(tri);
-                    %%%%% matGHel = - matB_Lin + matM_Lin/eta(tri);
-                    %%%%% rhsGel  = 2 * matB_Lin * (rhsPel - eta(tri)*(nx*rhsUel  + ny*rhsVel)) / eta(tri);
+                    matGGel = matM_Lin / etaF + matB_Lin;                      
+                    matGHel = matM_Lin / etaF - matB_Lin;  
+                    rhsGel  = 2/etaF * matB_Lin * inv(matM_Lin) * (rhsPel - etaF*(nx*rhsUel  + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
             
-
-
             % Global ID for auxiliary unknowns and interior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idGloH = dofm.locToGloFAC(tri,idLocH);
@@ -314,15 +304,12 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         % Outgoing characteristic equations
         % -----------------------------------------------------------------
-
+        
         % Elemental matrices (interface condition)
-        matHHel = etaF*matB_Lin;
-        matHIel = [ -matM_Lin/etaF, -nx*etaF*matB_Lin, -ny*etaF*matB_Lin ];
+        matHHel = matM_Lin;
+        matHIel = [-matB_Lin, -nx*matM_Lin, -ny*matM_Lin];
         matHGel = 0 * matM_Lin;
         matHFel = 0 * matM_Lin;
-
-        %%%%% matHHel = matM_Lin;
-        %%%%% matHIel = [ -matB_Lin, -nx*matM_Lin, -ny*matM_Lin ];
         
         % Global ID for flux and exterior unknowns
         idGloH = dofm.locToGloFAC(tri,idLocG);
@@ -351,13 +338,9 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
         
         % Elemental matrices (interface condition)
-        matFFel = matM_Lin;
-        matFHel = - 0.5 * etaF*etaF*matB_Lin;                                        % ====================================
-        matFGel = - 0.5 * etaF*etaF*matB_Lin;                                        % ====================================
-
-        %%%%% matFFel = matB_Lin;
-        %%%%% matFHel = - 0.5 * matM_Lin;                                        % ====================================
-        %%%%% matFGel = - 0.5 * matM_Lin;                                       % ====================================
+        matFFel = matB_Lin;
+        matFHel = - 0.5 * matM_Lin;
+        matFGel = - 0.5 * matM_Lin;
         
         % Global ID for flux and exterior unknowns
         idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -468,8 +451,6 @@ end
 % Reduced system
 disp('--- Reduced system ---');
 tic
-%sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
-%sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matII\sysA.rhsI);
 sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
 toc
@@ -502,20 +483,4 @@ sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
 solI = sol(1:3*numDofTRI);
 toc
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

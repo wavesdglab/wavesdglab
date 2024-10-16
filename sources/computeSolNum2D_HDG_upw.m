@@ -2,10 +2,10 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC)
+function [solI, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, BASIS, PREC)
 
-global omega edgTagToBC
-global rho c eta k
+global edgTagToBC
+global eta k
 
 numDofTRI = dofm.numDofTRI;
 numDofLIN = dofm.numDofLIN;
@@ -92,7 +92,7 @@ for tri=1:mesh.numTri
         -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel       ];
    
     rhsIel = [
-        -1/(1i*k(tri)*eta(tri))*rhsPel ;
+        -1/(1i*k(tri)*eta(tri))*rhsPel  ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
@@ -118,6 +118,8 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
         
+        triNeigh = mesh.mapTriToTri(tri,fac);
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
@@ -151,9 +153,6 @@ for tri=1:mesh.numTri
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-        
-        % Infos on neighboring element
-        triNeigh = mesh.mapTriToTri(tri,fac);
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -167,12 +166,12 @@ for tri=1:mesh.numTri
         
         % Element matrices (local element-wise system)
         matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / eta(tri) * matM_IIel;
-        matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) +      nx * matM_IIel;
-        matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) +      ny * matM_IIel;
+        matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) +           nx * matM_IIel;
+        matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) +           ny * matM_IIel;
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
         matIGel(dofLocP,:) = - 1 / eta(tri) * matM_IGel;
-        matIGel(dofLocU,:) =       nx  * matM_IGel;
-        matIGel(dofLocV,:) =       ny  * matM_IGel;
+        matIGel(dofLocU,:) =            nx  * matM_IGel;
+        matIGel(dofLocV,:) =            ny  * matM_IGel;
         
         % -----------------------------------------------------------------
         % Auxiliary equations
@@ -189,7 +188,7 @@ for tri=1:mesh.numTri
             
             % Elemental matrices (interface condition)
             matGGel = 0.5 * matM_GGel;
-            matGIel = - eta(tri) * eta(triNeigh) / (eta(tri) + eta(triNeigh)) * [1/eta(tri) * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+            matGIel = - eta(tri)*eta(triNeigh) / (eta(tri)+eta(triNeigh)) * [1/eta(tri) * matM_GIel, nx*matM_GIel, ny*matM_GIel];
             
         else
             
@@ -216,7 +215,7 @@ for tri=1:mesh.numTri
                     rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;
                 case 'ROB'
                     matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;   
+                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;    
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -310,20 +309,4 @@ end
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
 
-end
-
-function BC = tagToBC(tag)
-global BCWest BCNorth BCEast BCSouth;
-switch tag
-    case 1
-        BC = BCWest;
-    case 2
-        BC = BCNorth;
-    case 3
-        BC = BCEast;
-    case 4
-        BC = BCSouth;
-    otherwise
-        error('BAD BOUNDARY TAG.')
-end
 end

@@ -1,11 +1,15 @@
 clear all;
 %close all;
 
-% global k            % if the medium is homogeneous
-global omega      % if the medium is heterogeneous
+global omega eta k c rho eta1 eta2 k1 k2 c1 c2 rho1 rho2 h
+global eta3 k3 c3 rho3
 
+% e=1;
+% 
+% for omega=22:0.1:62
+   
 % Setup benchmark and parameters
-benchmark = 'cavity_heterogeneous';
+benchmark = 'disk_heterogeneous';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
@@ -21,31 +25,84 @@ switch benchmark
         tol = 1e-10; maxit = 4000; itout = 200;
     case 'open_heterogeneous'
         omega = 15*pi; %15*pi;
-        h = 1/16;  % 1/16
-        tol = 1e-10; maxit = 1000; itout = 50;   
+        h = 1;  % 1/16
+        tol = 1e-10; maxit = 1000; itout = 50;
+        rho1 = 1;
+        c1 = 1;  
+        rho2 = 2;
+        c2 = 1/2; 
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
     case 'cavity_heterogeneous'
-        omega = 15*pi; 
+        omega = 36; %10*pi 
         h = 1/16;
-        tol = 1e-10; maxit = 2000; itout = 100;
+        tol = 1e-10; maxit = 1000; itout = 50;
+        rho1 = 1;
+        c1 = 2/3;
+        rho2 = 1;
+        c2 = 3/2;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
     case 'waveguide_heterogeneous'
         omega = 6*pi; %6*pi
         h = 1/4; %1/8
         tol = 1e-10; maxit = 4000; itout = 200;
+        rho1 = 1;
+        c1 = 2;
+        rho2 = 1;
+        c2 = 1.2;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
+    case 'disk_heterogeneous'
+        omega = 10*pi; %10*pi;
+        h = 0.065;
+        tol = 1e-10; maxit = 1000; itout = 100;
+        rho1 = 1;
+        c1 = 1; 
+        rho2 = 3/2;
+        c2 = 2/3;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        k1 = omega / c1;
+        k2 = omega / c2;
+    case 'square_heterogeneous'
+%         global eta3 k3 c3 rho3
+        omega = 350; %10*pi;
+        h = 0.01;
+        tol = 1e-10; maxit = 1000; itout = 100;
+        rho1 = 1/3;
+        c1 = 3; %3; 
+        rho2 = 1/2;
+        c2 = 2; %2;
+        rho3 = 1;
+        c3 = 1;
+        eta1 = rho1 * c1;
+        eta2 = rho2 * c2;
+        eta3 = rho3 * c3;
+        k1 = omega / c1;
+        k2 = omega / c2;
+        k3 = omega / c3;
 end
 degree = 3;
-BASIS = 1;
+BASIS = 0;
 PREC = 1;
 A = 1;              % order of numerical fluxes
-B = 2;              % order of transmission variables
-% order = [1,2];
+B = 1;              % order of transmission variables
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
 mesh = buildConnectivity2D(mesh);
 dofm = buildDofManager2D_DG(mesh, degree);
+setParameters(mesh, benchmark);
+Dlambda = 2*pi/k(1) * (sqrt(dofm.numDofTRI) - 1);
 
-%Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
-
+%%
 % -------------------------------------------------------------------------
 % Compute solution and error
 % -------------------------------------------------------------------------
@@ -53,33 +110,56 @@ dofm = buildDofManager2D_DG(mesh, degree);
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG']);
 disp(['---------------------------------------------------------']);
-% disp(['    k                   ' num2str(k)]);
-% disp(['    omega               ' num2str(omega)]);
 disp(['    h                   ' num2str(h)]);
 disp(['    degree              ' num2str(degree)]);
+disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution
-
-% [solA, sysA] = computeSolNum2D_CHDG_highorder(mesh, dofm, BASIS, PREC);
-[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+% Compute numerical solution (Upwind)
 % [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, BASIS, PREC);
-% [solA, sysA] = computeSolNum2D_CHDG_heterogeneous_mean(mesh, dofm, BASIS, PREC);
 % [solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, BASIS, PREC);
 % PREC = 0;
 % [solC, sysC] = computeSolNum2D_DG_heterogeneous(mesh, dofm, PREC);
 
+% Compute numerical solution (High-order)
+[solA, sysA] = computeSolNum2D_CHDG_ALL(mesh, dofm, PREC, A, B);
+% [solA, sysA] = computeSolNum2D_HDG_ALL(mesh, dofm, BASIS, PREC);   % TO BE COMPARED
+% PREC = 0;
+% [solC, sysC] = computeSolNum2D_DG_ALL(mesh, dofm, PREC);
+% [solA, sysA] = computeSolNum2D_HDG_TEST(mesh, dofm, PREC);         % NEW 25.08
+
 %%
 % Compute numerical error
-errorL2_A = computeNormError2D_DG(mesh, dofm, solA);
-% errorL2_B = computeNormError2D_DG(mesh, dofm, solB)
-% errorL2_C = computeNormError2D_DG(mesh, dofm, solC)
-errorL2 = errorL2_A
+% errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
+% errorL2_B = computeNormError2D_DG_ALL(mesh, dofm, solB)
+% errorL2_C = computeNormError2D_DG_ALL(mesh, dofm, solC)
+% errorL2 = errorL2_A
+
+% e
+% Omega(e) = omega;
+% err(e)=errorL2;
+% e=e+1;
+% 
+% end
+% 
+% zerosBessel = besselzero(0,10,1);
+% frequencies = 2*zerosBessel(4:10);
+% 
+% figure;
+% semilogy(Omega,err);
+% hold on;
+% xline(frequencies);
+% grid on;
+% 
+% rezu1A = ["omega" "error"];
+% rezu2A = [Omega', err'];
+% name = sprintf('frequencies_resonance.csv');
+% writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 
 % Compute projection solution
 solP = computeSolProjL2_2D_DG(mesh, dofm);
-errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
-
+% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
+% 
 % disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
 % disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
 % disp('---------------------------------------------------------');
@@ -101,7 +181,7 @@ errorProjL2 = computeNormError2D_DG(mesh, dofm, solP);
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
-% 
+%
 writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
@@ -113,12 +193,12 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % -------------------------------------------------------------------------
 
 % mat = sysA.matPinv*sysA.matS;
-% [eigenvec, eigenval] = eigs(mat,size(mat,1));
+% [~, eigenval] = eigs(mat,size(mat,1));
 % % eigenval = diag(eigenval);
 % 
 % eigenval = 1 - diag(eigenval);
 % 
-% max(abs(eigenval))
+% 1 - max(abs(eigenval))
 
 % A=0;
 % B=0;
@@ -186,29 +266,26 @@ system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-solver = 'Rich';
-switch solver
-    case 'Rich'
-        alpha = 1;
-        [resRedVec] = Richardson(sysA, tol, maxit, itout, alpha);
-%         [resRedVec, resPhyVec, errorVec] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-    case 'CGNR'
-        [resRedVec_1] = CGNR(sysA, tol, maxit, itout);
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-    case 'GMRES'
-        [resRedVec_1] = GMRES(sysA, tol, maxit, itout);
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-
-end
+% solver = 'GMRES';
+% switch solver
+%     case 'Rich'
+%         alpha = 1;
+%         [resRedVec, resPhyVec, errorVec] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG_ALL);
+%     case 'CGNR'
+%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
+%     case 'GMRES'
+%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
 % 
+% end
+ 
 % alpha = 1;
-% [CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardson_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG);
-% [CHDG_resRedVec_CGNR, CHDG_resPhyVec_CGNR, CHDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% [CHDG_resRedVec_GMRES, CHDG_resPhyVec_GMRES, CHDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG);
-% [HDG_resRedVec_CGNR, HDG_resPhyVec_CGNR, HDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
-% [HDG_resRedVec_GMRES, HDG_resPhyVec_GMRES, HDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG);
-% [DG_resVec_CGNR, DG_errorVec_CGNR] = solverCGNR(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
-% [DG_resVec_GMRES, DG_errorVec_GMRES] = solverGMRES(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG);
+% [CHDG_resRedVec_Rich, CHDG_resPhyVec_Rich, CHDG_errorVec_Rich] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, maxit, itout, alpha, @computeNormError2D_DG_ALL);
+% [CHDG_resRedVec_CGNR, CHDG_resPhyVec_CGNR, CHDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
+% [CHDG_resRedVec_GMRES, CHDG_resPhyVec_GMRES, CHDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_DG_ALL);
+% [HDG_resRedVec_CGNR, HDG_resPhyVec_CGNR, HDG_errorVec_CGNR] = solverCGNRredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG_ALL);
+% [HDG_resRedVec_GMRES, HDG_resPhyVec_GMRES, HDG_errorVec_GMRES] = solverGMRESredu_DG(mesh, dofm, sysB, tol, maxit, itout, @computeNormError2D_DG_ALL);
+% [DG_resVec_CGNR, DG_errorVec_CGNR] = solverCGNR(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG_ALL);
+% [DG_resVec_GMRES, DG_errorVec_GMRES] = solverGMRES(mesh, dofm, sysC, tol, maxit, itout, @computeNormError2D_DG_ALL);
 
 % figure(26);
 % plot(rr,errorVec,'r-o');
@@ -272,8 +349,9 @@ end
 % % semilogy(0:itout:maxit,DG_errorVec_CGNR,'-og','MarkerFaceColor','w','DisplayName','DG - CGN');
 % % hold on;
 % % semilogy(0:itout:maxit,DG_errorVec_GMRES,'-og','MarkerFaceColor','g','DisplayName','DG - GMRES');
-% % semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
-% % semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
+% semilogy(0:itout:maxit,HDG_errorVec_CGNR,'-or','MarkerFaceColor','w','DisplayName','HDG - CGN');
+% hold on
+% semilogy(0:itout:maxit,HDG_errorVec_GMRES,'-or','MarkerFaceColor','r','DisplayName','HDG - GMRES');
 % semilogy(0:itout:maxit,CHDG_errorVec_CGNR,'-ob','MarkerFaceColor','w','DisplayName','CHDG - CGN');
 % hold on
 % semilogy(0:itout:maxit,CHDG_errorVec_GMRES,'-ob','MarkerFaceColor','b','DisplayName','CHDG - GMRES');
@@ -285,6 +363,16 @@ end
 % legend('Location','northoutside','NumColumns',4);
 % %title(['CHDG - ' benchmark ' - \omega=' num2str(omega) ' - h=' num2str(h) ' - P=' num2str(degree)])
 % xlim([0 maxit]);
-% ylim([0.005 1]);
+% ylim([0.05 1]);
 % xlabel('Iteration');
 % ylabel('Relative error');
+
+% figure;
+% loglog(hh,err,'-r');
+% hold on
+% loglog(hh,hh,'-b');
+% loglog(hh,hh.^2,'-g');
+% loglog(hh,hh.^3,'-y');
+% loglog(hh,hh.^4,'-c');
+% grid on
+% legend('L^2-error', 'h', 'h^2', 'h^3', 'h^4');
