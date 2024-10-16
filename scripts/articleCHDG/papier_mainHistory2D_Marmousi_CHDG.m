@@ -31,7 +31,7 @@ writeCoef2D(mesh, rhoArray, 'output/density.pos', "Density");
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp('---------------------------------------------------------');
-disp(['Method CHDG (' benchmark ')']);
+disp(['Method CHDG - HDG (' benchmark ')']);
 disp('---------------------------------------------------------');
 disp(['    degree              ' num2str(degree)]);
 disp(['    frequency           ' num2str(freq)]);
@@ -39,24 +39,18 @@ disp('---------------------------------------------------------');
 
 PREC = 1;
 
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous_2(mesh, dofm, PREC);
-[solB, sysB] = computeSolNum2D_HDG_heterogeneous_2(mesh, dofm, PREC); 
-% [solB, sysB] = HDG_1_marmousi(mesh, dofm, 0, PREC); 
-% [solB, sysB] = HDG_2_marmousi(mesh, dofm, PREC); 
-
-diff = solA-solB;
-max(abs(diff))
+[solA, sysA] = computeSolNum2D_CHDG_Marmousi(mesh, dofm, PREC);
+[solB, sysB] = computeSolNum2D_HDG_Marmousi(mesh, dofm, PREC);
 
 disp('---------------------------------------------------------');
 
-writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "solNum");
-system('gmsh output/solNumA.pos&');
+writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "CHDG");
+writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "HDG");
+writeField2D(dofm, mesh, solA-solB, 'output/diff.pos', "diff");
+system('gmsh output/solNumA.pos output/solNumB.pos output/diff.pos&');
 
-writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "solNum");
-system('gmsh output/solNumB.pos&');
-
-writeField2D(dofm, mesh, diff, 'output/diff.pos', "diff");
-system('gmsh output/diff.pos&');
+diff = solA-solB;
+max(abs(diff))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -88,11 +82,6 @@ rezu1B = ["iter" "resRed" "resPhy" "error"];
 rezu2B = [iterVec resRedVec1B, resPhyVec1B, error1B];
 name = sprintf('output/historyCGNR_HDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
 writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
-
-% % rezu1C = ["iter" "resRed" "resPhy" "error"];
-% % rezu2C = [iterVec resRedVec1C, resPhyVec1C, error1C];
-% % name = sprintf('output/historyCGNR_CHDG_upwind_%s_p%i_omega%g.csv', benchmark, degree, omega);
-% % writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

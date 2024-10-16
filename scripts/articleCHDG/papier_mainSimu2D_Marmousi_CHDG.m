@@ -5,13 +5,11 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-freq = 15; %30
+freq = 30; %30
 omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
 PREC = 0;
-A = 1;
-B = 1;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -39,8 +37,6 @@ disp(['---------------------------------------------------------']);
 % Compute numerical solution/error
 [solA, sysA] = computeSolNum2D_CHDG_Marmousi(mesh, dofm, PREC); % CHDG Sym-0
 [solB, sysB] = computeSolNum2D_HDG_Marmousi(mesh, dofm, PREC);  % HDG Sym-0
-
-% sysB.matGGinv*sysB.matGG
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
