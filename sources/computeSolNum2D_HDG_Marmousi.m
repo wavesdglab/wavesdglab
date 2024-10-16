@@ -298,7 +298,7 @@ matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofLIN);
 matGI    = sparse(matGIx, matGIy, matGIv, numDofLIN, 3*numDofTRI);
 matGG    = sparse(matGGx, matGGy, matGGv, numDofLIN, numDofLIN);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
-matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofLIN, numDofLIN);          % NEW
+matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofLIN, numDofLIN);
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -321,25 +321,35 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-% sysA.matGGinv = inv(matGG);
-sysA.matGGinv = matGGinv;   % NEW
+sysA.matGGinv = matGGinv;
 
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 
 % Full system
+disp('--- Full system ---');
+tic
 sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
+toc
 
 % Reduced system
+disp('--- Reduced system ---');
+tic
 sysA.matS = matGG - matGI*(matIIinv*matIG);
 sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
+toc
 
 % Physical system
+disp('--- Physical system ---');
+tic
 sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
+toc
 
 % Preconditioning
+disp('--- Preconditioning ---');
+tic
 if (PREC == 1)
     sysA.matP = matGG;
     sysA.matPinv = sysA.matGGinv;
@@ -347,9 +357,13 @@ else
     sysA.matP = 1;
     sysA.matPinv = 1;
 end
+toc
 
 % Compute solution
+disp('--- Compute direct solution ---');
+tic
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
+toc
 
 end

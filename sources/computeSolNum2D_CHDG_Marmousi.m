@@ -304,7 +304,7 @@ for tri=1:mesh.numTri
     matIGy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloG;
     matIIv(idTRI,:) = matIIel;
     matIGv(idTRI,:) = matIGel;
-%     matIIvInv(idTRI,:) = inv(matIIel);
+    matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
     
 end
@@ -356,17 +356,17 @@ for tri=1:mesh.numTri
 end
 
 % Full system
-% sysA.matA = [ matII matIG ; matGI matGG ];
-% sysA.rhsA = [ rhsI ; rhsG ];
+disp('--- Full system ---');
+tic
+sysA.matA = [ matII matIG ; matGI matGG ];
+sysA.rhsA = [ rhsI ; rhsG ];
+toc
 
 % Reduced system
 disp('--- Reduced system ---');
 tic
-% sysA.matS = matGG - matGI*(matII\matIG);
-% sysA.rhsS = rhsG - matGI*(matII\rhsI);
 sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
-
 toc
 
 % Physical system
@@ -392,8 +392,7 @@ toc
 disp('--- Compute direct solution ---');
 tic
 solG = sysA.matS\sysA.rhsS;
-% solI = matIIinv*(rhsI-matIG*solG);
-solI = matII\(rhsI-matIG*solG);
+solI = matIIinv*(rhsI-matIG*solG);
 toc
 
 end
