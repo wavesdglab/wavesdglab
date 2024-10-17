@@ -1,4 +1,4 @@
-function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
+function [solU, solDx, solDy, solVx, solVy] = mySol(x,y)
 
 global eta1 eta2 k1 k2 c1 c2
 
@@ -20,14 +20,12 @@ if (min(x)<0.5)
     solU = I * exp(1i*k1*(cosI*x+sinI*y)) + R * exp(1i*k1*(-cosI*x+sinI*y));
     solDx = 1i * k1 * cosI * (I * exp(1i*k1*(cosI*x+sinI*y)) - R * exp(1i*k1*(-cosI*x+sinI*y)));
     solDy = 1i * k1 * sinI * (I * exp(1i*k1*(cosI*x+sinI*y)) + R * exp(1i*k1*(-cosI*x+sinI*y)));
-    solF = 0*x + 0*y;
     solVx = 1/(1i*k1*eta1) * solDx;
     solVy = 1/(1i*k1*eta1) * solDy;
 else
     solU = T * exp(1i*k2*(cosT*x + sinT*y));
     solDx = 1i * k2 * cosT * T * exp(1i*k2*(cosT*x + sinT*y));
     solDy = 1i * k2 * sinT * T * exp(1i*k2*(cosT*x + sinT*y));
-    solF = 0*x + 0*y;
     solVx = 1/(1i*k2*eta2) * solDx;
     solVy = 1/(1i*k2*eta2) * solDy;
 end

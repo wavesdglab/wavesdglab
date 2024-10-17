@@ -16,7 +16,7 @@ shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 normSol2 = 0;
 normErr2 = 0;
 for tri=1:mesh.numTri
-    
+
     % Mapping
     ver = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(ver(1),:);
@@ -25,7 +25,7 @@ for tri=1:mesh.numTri
     [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     detJdxdu = abs(det(Jdxdu));
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -38,43 +38,40 @@ for tri=1:mesh.numTri
         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
+
     % Shape functions (f, dfdx, dfdy) with orientation
     shapeOrQ = shapeQ * orientation;
-    
+
     dofU  = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
-    
+
     % Approximate solution (and derivatives)
     solQ   = shapeOrQ * vecSol(dofU);
     solVxQ = shapeOrQ * vecSol(dofVx);
     solVyQ = shapeOrQ * vecSol(dofVy);
-    
+
     % Reference solution (and derivatives)
     if (exist('vecRef','var'))
         refQ   = shapeOrQ * vecRef(dofU);
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+        [refQ, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     end
-    
+
     % Error fields
     errQ   = solQ(:)   - refQ(:);
     errVxQ = solVxQ(:) - refVxQ(:);
     errVyQ = solVyQ(:) - refVyQ(:);
-    
-    % Error values
-%     normSol2 = normSol2 + weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-%     normSol2 = normSol2 + weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-%     normErr2 = normErr2 + weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-%     normErr2 = normErr2 + weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
 
-    normSol2 = normSol2 + (1/(eta(tri)*c(tri))) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu;
-    normSol2 = normSol2 + (eta(tri)/c(tri)) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-    normErr2 = normErr2 + (1/(eta(tri)*c(tri))) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu;
-    normErr2 = normErr2 + (eta(tri)/c(tri)) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+    % Error values
+    normSol2 = normSol2 ...
+        + (1/(eta(tri)*c(tri))) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu ...
+        + (eta(tri)/c(tri)) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+    normErr2 = normErr2 ...
+        + (1/(eta(tri)*c(tri))) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu ...
+        + (eta(tri)/c(tri)) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
 end
 
 normSol = sqrt(normSol2);
