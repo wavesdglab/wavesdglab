@@ -4,6 +4,12 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, PREC)
 
+% -------------------------------------------------------------------------
+% Build system
+% -------------------------------------------------------------------------
+
+disp('--- Build system ---');
+
 global eta k omega edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
@@ -33,8 +39,10 @@ matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matPPv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matPPvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
@@ -79,10 +87,10 @@ for tri=1:mesh.numTri
 
     % Elemental matrices/vectors
     weightsQ = weightsTriQ .* detJdxdu;
-    matMel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
-    matDXel = transpose(shapeDxQ) * (weightsQ .* shapePhyQ);
-    matDYel = transpose(shapeDyQ) * (weightsQ .* shapePhyQ);
-    rhsPel = transpose(shapePhyQ) * (weightsQ .* rhsQ);
+    matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
+    matDXel = shapeDxQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
+    matDYel = shapeDyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
+    rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
 
     matIIel = [
         -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                         ;
@@ -112,20 +120,11 @@ for tri=1:mesh.numTri
     % Loop over faces
     for fac = 1:3
 
-        triNeigh = mesh.mapTriToTri(tri,fac);
-
-        if (triNeigh>0)
-            etaF = sqrt(eta(tri)*eta(triNeigh));
-        else
-            etaF = eta(tri);
-        end
-
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
         [xQ, yQ] = locToGloLIN(uLinQ,V1,V2);
         Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
-        detJdxdu = abs(det(Jdxdu));
 
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
@@ -142,13 +141,20 @@ for tri=1:mesh.numTri
         nx = normal(fac,1);
         ny = normal(fac,2);
 
-        weightsQ = weightsLinQ .* detJdxdu;
-
         % Mass matrices (physical space)
-        matM_IIel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
-        matM_IGel = transpose(shapePhyQ) * (weightsQ .* shapeAuxQ);
-        matM_GIel = transpose(shapeAuxQ) * (weightsQ .* shapePhyQ);
-        matM_GGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
+        weightsQ = weightsLinQ .* Jdxdu;
+        matM_IIel = shapePhyQ' * (weightsQ .* shapePhyQ);
+        matM_IGel = shapePhyQ' * (weightsQ .* shapeAuxQ);
+        matM_GIel = shapeAuxQ' * (weightsQ .* shapePhyQ);
+        matM_GGel = shapeAuxQ' * (weightsQ .* shapeAuxQ);
+
+        % Infos on neighboring element
+        triNeigh = mesh.mapTriToTri(tri,fac);
+        if (triNeigh>0)
+            etaF = sqrt(eta(tri)*eta(triNeigh));
+        else
+            etaF = eta(tri);
+        end
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -205,21 +211,23 @@ for tri=1:mesh.numTri
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
+            matPPv(idGloG,:) = matGGel;
             matGGvInv(idGloG,:) = inv(matGGel);
+            matPPvInv(idGloG,:) = inv(matGGel);
 
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            rhsPel = transpose(shapeAuxQ) * (weightsQ .* solQ);
-            rhsNUel = transpose(shapeAuxQ) * (weightsQ .* (nx.*solDxQ + ny.*solDyQ)) / (1i*k(tri)*eta(tri));
+            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
+            rhsPel = shapeAuxQ' * (weightsQ .* solQ);
+            rhsNUel = shapeAuxQ' * (weightsQ .* (nx.*solDxQ + ny.*solDyQ)) / (1i*k(tri)*eta(tri));
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
 
             % Elemental matrices and RHS vectors (boundary conditions)
-            matGGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
+            matGGel = matM_GGel;
             matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
             rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
@@ -254,7 +262,9 @@ for tri=1:mesh.numTri
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
+            matPPv(idGloG,:) = matGGel;
             matGGvInv(idGloG,:) = inv(matGGel);
+            matPPvInv(idGloG,:) = inv(matGGel);
             rhsG(idGloG) = rhsGel;
         end
     end
@@ -282,15 +292,16 @@ for tri=1:mesh.numTri
     rhsI(dofGloI) = rhsIel;
 
 end
-toc
 
 % Sparse memory storage
-matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
-matIG    = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
-matGI    = sparse(matGIx, matGIy, matGIv, numDofFAC, 3*numDofTRI);
-matGG    = sparse(matGGx, matGGy, matGGv, numDofFAC, numDofFAC);
+matII = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
+matIG = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
+matGI = sparse(matGIx, matGIy, matGIv, numDofFAC, 3*numDofTRI);
+matGG = sparse(matGGx, matGGy, matGGv, numDofFAC, numDofFAC);
+matPP = sparse(matGGx, matGGy, matPPv, numDofFAC, numDofFAC);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
+matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
 
 % -------------------------------------------------------------------------
 % Point source
@@ -321,12 +332,12 @@ if(~isempty(pntSouTag))
 end
 
 % -------------------------------------------------------------------------
-% Build and solve full system
+% Solve system
 % -------------------------------------------------------------------------
 
+disp('--- Solve system ---');
+
 % Matrix partition
-disp('--- Matrix partition ---');
-tic
 sysA.matII = matII;
 sysA.matIG = matIG;
 sysA.matGI = matGI;
@@ -335,55 +346,40 @@ sysA.matIIinv = matIIinv;
 sysA.matGGinv = matGGinv;
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
-toc
-
-sysA.matIIinv = sysA.matII;
-for tri=1:mesh.numTri
-    dofGloP = 0*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloU = 1*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
-    dofGloI = [dofGloP dofGloU dofGloV];
-    sysA.matIIinv(dofGloI,dofGloI) = inv(sysA.matII(dofGloI,dofGloI));
-end
 
 % Full system
-disp('--- Full system ---');
-tic
 sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
-toc
 
 % Reduced system
-disp('--- Reduced system ---');
-tic
-sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
-sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
-toc
+sysA.matS = matGG - matGI*(matIIinv*matIG);
+sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 
 % Physical system
-disp('--- Physical system ---');
-tic
-sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGGinv*sysA.matGI);
-sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGGinv*sysA.rhsG);
-toc
+sysA.matPhy = matII - matIG*(matGGinv*matGI);
+sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditionning
-disp('--- Preconditioning ---');
-tic
 if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = matGGinv;
+    sysA.matP = matPP;
+    sysA.matPinv = matPPinv;
 else
     sysA.matP = 1;
     sysA.matPinv = 1;
 end
-toc
 
 % Compute solution
-disp('--- Compute direct solution ---');
-tic
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
-toc
+
+% disp('(WHY THIS ???)');
+% sysA.matIIinv = sysA.matII;
+% for tri=1:mesh.numTri
+%     dofGloP = 0*numDofTRI + dofm.locToGloTRI(tri,:);
+%     dofGloU = 1*numDofTRI + dofm.locToGloTRI(tri,:);
+%     dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
+%     dofGloI = [dofGloP dofGloU dofGloV];
+%     sysA.matIIinv(dofGloI,dofGloI) = inv(sysA.matII(dofGloI,dofGloI));
+% end
 
 end

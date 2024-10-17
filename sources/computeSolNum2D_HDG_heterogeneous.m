@@ -4,6 +4,12 @@
 
 function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, PREC)
 
+% -------------------------------------------------------------------------
+% Build system
+% -------------------------------------------------------------------------
+
+disp('--- Build system ---');
+
 global eta k omega edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
@@ -21,20 +27,20 @@ shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
-matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
-matIIy = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
-matIIv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
-matIGx = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
-matIGy = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
-matIGv = zeros(3*dofm.numDofPerTRI,mesh.numTri*3*dofm.numDofPerLIN);
-matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-matGGx = zeros(numDofLIN,dofm.numDofPerLIN);
-matGGy = zeros(numDofLIN,dofm.numDofPerLIN);
-matGGv = zeros(numDofLIN,dofm.numDofPerLIN);
-matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI,3*dofm.numDofPerTRI);
-matGGvInv = zeros(numDofLIN,dofm.numDofPerLIN);
+matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
+matIIy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
+matIIv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
+matIGx = zeros(3*dofm.numDofPerTRI, mesh.numTri*3*dofm.numDofPerLIN);
+matIGy = zeros(3*dofm.numDofPerTRI, mesh.numTri*3*dofm.numDofPerLIN);
+matIGv = zeros(3*dofm.numDofPerTRI, mesh.numTri*3*dofm.numDofPerLIN);
+matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matGGx = zeros(numDofLIN, dofm.numDofPerLIN);
+matGGy = zeros(numDofLIN, dofm.numDofPerLIN);
+matGGv = zeros(numDofLIN, dofm.numDofPerLIN);
+matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
+matGGvInv = zeros(numDofLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
@@ -145,7 +151,7 @@ for tri=1:mesh.numTri
         % Physical coefficients
         triNeigh = mesh.mapTriToTri(tri,fac);
         if (triNeigh>0)
-            etaF = sqrt(eta(tri)*eta(triNeigh));
+            etaF = sqrt(eta(tri)*eta(triNeigh))
             kF = sqrt(k(tri)*k(triNeigh));
         else
             etaF = eta(tri);
@@ -191,7 +197,7 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~] = mySol(xQ, yQ);
+            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);
             rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
@@ -243,6 +249,7 @@ for tri=1:mesh.numTri
         matGGx(dofGloG,:) = dofGloG'*ones(1,size(dofGloG,2));
         matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
         matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
+        rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
 
         % it works, but why? !!!!!!!!!!!
         if triNeigh > 0
@@ -250,8 +257,6 @@ for tri=1:mesh.numTri
         else
             matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));
         end
-        rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
-
     end
 
     % -------------------------------------------------------------------------
@@ -306,6 +311,8 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
+disp('--- Solve system ---');
+
 % Matrix partition
 sysA.matII = matII;
 sysA.matIG = matIG;
@@ -313,34 +320,22 @@ sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
 sysA.matGGinv = matGGinv;
-
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 
 % Full system
-disp('--- Full system ---');
-tic
 sysA.matA = [ matII matIG ; matGI matGG ];
 sysA.rhsA = [ rhsI ; rhsG ];
-toc
 
 % Reduced system
-disp('--- Reduced system ---');
-tic
 sysA.matS = matGG - matGI*(matIIinv*matIG);
 sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
-toc
 
 % Physical system
-disp('--- Physical system ---');
-tic
 sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
 sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
-toc
 
 % Preconditioning
-disp('--- Preconditioning ---');
-tic
 if (PREC == 1)
     sysA.matP = matGG;
     sysA.matPinv = sysA.matGGinv;
@@ -348,13 +343,9 @@ else
     sysA.matP = 1;
     sysA.matPinv = 1;
 end
-toc
 
 % Compute solution
-disp('--- Compute direct solution ---');
-tic
 solG = sysA.matS\sysA.rhsS;
 solI = matIIinv*(rhsI-matIG*solG);
-toc
 
 end

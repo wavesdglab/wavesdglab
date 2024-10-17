@@ -4,7 +4,13 @@
 
 function [solI, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC)
 
-global eta k edgTagToBC
+% -------------------------------------------------------------------------
+% Build system
+% -------------------------------------------------------------------------
+
+disp('--- Build system ---');
+
+global eta k omega edgTagToBC
 
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
@@ -33,9 +39,9 @@ matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matPPv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matPPv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matPPvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
@@ -77,18 +83,19 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
 
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ, yQ);
+    rhsQ = mySourceVolume(xQ, yQ);
 
-    % Elemental matrices and RHS vectors
+    % Elemental matrices/vectors
+    weightsQ = weightsTriQ .* detJdxdu;
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
     matDXel = shapeDxQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
     matDYel = shapeDyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
     rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
 
     matIIel = [
-        -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                          ;
-        -matDXel                    -1i*k(tri)*eta(tri)*matMel        zeros(numDofPerTRI,numDofPerTRI)  ;
-        -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel        ];
+        -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                         ;
+        -matDXel                    -1i*k(tri)*eta(tri)*matMel        zeros(numDofPerTRI,numDofPerTRI) ;
+        -matDYel                    zeros(numDofPerTRI,numDofPerTRI)  -1i*k(tri)*eta(tri)*matMel       ];
 
     rhsIel = [
         -1/(1i*k(tri)*eta(tri))*rhsPel ;
@@ -130,29 +137,23 @@ for tri=1:mesh.numTri
         shapePhyQ = shapePhyLinQ * orientation;
         shapeAuxQ = shapePhyQ;
 
-        % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
 
+        % Mass matrices (physical space)
+        weightsQ = weightsLinQ .* Jdxdu;
+        matM_IIel = shapePhyQ' * (weightsQ .* shapePhyQ);
+        matM_IGel = shapePhyQ' * (weightsQ .* shapeAuxQ);
+        matM_GIel = shapeAuxQ' * (weightsQ .* shapePhyQ);
+        matM_GGel = shapeAuxQ' * (weightsQ .* shapeAuxQ);
+
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
-        if(triNeigh>0)
+        if (triNeigh>0)
             etaNeigh = eta(triNeigh);
         else
-            edgGlo = abs(mesh.mapTriToEdg(tri,fac));
-            BC = edgTagToBC(mesh.tagEdg(edgGlo));
-            switch BC
-                case {'DIR', 'NEU', 'ABC', 'DIR0', 'ROB'}
-                    etaNeigh = eta(tri);
-                otherwise
-                    error('BAD BOUNDARY CONDITION.');
-            end
+            etaNeigh = eta(tri);
         end
 
         % -----------------------------------------------------------------
@@ -182,7 +183,7 @@ for tri=1:mesh.numTri
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matM_IGel;
 
         % -----------------------------------------------------------------
-        % Incoming transmission variable
+        % Auxiliary equations
         % -----------------------------------------------------------------
 
         % Infos on neighboring element
@@ -217,10 +218,9 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri)*eta(tri));
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri)*eta(tri));
+            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
+            rhsPel = shapeAuxQ' * (weightsQ .* solQ);
+            rhsNUel = shapeAuxQ' * (weightsQ .* (nx.*solDxQ + ny.*solDyQ)) / (1i*k(tri)*eta(tri));
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -228,22 +228,22 @@ for tri=1:mesh.numTri
 
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = matM_GGel;
+            matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
+            rhsGel = zeros(dofm.numDofPerLIN,1);
             switch BC
                 case 'DIR0'
                     matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel  = 0*rhsPel;
                 case 'DIR'
                     matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel  = +2*rhsPel;
+                    rhsGel = +2*rhsPel;
+                case 'NEU0'
+                    matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
                 case 'NEU'
                     matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
-                    rhsGel  = -2*eta(tri)*(nx*rhsUel + ny*rhsVel);
+                    rhsGel = -2*eta(tri)*rhsNUel;
                 case 'ABC'
-                    matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = 0*(rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
                 case 'ROB'
-                    matGIel = [0 .* matM_GIel, 0 .* matM_GIel, 0 .* matM_GIel];
-                    rhsGel  = (rhsPel - etaNeigh * (nx*rhsUel  + ny*rhsVel));
+                    rhsGel = (rhsPel - etaNeigh * rhsNUel);
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -266,7 +266,6 @@ for tri=1:mesh.numTri
             matGGvInv(idGloG,:) = inv(matGGel);
             matPPvInv(idGloG,:) = inv(matGGel);
             rhsG(idGloG) = rhsGel;
-
         end
     end
 
@@ -305,8 +304,38 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
 
 % -------------------------------------------------------------------------
-% Build and solve full system
+% Point source
 % -------------------------------------------------------------------------
+
+global pntSouTag pntSouVal
+if(~isempty(pntSouTag))
+    TOT = 0;
+    SouEl = 0;
+    for tri=1:mesh.numTri
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+                SouEl(3,TOT) = 0;
+                if (V1(1,2) == 0 && V2(1,2) == 0) || (V1(1,2) == 0 && V3(1,2) == 0) || (V2(1,2) == 0 && V3(1,2) == 0)
+                    SouEl(3,TOT) = 1;
+                end
+            end
+        end
+    end
+    for ind=1:TOT
+        dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+        rhsI(dofSou) = rhsI(dofSou) - 1/(1i*omega) * pntSouVal / TOT;
+    end
+end
+
+% -------------------------------------------------------------------------
+% Solve system
+% -------------------------------------------------------------------------
+
+disp('--- Solve system ---');
 
 % Matrix partition
 sysA.matII = matII;

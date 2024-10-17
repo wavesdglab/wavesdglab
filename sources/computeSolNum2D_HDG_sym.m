@@ -78,7 +78,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
     
     % Source terms
-    [~, ~, ~, rhsQ, ~, ~] = mySol(xQ, yQ);
+    rhsQ = mySourceVolume(xQ, yQ);
     
     % Elemental matrices and RHS vectors
     matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
@@ -201,7 +201,7 @@ for tri=1:mesh.numTri
         else
             
             % Source terms
-            [solQ, solDxQ, solDyQ, ~, ~, ~] = mySol(xQ, yQ);
+            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);
             rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
