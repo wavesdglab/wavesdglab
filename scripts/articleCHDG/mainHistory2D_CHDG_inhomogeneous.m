@@ -1,5 +1,5 @@
-% close all;
-clear all;
+% close;
+% clear;
 
 global omega c1 c2 rho1 rho2 h1 h2
 
@@ -11,17 +11,17 @@ iOut = 50;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % BENCH PLANE WAVE
-benchmark = 'open_heterogeneous';
+% benchmark = 'open_heterogeneous';
 % omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 2; h1 = 1/16; h2 = 1/34;
 % run(benchmark,degree,tol,iMax,iOut);
-omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
+% omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
 % run(benchmark,degree,tol,iMax,iOut);
 
 % BENCH CAVITY 
-% benchmark = 'disk_heterogeneous';
+benchmark = 'disk_heterogeneous';
 % omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 3/2; h1 = 0.06; h2 = 0.05;
 % run(benchmark,degree,tol,iMax,iOut);
-% omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1; h1 = 0.1; h2 = 0.075;
+omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1; h1 = 0.1; h2 = 0.075;
 % run(benchmark,degree,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,8 +44,7 @@ disp(['    h2                  ' num2str(h2)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
-
-[solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, 2);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM2');
 normErrA = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
 disp(['    L2-Error (numSolA)   ' num2str(normErrA,'%1.2e')]);
 
@@ -57,11 +56,19 @@ disp(['    L2-Error (numSolB)   ' num2str(normErrB,'%1.2e')]);
 normErrC = computeNormError2D_DG_heterogeneous(mesh, dofm, solC);
 disp(['    L2-Error (numSolC)   ' num2str(normErrC,'%1.2e')]);
 
+[solC2, sysC2] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'UPW2');
+normErrC2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solC2);
+disp(['    L2-Error (numSolC2)   ' num2str(normErrC2,'%1.2e')]);
+
 [solD, sysD] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
 normErrD = computeNormError2D_DG_heterogeneous(mesh, dofm, solD);
 disp(['    L2-Error (numSolD)   ' num2str(normErrD,'%1.2e')]);
-solP = computeSolProjL2_2D_DG(mesh, dofm);
 
+[solD2, sysD2] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'UPW');
+normErrD2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solD2);
+disp(['    L2-Error (numSolD2)   ' num2str(normErrD2,'%1.2e')]);
+
+solP = computeSolProjL2_2D_DG(mesh, dofm);
 normProjErr = computeNormError2D_DG_heterogeneous(mesh, dofm, solP);
 disp(['    L2-Error (projSol)  ' num2str(normProjErr,'%1.2e')]);
 
@@ -78,11 +85,13 @@ alpha = 1;
 [resRedVecA, resPhyVecA, error0A] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous, []);
 [resRedVecB, resPhyVecB, error0B] = solverRichardsonRedu_DG(mesh, dofm, sysB, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous, []);
 [resRedVecC, resPhyVecC, error0C] = solverRichardsonRedu_DG(mesh, dofm, sysC, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecC2, resPhyVecC2, error0C2] = solverRichardsonRedu_DG(mesh, dofm, sysC2, tol, iMax, iOut, alpha, @computeNormError2D_DG_heterogeneous, []);
 
 iterVec = (0:iOut:iMax)';
 errorRefA = normErrA*ones(size(error0A));
 errorRefB = normErrB*ones(size(error0B));
 errorRefC = normErrC*ones(size(error0C));
+errorRefC2 = normErrC*ones(size(error0C2));
 
 rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2A = [iterVec resRedVecA, resPhyVecA, error0A, errorRefA];
@@ -96,7 +105,12 @@ writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 
 rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2C = [iterVec resRedVecC, resPhyVecC, error0C, errorRefC];
-name = sprintf('output/historyRichardson_CHDG_upwind_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+name = sprintf('output/historyRichardson_CHDG_UPW_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC2, resPhyVecC2, error0C2, errorRefC2];
+name = sprintf('output/historyRichardson_CHDG_UPW2_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
 writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,13 +119,17 @@ disp(['--- Solver CGNR']);
 [resRedVecA, resPhyVecA, error1A] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
 [resRedVecB, resPhyVecB, error1B] = solverCGNRredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
 [resRedVecC, resPhyVecC, error1C] = solverCGNRredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecC2, resPhyVecC2, error1C2] = solverCGNRredu_DG(mesh, dofm, sysC2, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
 [resRedVecD, resPhyVecD, error1D] = solverCGNRredu_DG(mesh, dofm, sysD, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecD2, resPhyVecD2, error1D2] = solverCGNRredu_DG(mesh, dofm, sysD2, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
 
 iterVec = (0:iOut:iMax)';
 errorRefA = normErrA*ones(size(error1A));
 errorRefB = normErrB*ones(size(error1B));
 errorRefC = normErrC*ones(size(error1C));
+errorRefC2 = normErrC*ones(size(error1C2));
 errorRefD = normErrD*ones(size(error1D));
+errorRefD2 = normErrD*ones(size(error1D2));
 
 rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2A = [iterVec resRedVecA, resPhyVecA, error1A, errorRefA];
@@ -125,72 +143,101 @@ writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 
 rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2C = [iterVec resRedVecC, resPhyVecC, error1C, errorRefC];
-name = sprintf('output/historyCGNR_CHDG_upwind_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+name = sprintf('output/historyCGNR_CHDG_UPW_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC2, resPhyVecC2, error1C2, errorRefC2];
+name = sprintf('output/historyCGNR_CHDG_UPW2_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
 writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
 
 rezu1D = ["iter" "resRed" "resPhy" "error" "errorRef"];
 rezu2D = [iterVec resRedVecD, resPhyVecD, error1D, errorRefD];
-name = sprintf('output/historyCGNR_HDG_highorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+name = sprintf('output/historyCGNR_HDG_sym_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1D ; rezu2D], name, 'Delimiter', 'semi');
+
+rezu1D = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2D = [iterVec resRedVecD2, resPhyVecD2, error1D2, errorRefD2];
+name = sprintf('output/historyCGNR_HDG_upw_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
 writematrix([rezu1D ; rezu2D], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% disp(['--- Solver GMRES']);
-% [resRedVecA, resPhyVecA, error3A] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
-% [resRedVecB, resPhyVecB, error3B] = solverGMRESredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
-% [resRedVecC, resPhyVecC, error3C] = solverGMRESredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
-% [resRedVecD, resPhyVecD, error3D] = solverGMRESredu_DG(mesh, dofm, sysD, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
-% 
-% iterVec = (0:iOut:iMax)';
-% errorRefA = normErrA*ones(size(error3A));
-% errorRefB = normErrB*ones(size(error3B));
-% errorRefC = normErrC*ones(size(error3C));
-% errorRefD = normErrD*ones(size(error3D));
-% 
-% rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2A = [iterVec resRedVecA, resPhyVecA, error3A, errorRefA];
-% name = sprintf('output/historyGMRES_CHDG_2ndorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
-% writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
-% 
-% rezu1B = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2B = [iterVec resRedVecB, resPhyVecB, error3B, errorRefB];
-% name = sprintf('output/historyGMRES_CHDG_0thorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
-% writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
-% 
-% rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2C = [iterVec resRedVecC, resPhyVecC, error3C, errorRefC];
-% name = sprintf('output/historyGMRES_CHDG_upwind_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
-% writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
-% 
-% rezu1D = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2D = [iterVec resRedVecD, resPhyVecD, error3D, errorRefD];
-% name = sprintf('output/historyGMRES_HDG_highorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
-% writematrix([rezu1D ; rezu2D], name, 'Delimiter', 'semi');
+disp(['--- Solver GMRES']);
+[resRedVecA, resPhyVecA, error3A] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecB, resPhyVecB, error3B] = solverGMRESredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecC, resPhyVecC, error3C] = solverGMRESredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecC2, resPhyVecC2, error3C2] = solverGMRESredu_DG(mesh, dofm, sysC2, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecD, resPhyVecD, error3D] = solverGMRESredu_DG(mesh, dofm, sysD, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+[resRedVecD2, resPhyVecD2, error3D2] = solverGMRESredu_DG(mesh, dofm, sysD2, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, []);
+
+iterVec = (0:iOut:iMax)';
+errorRefA = normErrA*ones(size(error3A));
+errorRefB = normErrB*ones(size(error3B));
+errorRefC = normErrC*ones(size(error3C));
+errorRefC2 = normErrC*ones(size(error3C2));
+errorRefD = normErrD*ones(size(error3D));
+errorRefD2 = normErrD*ones(size(error3D2));
+
+rezu1A = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2A = [iterVec resRedVecA, resPhyVecA, error3A, errorRefA];
+name = sprintf('output/historyGMRES_CHDG_2ndorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
+rezu1B = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2B = [iterVec resRedVecB, resPhyVecB, error3B, errorRefB];
+name = sprintf('output/historyGMRES_CHDG_0thorder_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC, resPhyVecC, error3C, errorRefC];
+name = sprintf('output/historyGMRES_CHDG_UPW_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+rezu1C = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2C = [iterVec resRedVecC2, resPhyVecC2, error3C2, errorRefC2];
+name = sprintf('output/historyGMRES_CHDG_UPW2_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1C ; rezu2C], name, 'Delimiter', 'semi');
+
+rezu1D = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2D = [iterVec resRedVecD, resPhyVecD, error3D, errorRefD];
+name = sprintf('output/historyGMRES_HDG_sym_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1D ; rezu2D], name, 'Delimiter', 'semi');
+
+rezu1D = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2D = [iterVec resRedVecD2, resPhyVecD2, error3D2, errorRefD2];
+name = sprintf('output/historyGMRES_HDG_upw_%s_p%i_h1%g_h2%g_k1%g_k2%g.csv', benchmark, degree, h1, h2, k1, k2);
+writematrix([rezu1D ; rezu2D], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% errorNumA = normErrA*ones(size(error3A));
-% errorProj = normProjErr*ones(size(error3A));
+errorNumA = normErrA*ones(size(error3A));
+errorProj = normProjErr*ones(size(error3A));
 
 figure;
 hold off
-semilogy(iterVec,error0B,'-xg','DisplayName','CHDG (Sym-0) - Richardson');
+semilogy(iterVec,error0B,'-xk','DisplayName','CHDG (SYM) - Richardson');
 hold on
-semilogy(iterVec,error0A,'-+y','DisplayName','CHDG (Sym-2) - Richardson');
-semilogy(iterVec,error0C,'-xb','DisplayName','CHDG (upwind) - Richardson');
+semilogy(iterVec,error0A,'-xm','DisplayName','CHDG (SYM2) - Richardson');
+semilogy(iterVec,error0C,'-xb','DisplayName','CHDG (UPW) - Richardson');
+semilogy(iterVec,error0C2,'-xg','DisplayName','CHDG (UPW2) - Richardson');
 
-semilogy(iterVec,error1B,'-oc','MarkerFaceColor','c','DisplayName','CHDG (Sym-0) - CGNR');
-semilogy(iterVec,error1A,'-oy','MarkerFaceColor','y','DisplayName','CHDG (Sym-2) - CGNR');
-semilogy(iterVec,error1C,'-ob','MarkerFaceColor','b','DisplayName','CHDG (upwind) - CGNR');
-semilogy(iterVec,error1D,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+semilogy(iterVec,error1B ,'-ok','MarkerFaceColor','k','DisplayName','CHDG (SYM) - CGNR');
+semilogy(iterVec,error1A ,'-om','MarkerFaceColor','m','DisplayName','CHDG (SYM2) - CGNR');
+semilogy(iterVec,error1C ,'-ob','MarkerFaceColor','b','DisplayName','CHDG (UPW) - CGNR');
+semilogy(iterVec,error1C2,'-og','MarkerFaceColor','g','DisplayName','CHDG (UPW2) - CGNR');
+semilogy(iterVec,error1D ,'-or','MarkerFaceColor','r','DisplayName','HDG (SYM) - CGNR');
+semilogy(iterVec,error1D2,'-oc','MarkerFaceColor','c','DisplayName','HDG (UPW) - CGNR');
 
-%semilogy(iterVec,error3B,'-oc','MarkerFaceColor','w','DisplayName','CHDG (Sym-0) - GMRES');
-%semilogy(iterVec,error3A,'-oy','MarkerFaceColor','w','DisplayName','CHDG (Sym-2) - GMRES');
-%semilogy(iterVec,error3C,'-ob','MarkerFaceColor','w','DisplayName','CHDG (upwind) - GMRES');
-%semilogy(iterVec,error3D,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+semilogy(iterVec,error3B ,'-ok','MarkerFaceColor','w','DisplayName','CHDG (SYM) - GMRES');
+semilogy(iterVec,error3A ,'-om','MarkerFaceColor','w','DisplayName','CHDG (SYM2) - GMRES');
+semilogy(iterVec,error3C ,'-ob','MarkerFaceColor','w','DisplayName','CHDG (UPW) - GMRES');
+semilogy(iterVec,error3C2,'-og','MarkerFaceColor','w','DisplayName','CHDG (UPW2) - GMRES');
+semilogy(iterVec,error3D ,'-or','MarkerFaceColor','w','DisplayName','HDG (SYM) - GMRES');
+semilogy(iterVec,error3D2,'-oc','MarkerFaceColor','w','DisplayName','HDG (UPW) - GMRES');
 
-%semilogy(iterVec,errorNumA,'k--','DisplayName','Numerical error');
-%semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
+semilogy(iterVec,errorNumA,'k--','DisplayName','Numerical error');
+semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
 box on;
 grid on;
 legend('Location','southwest');

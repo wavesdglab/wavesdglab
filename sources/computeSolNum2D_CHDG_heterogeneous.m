@@ -22,9 +22,10 @@ degreeQ = 2*dofm.degree;
 [uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
 
 % Shape functions and derivatives (reference space)
-shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);
-shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
-[shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
+shapeLinRefQ = functionsShapeLIN(uLinQ, dofm.degree);
+shapeLinRefDuQ = functionsShapeDerLIN(uLinQ, dofm.degree);
+shapeTriRefQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+[shapeTriRefDuQ, shapeTriRefDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
 matIIx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
@@ -78,18 +79,18 @@ for tri=1:mesh.numTri
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
 
     % Shape functions and derivatives with orientation (physical space)
-    shapePhyQ = shapePhyTriQ * orientation;
-    shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
-    shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
+    shapeTriQ = shapeTriRefQ * orientation;
+    shapeDxQ = (shapeTriRefDuQ * Jdudx(1,1) + shapeTriRefDvQ * Jdudx(2,1)) * orientation;
+    shapeDyQ = (shapeTriRefDuQ * Jdudx(1,2) + shapeTriRefDvQ * Jdudx(2,2)) * orientation;
 
     % Source terms
     rhsQ = mySourceVolume(xQ, yQ);
 
     % Elemental matrices/vectors
-    matMel = shapePhyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    matDXel = shapeDxQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    matDYel = shapeDyQ' * (weightsTriQ .* shapePhyQ) * detJdxdu;
-    rhsPel = shapePhyQ' * (weightsTriQ .* rhsQ) * detJdxdu;
+    matMel = shapeTriQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
+    matDXel = shapeDxQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
+    matDYel = shapeDyQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
+    rhsPel = shapeTriQ' * (weightsTriQ .* rhsQ) * detJdxdu;
 
     matIIel = [
         -1i*k(tri)/eta(tri)*matMel  -matDXel                          -matDYel                         ;
@@ -133,22 +134,29 @@ for tri=1:mesh.numTri
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
 
         % Shape functions (physical space)
-        shapePhyQ = shapePhyLinQ * orientation;
-        shapeAuxQ = shapePhyQ;
+        shapeLinQ = shapeLinRefQ * orientation;
+        shapeLinDsQ = shapeLinRefDuQ * orientation;
 
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
 
         % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
+        matMel = shapeLinQ' * (weightsLinQ .* shapeLinQ) * Jdxdu;
+        matKel = shapeLinDsQ' * (weightsLinQ .* shapeLinDsQ) / Jdxdu;
 
         % -----------------------------------------------------------------
         % Physical equations
         % -----------------------------------------------------------------
+
+        triNeigh = mesh.mapTriToTri(tri,fac);
+        if (triNeigh>0)
+            etaNeigh = eta(triNeigh);
+            kNeigh = k(triNeigh);
+        else
+            etaNeigh = eta(tri);
+            kNeigh = k(tri);
+        end
 
         % Local ID for interior and auxiliary unknowns
         idLocP = 0*dofm.numDofPerTRI + dofm.locFac(fac,:);
@@ -161,51 +169,98 @@ for tri=1:mesh.numTri
 
             case 'UPW'
 
-                triNeigh = mesh.mapTriToTri(tri,fac);
-                if (triNeigh>0)
-                    etaNeigh = eta(triNeigh);
-                else
-                    etaNeigh = eta(tri);
-                end
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matMel;
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/(eta(tri) + etaNeigh)                      * matMel;
 
-                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matM_IIel;
-                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matM_IIel;
-                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matM_IIel;
-                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/(eta(tri) + etaNeigh)                      * matM_IGel;
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matMel;
 
-                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * nx * matM_IIel;
-                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * nx * matM_IIel;
-                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matM_IIel;
-                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matM_IGel;
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matMel;
 
-                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * ny * matM_IIel;
-                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matM_IIel;
-                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * ny * ny * matM_IIel;
-                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matM_IGel;
+            case 'UPW2'
+
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5/(eta(tri))         * matMel;
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5               * nx * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5               * ny * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5/etaNeigh           * matMel;
+
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5               * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*eta(tri) * nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*eta(tri) * ny * nx * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5               * nx * matMel;
+
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5               * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*eta(tri) * nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*eta(tri) * ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5               * ny * matMel;
 
             case 'SYM'
 
-                triNeigh = mesh.mapTriToTri(tri,fac);
-                if (triNeigh>0)
-                    etaF = sqrt(eta(tri)*eta(triNeigh));
-                else
-                    etaF = eta(tri);
-                end
+                etaF = sqrt(eta(tri)*etaNeigh);
 
-                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5/etaF          * matM_IIel;
-                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matM_IIel;
-                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matM_IIel;
-                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matM_IGel;
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5/etaF          * matMel;
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matMel;
 
-                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matM_IIel;
-                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*etaF* nx * nx * matM_IIel;
-                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*etaF* nx * ny * matM_IIel;
-                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5*etaF     * nx * matM_IGel;
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*etaF* nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*etaF* nx * ny * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5*etaF     * nx * matMel;
 
-                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matM_IIel;
-                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*etaF* nx * ny * matM_IIel;
-                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*etaF* ny * ny * matM_IIel;
-                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*etaF     * ny * matM_IGel;
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*etaF* nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*etaF* ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*etaF     * ny * matMel;
+
+            case 'SYM2'
+
+                etaF = sqrt(eta(tri)*etaNeigh);
+                kF = sqrt(k(tri)*kNeigh);
+                matEtaF = etaF * matMel / (matMel + 0.5/(kF^2) * matKel);
+
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5 *         (matEtaF\matMel);
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5         * nx      * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5         * ny      * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5                   * matMel;
+
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5              * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*matEtaF * nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*matEtaF * nx * ny * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5*matEtaF      * nx * matMel;
+
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5              * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*matEtaF * nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*matEtaF * ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*matEtaF      * ny * matMel;
+
+            case 'SYM3'
+
+                etaF = sqrt(eta(tri)*etaNeigh);
+                kF = sqrt(k(tri)*kNeigh);
+                matEtaF = etaF * matMel / (matMel + 0.5/(kF^2) * matKel);
+
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5 *         (matEtaF\matMel);
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5         * nx      * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5         * ny      * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 *         (matEtaF\matMel);
+
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5              * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*matEtaF * nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*matEtaF * nx * ny * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5              * nx * matMel;
+
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5              * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*matEtaF * nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*matEtaF * ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5              * ny * matMel;
 
             otherwise
                 error('BAD FLUX.');
@@ -216,7 +271,7 @@ for tri=1:mesh.numTri
         % -----------------------------------------------------------------
 
         % Elemental matrices/vectors
-        matGGel = matM_GGel;
+        matGGel = matMel;
         matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
         rhsGel = zeros(dofm.numDofPerLIN,1);
 
@@ -228,10 +283,14 @@ for tri=1:mesh.numTri
 
             % Elemental matrices (interface condition)
             switch FLUX
-                case 'UPW'
-                    matGIel = [-matM_GIel, etaNeigh*nx*matM_GIel, etaNeigh*ny*matM_GIel];
+                case {'UPW','UPW2'}
+                    matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel];
                 case 'SYM'
-                    matGIel = [-1/etaF*matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                    matGIel = [-1/etaF*matMel, nx*matMel, ny*matMel];
+                case 'SYM2'
+                    matGIel = [-(matEtaF\matMel), nx*matMel, ny*matMel];
+                case 'SYM3'
+                    matGIel = [-matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
                 otherwise
                     error('BAD FLUX.');
             end
@@ -248,8 +307,8 @@ for tri=1:mesh.numTri
 
             % Source terms
             [solP, ~, ~, solU, solV] = mySourceSurface(xQ, yQ);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solP) * Jdxdu;;
-            rhsNUel = shapeAuxQ' * (weightsLinQ .* (nx.*solU + ny.*solV)) * Jdxdu;;
+            rhsPel = shapeLinQ' * (weightsLinQ .* solP) * Jdxdu;
+            rhsNUel = shapeLinQ' * (weightsLinQ .* (nx.*solU + ny.*solV)) * Jdxdu;
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -257,17 +316,17 @@ for tri=1:mesh.numTri
 
             % Elemental matrices/vectors (boundary condition)
             switch FLUX
-                case 'UPW'
+                case {'UPW','UPW2'}
                     switch BC
                         case 'DIR0'
-                            matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel];
                         case 'DIR'
-                            matGIel = [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel];
                             rhsGel = 2*rhsPel;
                         case 'NEU0'
-                            matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel];
                         case 'NEU'
-                            matGIel = [-matM_GIel, -eta(tri)*nx*matM_GIel, -eta(tri)*ny*matM_GIel];
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel];
                             rhsGel = -2*eta(tri)*rhsNUel;
                         case 'ABC'
                         case 'ROB'
@@ -278,18 +337,66 @@ for tri=1:mesh.numTri
                 case 'SYM'
                     switch BC
                         case 'DIR0'
-                            matGIel = [1/eta(tri)*matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                            matGIel = [eta(tri)\matMel, nx*matMel, ny*matMel];
                         case 'DIR'
-                            matGIel = [1/eta(tri)*matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                            matGIel = [eta(tri)\matMel, nx*matMel, ny*matMel];
                             rhsGel = 2/eta(tri)*rhsPel;
                         case 'NEU0'
-                            matGIel = [-1/eta(tri)*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
+                            matGIel = [-eta(tri)\matMel, -nx*matMel, -ny*matMel];
                         case 'NEU'
-                            matGIel = [-1/eta(tri)*matM_GIel, -nx*matM_GIel, -ny*matM_GIel];
+                            matGIel = [-eta(tri)\matMel, -nx*matMel, -ny*matMel];
                             rhsGel = -2*rhsNUel;
                         case 'ABC'
                         case 'ROB'
                             rhsGel = (rhsPel - eta(tri)*rhsNUel)/eta(tri);
+                        otherwise
+                            error('BAD BOUNDARY CONDITION.');
+                    end
+                case 'SYM2'
+                    switch BC
+                        case 'DIR0'
+                            matGIel = [matEtaF\matMel, nx*matMel, ny*matMel];
+                        case 'DIR'
+                            matGIel = [matEtaF\matMel, nx*matMel, ny*matMel];
+                            rhsGel = 2*matEtaF\rhsPel;
+                        case 'NEU0'
+                            matGIel = [-matEtaF\matMel, -nx*matMel, -ny*matMel];
+                        case 'NEU'
+                            matGIel = [-matEtaF\matMel, -nx*matMel, -ny*matMel];
+                            rhsGel = -2*rhsNUel;
+                        case 'ABC'
+                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
+                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
+                            matGIel = (matTmpM/matTmpP) * [-matEtaF\matMel, -nx*matMel, -ny*matMel];
+                        case 'ROB'
+                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
+                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
+                            matGIel = (matTmpM/matTmpP) * [-matEtaF\matMel, -nx*matMel, -ny*matMel];
+                            rhsGel  = (2/eta(tri)) * inv(matTmpP) * (rhsPel - eta(tri)*rhsNUel);
+                        otherwise
+                            error('BAD BOUNDARY CONDITION.');
+                    end
+                case 'SYM3'
+                    switch BC
+                        case 'DIR0'
+                            matGIel = [matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
+                        case 'DIR'
+                            matGIel = [matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
+                            rhsGel = 2*rhsPel;
+                        case 'NEU0'
+                            matGIel = [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
+                        case 'NEU'
+                            matGIel = [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
+                            rhsGel = -2*matEtaF*rhsNUel;
+                        case 'ABC'
+                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
+                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
+                            matGIel = matEtaF*(matTmpM/matTmpP) * [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
+                        case 'ROB'
+                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
+                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
+                            matGIel = (matTmpM/matTmpP) * [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
+                            rhsGel  = matEtaF*(2/eta(tri)) * inv(matTmpP) * (rhsPel - eta(tri)*rhsNUel);
                         otherwise
                             error('BAD BOUNDARY CONDITION.');
                     end
@@ -305,6 +412,22 @@ for tri=1:mesh.numTri
             idGloI = [idGloP idGloU idGloV];
         end
 
+        % Preconditionning matrix
+        switch FLUX
+            case 'UPW'
+                matPPel = (eta(tri) + etaNeigh)*matMel;
+            case 'UPW2'
+                matPPel = eta(tri)\matMel;
+            case 'SYM'
+                matPPel = matMel;
+            case 'SYM2'
+                matPPel = matMel;
+            case 'SYM3'
+                matPPel = matMel;
+            otherwise
+                error('BAD FLUX.');
+        end
+        
         % Assembling
         matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
         matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
@@ -312,9 +435,9 @@ for tri=1:mesh.numTri
         matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
         matGIv(idGloG,:) = matGIel;
         matGGv(idGloG,:) = matGGel;
-        matPPv(idGloG,:) = matGGel;
+        matPPv(idGloG,:) = matPPel;
         matGGvInv(idGloG,:) = inv(matGGel);
-        matPPvInv(idGloG,:) = inv(matGGel);
+        matPPvInv(idGloG,:) = inv(matPPel);
         rhsG(idGloG) = rhsGel;
     end
 
@@ -411,6 +534,8 @@ sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 % Preconditionning
 sysA.matP = matPP;
 sysA.matPinv = matPPinv;
+%sysA.matP = matGG;
+%sysA.matPinv = matGGinv;
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;

@@ -5,7 +5,7 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-freq = 5; %30
+freq = 5; % 30;
 omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
@@ -40,13 +40,9 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
 disp('CHDG')
-%[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm); % CHDG Sym-0
-[solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm); % CHDG Upw
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM');
 disp('HDG')
-%[solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm);  % HDG Sym-0
-[solB, sysB] = computeSolNum2D_HDG_upw(mesh, dofm);  % HDG Upw
-
-max(max(abs(solA-solB)))
+[solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
