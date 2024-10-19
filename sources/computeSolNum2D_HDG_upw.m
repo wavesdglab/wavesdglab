@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
-function [solI, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, PREC)
+function [solI, sysA] = computeSolNum2D_HDG_upw(mesh, dofm)
 
 % -------------------------------------------------------------------------
 % Build system
@@ -139,10 +139,11 @@ for tri=1:mesh.numTri
         shapeAuxQ = shapePhyQ;
 
         % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
+        weightsQ = weightsLinQ .* Jdxdu;
+        matM_IIel = shapePhyQ' * (weightsQ .* shapePhyQ);
+        matM_IGel = shapePhyQ' * (weightsQ .* shapeAuxQ);
+        matM_GIel = shapeAuxQ' * (weightsQ .* shapePhyQ);
+        matM_GGel = shapeAuxQ' * (weightsQ .* shapeAuxQ);
 
         % Exterior normal
         nx = normal(fac,1);
@@ -163,17 +164,17 @@ for tri=1:mesh.numTri
         matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) + nx * matM_IIel;
         matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) + ny * matM_IIel;
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
-        matIGel(dofLocP,:) = - 1/eta(tri) * matM_IGel;
-        matIGel(dofLocU,:) = nx  * matM_IGel;
-        matIGel(dofLocV,:) = ny  * matM_IGel;
+        matIGel(dofLocP,:) = -1/eta(tri) * matM_IGel;
+        matIGel(dofLocU,:) = nx * matM_IGel;
+        matIGel(dofLocV,:) = ny * matM_IGel;
 
         % -----------------------------------------------------------------
         % Auxiliary equations
         % -----------------------------------------------------------------
 
-        matGGel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-        matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-        rhsGel  = zeros(dofm.numDofPerLIN,1);
+        matGGel = zeros(dofm.numDofPerLIN, dofm.numDofPerLIN);
+        matGIel = zeros(dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+        rhsGel  = zeros(dofm.numDofPerLIN, 1);
 
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
@@ -187,10 +188,9 @@ for tri=1:mesh.numTri
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k(tri)*eta(tri));
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k(tri)*eta(tri));
+            [solP, ~, ~, solU, solV] = mySourceSurface(xQ, yQ);
+            rhsPel = shapeAuxQ' * (weightsQ .* solP);
+            rhsNUel = shapeAuxQ' * (weightsQ .* (nx.*solU + ny.*solV));
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -202,19 +202,24 @@ for tri=1:mesh.numTri
                 case 'DIR0'
                 case 'DIR'
                     rhsGel = rhsPel;
+                case 'NEU0'
+                    matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
                 case 'NEU'
                     matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = -eta(tri)*(nx*rhsUel + ny*rhsVel);
+                    rhsGel = -eta(tri)*rhsNUel;
                 case 'ABC'
                     matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;   % Axel : CE DEVRAIT ÊTRE 0
                 case 'ROB'
                     matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
-                    rhsGel = (rhsPel - eta(tri) * (nx*rhsUel + ny*rhsVel)) / 2;
+                    rhsGel = (rhsPel - eta(tri)*rhsNUel) / 2;
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
         end
+
+        % -----------------------------------------------------------------
+        % Matrix assembling
+        % -----------------------------------------------------------------
 
         % Global ID for edge unknowns
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -224,10 +229,6 @@ for tri=1:mesh.numTri
             dofLocG(1) = 2;
             dofLocG(2) = 1;
         end
-
-        % -----------------------------------------------------------------
-        % Matrix assembling
-        % -----------------------------------------------------------------
 
         idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
         matIGx(:,idLIN) = dofGloI'*ones(1,size(dofGloG,2));
@@ -253,6 +254,12 @@ for tri=1:mesh.numTri
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
 
+end
+
+matGGvInv = zeros(numDofLIN, dofm.numDofPerLIN);
+for lin=1:mesh.numEdg
+    idLIN = (lin-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
+    matGGvInv(idLIN,:) = inv(matGGv(idLIN,:));
 end
 
 matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
@@ -302,7 +309,7 @@ sysA.matIG = matIG;
 sysA.matGI = matGI;
 sysA.matGG = matGG;
 sysA.matIIinv = matIIinv;
-sysA.matGGinv = inv(matGG);
+sysA.matGGinv = matGGinv;
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
 
@@ -315,17 +322,12 @@ sysA.matS = matGG - matGI*(matIIinv*matIG);
 sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 
 % Physical system
-sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
-sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
+sysA.matPhy = matII - matIG*(matGGinv*matGI);
+sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditioning
-if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = sysA.matGGinv;
-else
-    sysA.matP = 1;
-    sysA.matPinv = 1;
-end
+sysA.matP = matGG;
+sysA.matPinv = matGGinv;
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;

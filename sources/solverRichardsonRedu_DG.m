@@ -4,7 +4,7 @@
 
 % Richardson with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardsonRedu_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardsonRedu_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError, xRef)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -25,7 +25,7 @@ rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, xPhy);
+errorVec(1) = computeError(mesh, dofm, xPhy, xRef);
 fprintf('[%i] %g %g\n', 0, resRedVec(1), errorVec(1));
 %%%%%
 
@@ -47,7 +47,7 @@ while(i <= iMax)
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy, xRef);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%

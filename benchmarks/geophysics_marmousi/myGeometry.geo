@@ -1,6 +1,6 @@
 // Dimensions
-Lx = 9192;
-Ly = 2904;
+Lx = 9192/LREF;
+Ly = 2904/LREF;
 X0 = 0;
 Y0 = -Ly;
 
@@ -12,8 +12,8 @@ Y0 = -Ly;
 // Ly = Ly/3;
 // Y0 = -Ly;
 
-X_SOU = 4585;
-Y_SOU = -10;
+X_SOU = 4585/LREF;
+Y_SOU = -10/LREF;
 
 // https://hdl.handle.net/2268/174920:
 // X_SOU = 6200;

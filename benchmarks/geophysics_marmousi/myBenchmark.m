@@ -2,6 +2,14 @@ function mesh = myBenchmark()
 
 global omega nLambda
 
+% Rescaling
+global LREF CREF RHOREF
+LREF = 1000;
+CREF = 1000;
+RHOREF = 1000;
+
+omega = omega / (LREF/CREF);
+
 % -------------------------------------------------------------------------
 % Mesh
 % -------------------------------------------------------------------------
@@ -9,7 +17,10 @@ global omega nLambda
 myData();
 linkMsh = 'output/mesh.msh';
 linkGeo = 'benchmarks/geophysics_marmousi/myGeometry.geo';
-system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega/(2*pi)) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ...
+    ' -setnumber FREQ ' num2str(omega/(2*pi)) ...
+    ' -setnumber N_LAMBDA ' num2str(nLambda) ...
+    ' -setnumber LREF ' num2str(LREF)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
@@ -50,6 +61,8 @@ Ix = 2301;
 Iy = 751;
 dx = 4; % meter
 dy = 4; % meter
+dx = dx/LREF;
+dy = dy/LREF;
 Lx = Ix*dx;
 Ly = Iy*dy;
 
@@ -57,6 +70,8 @@ fileVelocity = fopen('benchmarks/geophysics_marmousi/data/vp.bin');
 fileDensity = fopen('benchmarks/geophysics_marmousi/data/rho.bin');
 dataVelocity = fread(fileVelocity,[Iy Ix],'single');
 dataDensity = fread(fileDensity,[Iy Ix],'single');
+dataVelocity = dataVelocity/CREF;
+dataDensity = dataDensity/RHOREF;
 
 % Define tables of coefficients
 global rho c eta k

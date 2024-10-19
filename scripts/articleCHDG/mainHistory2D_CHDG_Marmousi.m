@@ -1,5 +1,5 @@
-% close all;
-clear all;
+% close;
+clear;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -32,10 +32,10 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    frequency           ' num2str(freq)]);
 disp('---------------------------------------------------------');
 
-PREC = 1;
-
-[solA, sysA] = computeSolNum2D_CHDG_Marmousi(mesh, dofm, PREC);
-[solB, sysB] = computeSolNum2D_HDG_Marmousi(mesh, dofm, PREC);
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm);
+[solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm);
+[solC, sysC] = computeSolNum2D_CHDG_upw(mesh, dofm);
+[solD, sysD] = computeSolNum2D_HDG_upw(mesh, dofm);
 
 disp('---------------------------------------------------------');
 
@@ -44,14 +44,13 @@ disp('---------------------------------------------------------');
 % writeField2D(dofm, mesh, solA-solB, 'output/diff.pos', "diff");
 % system('gmsh output/mesh.msh output/solNumA.pos output/solNumB.pos output/diff.pos&');
 
-diff = solA-solB;
-max(abs(diff))
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+iMax = 2000; iOut = 200; restart = 10;
+tol = 1e-100;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% iMax = 10000; iOut = 200; restart = 10;
-% tol = 1e-100;
-% 
+
 % disp(['--- Solver Richardson']);
 % alpha = 1;
 % [resRedVec2A, resPhyVec2A, error2A] = solverRichardsonRedu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, alpha, @computeNormError2D_DG_Marmousi);
@@ -64,23 +63,25 @@ max(abs(diff))
 % writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% disp('--- Solver CGNR');
-% [resRedVec1A, resPhyVec1A, error1A] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysA, solA, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
-% [resRedVec1B, resPhyVec1B, error1B] = solverCGNRredu_DG_Marmousi(mesh, dofm, sysB, solB, tol, iMax, iOut, @computeNormError2D_DG_Marmousi);
-% 
-% iterVec = (0:iOut:iMax)';
-% 
-% rezu1A = ["iter" "resRed" "resPhy" "error"];
-% rezu2A = [iterVec resRedVec1A, resPhyVec1A, error1A];
-% name = sprintf('output/historyCGNR_CHDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
-% writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
-% 
-% rezu1B = ["iter" "resRed" "resPhy" "error"];
-% rezu2B = [iterVec resRedVec1B, resPhyVec1B, error1B];
-% name = sprintf('output/historyCGNR_HDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
-% writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
-% 
+
+disp('--- Solver CGNR');
+[resRedVec1A, resPhyVec1A, error1A] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, solA);
+[resRedVec1B, resPhyVec1B, error1B] = solverCGNRredu_DG(mesh, dofm, sysB, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, solB);
+[resRedVec1C, resPhyVec1C, error1C] = solverCGNRredu_DG(mesh, dofm, sysC, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, solC);
+[resRedVec1D, resPhyVec1D, error1D] = solverCGNRredu_DG(mesh, dofm, sysD, tol, iMax, iOut, @computeNormError2D_DG_heterogeneous, solD);
+
+iterVec = (0:iOut:iMax)';
+
+rezu1A = ["iter" "resRed" "resPhy" "error"];
+rezu2A = [iterVec resRedVec1A, resPhyVec1A, error1A];
+name = sprintf('output/historyCGNR_CHDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
+writematrix([rezu1A ; rezu2A], name, 'Delimiter', 'semi');
+
+rezu1B = ["iter" "resRed" "resPhy" "error"];
+rezu2B = [iterVec resRedVec1B, resPhyVec1B, error1B];
+name = sprintf('output/historyCGNR_HDG_0thorder_%s_p%i_omega%g.csv', benchmark, degree, omega);
+writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
+
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % disp('--- Solver GMRES');
@@ -164,48 +165,54 @@ max(abs(diff))
 % writematrix([rezu1B ; rezu2B], name, 'Delimiter', 'semi');
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% figure;
-% hold off
-% semilogy(iterVec,resPhyVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
-% hold on
-% semilogy(iterVec,resPhyVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
-% semilogy(iterVec,resPhyVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% semilogy(iterVec,resPhyVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-% semilogy(iterVec,resPhyVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% xlabel('Iteration');
-% ylabel('Norm physical residual');
-% axis([0 iMax 1e-16 1]);
-% 
-% figure;
-% hold off
-% semilogy(iterVec,error1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
-% hold on
-% semilogy(iterVec,error3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
-% semilogy(iterVec,error1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% semilogy(iterVec,error3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-% semilogy(iterVec,error2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% xlabel('Iteration');
-% ylabel('Relative error');
-% axis([0 iMax 1e-16 1]);
-% 
-% figure;
-% hold off
-% semilogy(iterVec,resRedVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
-% hold on
-% semilogy(iterVec,resRedVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
-% semilogy(iterVec,resRedVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
-% semilogy(iterVec,resRedVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
-% semilogy(iterVec,resRedVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% xlabel('Iteration');
-% ylabel('Norm reduced residual');
-% axis([0 iMax 1e-16 1]);
+
+figure;
+hold off
+semilogy(iterVec,resPhyVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
+hold on
+%semilogy(iterVec,resPhyVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
+semilogy(iterVec,resPhyVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+%semilogy(iterVec,resPhyVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+%semilogy(iterVec,resPhyVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
+semilogy(iterVec,resPhyVec1C,'--xb','MarkerFaceColor','b','DisplayName','CHDG (upw) - CGNR');
+semilogy(iterVec,resPhyVec1D,'--xk','MarkerFaceColor','r','DisplayName','HDG (upw) - CGNR');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
+ylabel('Norm physical residual');
+axis([0 iMax 1e-16 1]);
+
+figure;
+hold off
+semilogy(iterVec,error1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
+hold on
+%semilogy(iterVec,error3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
+semilogy(iterVec,error1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+%semilogy(iterVec,error3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+%semilogy(iterVec,error2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
+semilogy(iterVec,error1C,'--xb','MarkerFaceColor','b','DisplayName','CHDG (upw) - CGNR');
+semilogy(iterVec,error1D,'--xk','MarkerFaceColor','r','DisplayName','HDG (upw) - CGNR');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
+ylabel('Relative error');
+axis([0 iMax 1e-16 1]);
+
+figure;
+hold off
+semilogy(iterVec,resRedVec1A,'-ob','MarkerFaceColor','b','DisplayName','CHDG (0th-order) - CGNR');
+hold on
+%semilogy(iterVec,resRedVec3A,'-ob','MarkerFaceColor','w','DisplayName','CHDG (0th-order) - GMRES');
+semilogy(iterVec,resRedVec1B,'-or','MarkerFaceColor','r','DisplayName','HDG - CGNR');
+%semilogy(iterVec,resRedVec3B,'-or','MarkerFaceColor','w','DisplayName','HDG - GMRES');
+%semilogy(iterVec,resRedVec2A,'-xb','MarkerFaceColor','w','DisplayName','CHDG (0th order) - Richardson');
+semilogy(iterVec,resRedVec1C,'--xb','MarkerFaceColor','b','DisplayName','CHDG (upw) - CGNR');
+semilogy(iterVec,resRedVec1D,'--xk','MarkerFaceColor','r','DisplayName','HDG (upw) - CGNR');
+box on;
+grid on;
+legend('Location','southwest');
+xlabel('Iteration');
+ylabel('Norm reduced residual');
+axis([0 iMax 1e-16 1]);

@@ -7,7 +7,7 @@ function [normErr, normSol] = computeNormError2D_DG_heterogeneous(mesh, dofm, ve
 global eta c
 
 % Quadrature
-degreeQ = 4*dofm.degree;
+degreeQ = 3*dofm.degree;
 [uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
 
 % Shape functions (f, dfdu, dfdv)
@@ -52,7 +52,7 @@ for tri=1:mesh.numTri
     solVyQ = shapeOrQ * vecSol(dofVy);
 
     % Reference solution (and derivatives)
-    if (exist('vecRef','var'))
+    if (exist('vecRef','var') && ~isempty(vecRef))
         refQ   = shapeOrQ * vecRef(dofU);
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);

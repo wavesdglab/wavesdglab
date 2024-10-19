@@ -1,5 +1,5 @@
-clear all;
-%close all;
+clear;
+close;
 
 global omega k c1 c2 rho1 rho2 h1 h2
 
@@ -17,8 +17,6 @@ switch benchmark
 end
 
 degree = 3;
-BASIS = 0;
-PREC = 1;
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -39,16 +37,35 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution
-% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 1);
-% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, 2);
-[solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm, PREC);
-% [solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0, PREC);
-% [solA, sysA] = computeSolNum2D_HDG_upw(mesh, dofm, 0, PREC);
+% Compute numerical solution/error
 
-% Compute numerical error
+% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, 1);
+% errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+% 
+% [solA, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, 2);
+% errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+
+[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm);
 errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
-disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.8e')]);
+
+[solA, sysA] = computeSolNum2D_CHDG_upw(mesh, dofm);
+errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.8e')]);
+
+% [solA, sysA] = computeSolNum2D_HDG_sym(mesh, dofm, 0);
+% errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
+
+[solA, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm);
+errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.8e')]);
+
+[solA, sysA] = computeSolNum2D_HDG_upw(mesh, dofm);
+errorL2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.8e')]);
 
 % Compute projection solution/error
 solP = computeSolProjL2_2D_DG(mesh, dofm);

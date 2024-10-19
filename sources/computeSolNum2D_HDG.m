@@ -214,8 +214,8 @@ for tri=1:mesh.numTri
         matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) + ny*matM_IIel;
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
         matIGel(dofLocP,:) = -tau * matM_IGel;
-        matIGel(dofLocU,:) =  nx  * matM_IGel;
-        matIGel(dofLocV,:) =  ny  * matM_IGel;
+        matIGel(dofLocU,:) = nx * matM_IGel;
+        matIGel(dofLocV,:) = ny * matM_IGel;
         
         % -----------------------------------------------------------------
         % Auxiliary equations

@@ -1,8 +1,8 @@
-% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% Copyright (C) 2023-2024, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, PREC)
+function [solI, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, FLUX)
 
 % -------------------------------------------------------------------------
 % Build system
@@ -22,8 +22,8 @@ degreeQ = 2*dofm.degree;
 [uTriQ, vTriQ, weightsTriQ] = quadratureGaussTRI(degreeQ);
 
 % Shape functions and derivatives (reference space)
-shapePhyLinQ = functionsShapeLIN(uLinQ, dofm.degree);
-shapePhyTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+shapeRefLinQ = functionsShapeLIN(uLinQ, dofm.degree);
+shapeRefTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 [shapeTriDuQ, shapeTriDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
 
 % Global matrices
@@ -76,7 +76,7 @@ for tri=1:mesh.numTri
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
 
     % Shape functions and derivatives with orientation (physical space)
-    shapePhyQ = shapePhyTriQ * orientation;
+    shapePhyQ = shapeRefTriQ * orientation;
     shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
 
@@ -135,28 +135,19 @@ for tri=1:mesh.numTri
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
 
         % Shape functions (physical space)
-        shapePhyQ = shapePhyLinQ * orientation;
+        shapePhyQ = shapeRefLinQ * orientation;
         shapeAuxQ = shapePhyQ;
 
         % Mass matrices (physical space)
-        matM_IIel = shapePhyQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_IGel = shapePhyQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
-        matM_GIel = shapeAuxQ' * (weightsLinQ .* shapePhyQ) * Jdxdu;
-        matM_GGel = shapeAuxQ' * (weightsLinQ .* shapeAuxQ) * Jdxdu;
+        weightsQ = weightsLinQ .* Jdxdu;
+        matM_IIel = shapePhyQ' * (weightsQ .* shapePhyQ);
+        matM_IGel = shapePhyQ' * (weightsQ .* shapeAuxQ);
+        matM_GIel = shapeAuxQ' * (weightsQ .* shapePhyQ);
+        matM_GGel = shapeAuxQ' * (weightsQ .* shapeAuxQ);
 
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-
-        % Physical coefficients
-        triNeigh = mesh.mapTriToTri(tri,fac);
-        if (triNeigh>0)
-            etaF = sqrt(eta(tri)*eta(triNeigh))
-            kF = sqrt(k(tri)*k(triNeigh));
-        else
-            etaF = eta(tri);
-            kF = k(tri);
-        end
 
         % -----------------------------------------------------------------
         % Physical equations
@@ -169,21 +160,47 @@ for tri=1:mesh.numTri
         dofLocI = [dofLocP, dofLocU, dofLocV];
 
         % Element matrices (local element-wise system)
-        matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1/etaF * matM_IIel;
-        matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) + nx * matM_IIel;
-        matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) + ny * matM_IIel;
-        matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
-        matIGel(dofLocP,:) = -1/etaF * matM_IGel;
-        matIGel(dofLocU,:) = nx * matM_IGel;
-        matIGel(dofLocV,:) = ny * matM_IGel;
+        switch FLUX
+
+            case 'UPW'
+
+                matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1/eta(tri) * matM_IIel;
+                matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) + nx * matM_IIel;
+                matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) + ny * matM_IIel;
+                matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
+                matIGel(dofLocP,:) = -1/eta(tri) * matM_IGel;
+                matIGel(dofLocU,:) = nx * matM_IGel;
+                matIGel(dofLocV,:) = ny * matM_IGel;
+
+            case 'SYM'
+
+                triNeigh = mesh.mapTriToTri(tri,fac);
+                if (triNeigh>0)
+                    etaF = sqrt(eta(tri)*eta(triNeigh));
+                else
+                    etaF = eta(tri);
+                end
+
+                matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1/etaF * matM_IIel;
+                matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) + nx * matM_IIel;
+                matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) + ny * matM_IIel;
+                matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
+                matIGel(dofLocP,:) = -1/etaF * matM_IGel;
+                matIGel(dofLocU,:) = nx * matM_IGel;
+                matIGel(dofLocV,:) = ny * matM_IGel;
+
+            otherwise
+                error('BAD FLUX.');
+        end
 
         % -----------------------------------------------------------------
         % Auxiliary equations
         % -----------------------------------------------------------------
 
-        matGGel = zeros(dofm.numDofPerLIN,dofm.numDofPerLIN);
-        matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-        rhsGel  = zeros(dofm.numDofPerLIN,1);
+        % Elemental matrices/vectors
+        matGGel = zeros(dofm.numDofPerLIN, dofm.numDofPerLIN);
+        matGIel = zeros(dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+        rhsGel  = zeros(dofm.numDofPerLIN, 1);
 
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
@@ -191,40 +208,58 @@ for tri=1:mesh.numTri
         if (triNeigh > 0)
 
             % Elemental matrices (interface condition)
-            matGGel = 0.5 * matM_GGel;
-            matGIel = - etaF/2 * [1/etaF * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+            switch FLUX
+                case 'UPW'
+                    matGGel = 0.5 * matM_GGel;
+                    matGIel = - eta(tri)*eta(triNeigh) / (eta(tri)+eta(triNeigh)) * [1/eta(tri) * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                case 'SYM'
+                    matGGel = 0.5 * matM_GGel;
+                    etaF = sqrt(eta(tri)*eta(triNeigh));
+                    matGIel = - etaF/2 * [1/etaF * matM_GIel, nx*matM_GIel, ny*matM_GIel];
+                otherwise
+                    error('BAD FLUX.');
+            end
 
         else
 
             % Source terms
-            [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
-            rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-            rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*kF*etaF);
-            rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*kF*etaF);
+            [solP, ~, ~, solU, solV] = mySourceSurface(xQ, yQ);
+            rhsPel = shapeAuxQ' * (weightsQ .* solP);
+            rhsNUel = shapeAuxQ' * (weightsQ .* (nx.*solU + ny.*solV));
 
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
 
             % Elemental matrices and RHS vectors (boundary conditions)
-            matGGel = matM_GGel;
-            switch BC
-                case 'DIR0'
-                case 'DIR'
-                    rhsGel = rhsPel;
-                case 'NEU'
-                    matGIel = - [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
-                    rhsGel = -etaF*(nx*rhsUel + ny*rhsVel);
-                case 'ABC'
-                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
-                    rhsGel = 0*(rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;
-                case 'ROB'
-                    matGIel = -1/2 * [matM_GIel, etaF*nx*matM_GIel, etaF*ny*matM_GIel];
-                    rhsGel = (rhsPel - etaF * (nx*rhsUel + ny*rhsVel)) / 2;
+            switch FLUX
+                case {'UPW','SYM'}
+                    matGGel = matM_GGel;
+                    switch BC
+                        case 'DIR0'
+                        case 'DIR'
+                            rhsGel = rhsPel;
+                        case 'NEU0'
+                            matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                        case 'NEU'
+                            matGIel = - [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                            rhsGel = -eta(tri)*rhsNUel;
+                        case 'ABC'
+                            matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                        case 'ROB'
+                            matGIel = -1/2 * [matM_GIel, eta(tri)*nx*matM_GIel, eta(tri)*ny*matM_GIel];
+                            rhsGel = (rhsPel - eta(tri)*rhsNUel) / 2;
+                        otherwise
+                            error('BAD BOUNDARY CONDITION.');
+                    end
                 otherwise
-                    error('BAD BOUNDARY CONDITION.');
+                    error('BAD FLUX.');
             end
         end
+
+        % -----------------------------------------------------------------
+        % Matrix assembling
+        % -----------------------------------------------------------------
 
         % Global ID for edge unknowns
         edgGlo = abs(mesh.mapTriToEdg(tri,fac));
@@ -234,10 +269,6 @@ for tri=1:mesh.numTri
             dofLocG(1) = 2;
             dofLocG(2) = 1;
         end
-
-        % -----------------------------------------------------------------
-        % Matrix assembling
-        % -----------------------------------------------------------------
 
         idLIN = (tri-1)*3*dofm.numDofPerLIN + (fac-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
         matIGx(:,idLIN) = dofGloI'*ones(1,size(dofGloG,2));
@@ -250,13 +281,6 @@ for tri=1:mesh.numTri
         matGGy(dofGloG,:) = ones(size(dofGloG,2),1)*dofGloG;
         matGGv(dofGloG,:) = matGGv(dofGloG,:) + matGGel(dofLocG,dofLocG);
         rhsG(dofGloG) = rhsG(dofGloG) + rhsGel(dofLocG);
-
-        % it works, but why? !!!!!!!!!!!
-        if triNeigh > 0
-            matGGvInv(dofGloG,:) = 1/2*inv(matGGel(dofLocG,dofLocG));
-        else
-            matGGvInv(dofGloG,:) = matGGvInv(dofGloG,:) + inv(matGGel(dofLocG,dofLocG));
-        end
     end
 
     % -------------------------------------------------------------------------
@@ -270,6 +294,12 @@ for tri=1:mesh.numTri
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
 
+end
+
+matGGvInv = zeros(numDofLIN, dofm.numDofPerLIN);
+for lin=1:mesh.numEdg
+    idLIN = (lin-1)*dofm.numDofPerLIN + (1:dofm.numDofPerLIN);
+    matGGvInv(idLIN,:) = inv(matGGv(idLIN,:));
 end
 
 matII    = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
@@ -332,17 +362,12 @@ sysA.matS = matGG - matGI*(matIIinv*matIG);
 sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
 
 % Physical system
-sysA.matPhy = matII - matIG*(sysA.matGGinv*matGI);
-sysA.rhsPhy = rhsI - matIG*(sysA.matGGinv*rhsG);
+sysA.matPhy = matII - matIG*(matGGinv*matGI);
+sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
 
 % Preconditioning
-if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = sysA.matGGinv;
-else
-    sysA.matP = 1;
-    sysA.matPinv = 1;
-end
+sysA.matP = matGG;
+sysA.matPinv = matGGinv;
 
 % Compute solution
 solG = sysA.matS\sysA.rhsS;

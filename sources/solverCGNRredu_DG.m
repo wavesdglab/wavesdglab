@@ -4,7 +4,7 @@
 
 % Preconditioned CGNR
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverCGNRredu_DG(mesh, dofm, sys, tol, iMax, iOut, computeError, xRef)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -39,7 +39,7 @@ rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = sqrt(rPhy'*rPhy);
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, xPhy);
+errorVec(1) = computeError(mesh, dofm, xPhy, xRef);
 fprintf('[%i] %g %g %g\n', 1, resRedVec(1), resPhyVec(1), errorVec(1));
 %%%%%%%
 
@@ -78,7 +78,7 @@ while(i <= iMax)
         resPhyNew = sqrt(rPhy'*rPhy);
         resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1) = resPhyNew/resPhyIni;
-        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy, xRef);
         fprintf('[%i] %g %g %g\n', i, resRedVec(i/iOut+1), resPhyVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%

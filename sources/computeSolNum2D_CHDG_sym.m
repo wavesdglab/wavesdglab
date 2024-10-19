@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, PREC, A)
+function [solI, sysA] = computeSolNum2D_CHDG_sym(mesh, dofm, A)
 
 global eta k edgTagToBC
 
@@ -81,7 +81,6 @@ rhsG = zeros(numDofFAC,1);
 rhsH = zeros(numDofFAC,1);
 rhsF = zeros(numDofFAC,1);
 
-tic
 for tri=1:mesh.numTri
 
     % ---------------------------------------------------------------------
@@ -389,7 +388,6 @@ for tri=1:mesh.numTri
     rhsI(dofGloI) = rhsIel;
 
 end
-toc
 
 % Sparse memory storage
 matII = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
@@ -416,8 +414,6 @@ matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 % -------------------------------------------------------------------------
 
 % Matrix partition
-disp('--- Matrix partition ---');
-tic
 X = matHF - matHH * (matFH \ matFF);
 Y = matHG - matHH * (matFH \ matFG);
 Z = X \ Y;
@@ -435,7 +431,6 @@ sysA.matGG = matGG + matGH * (T - U);
 % sysA.matGGinv = inv(sysA.matGG);
 sysA.rhsI = rhsI;
 sysA.rhsG = rhsG;
-toc
 
 sysA.matIIinv = sysA.matII;
 for tri=1:mesh.numTri
@@ -447,38 +442,20 @@ for tri=1:mesh.numTri
 end
 
 % Reduced system
-disp('--- Reduced system ---');
-tic
 sysA.matS = sysA.matGG - sysA.matGI*(sysA.matIIinv*sysA.matIG);
 sysA.rhsS = sysA.rhsG - sysA.matGI*(sysA.matIIinv*sysA.rhsI);
-toc
 
 % Physical system
-disp('--- Physical system ---');
-tic
 sysA.matPhy = sysA.matII - sysA.matIG*(sysA.matGG\sysA.matGI);
 sysA.rhsPhy = sysA.rhsI - sysA.matIG*(sysA.matGG\sysA.rhsG);
-toc
 
 % Preconditionning
-disp('--- Preconditionning ---');
-tic
-sysA.matGGinv = matGGinv;
-if (PREC == 1)
-    sysA.matP = matGG;
-    sysA.matPinv = matGGinv;
-else
-    sysA.matP = 1;
-    sysA.matPinv = 1;
-end
-toc
+sysA.matP = matGG;
+sysA.matPinv = matGGinv;
 
 % Compute direct solution
-disp('--- Compute direct solution ---');
-tic
 solG = sysA.matS\sysA.rhsS;
 sol = sysA.matII\(sysA.rhsI - sysA.matIG*solG);
 solI = sol(1:3*numDofTRI);
-toc
 
 end
