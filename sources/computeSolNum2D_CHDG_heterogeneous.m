@@ -167,6 +167,23 @@ for tri=1:mesh.numTri
         % Element matrices (local element-wise system)
         switch FLUX
 
+            case 'UPW0'
+
+                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matMel;
+                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matMel;
+                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/sqrt(eta(tri) + etaNeigh)                      * matMel;
+
+                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * nx * matMel;
+                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * nx * matMel;
+                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/sqrt(eta(tri) + etaNeigh)               * nx * matMel;
+
+                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * ny * matMel;
+                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
+                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * ny * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/sqrt(eta(tri) + etaNeigh)               * ny * matMel;
+
             case 'UPW'
 
                 matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matMel;
@@ -283,6 +300,8 @@ for tri=1:mesh.numTri
 
             % Elemental matrices (interface condition)
             switch FLUX
+                case {'UPW0'}
+                    matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
                 case {'UPW','UPW2'}
                     matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel];
                 case 'SYM'
@@ -316,6 +335,24 @@ for tri=1:mesh.numTri
 
             % Elemental matrices/vectors (boundary condition)
             switch FLUX
+                case {'UPW0'}
+                    switch BC
+                        case 'DIR0'
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                        case 'DIR'
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                            rhsGel = 2*rhsPel/sqrt(eta(tri) + etaNeigh);
+                        case 'NEU0'
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                        case 'NEU'
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                            rhsGel = -2*eta(tri)*rhsNUel/sqrt(eta(tri) + etaNeigh);
+                        case 'ABC'
+                        case 'ROB'
+                            rhsGel = (rhsPel - etaNeigh*rhsNUel)/sqrt(eta(tri) + etaNeigh);
+                        otherwise
+                            error('BAD BOUNDARY CONDITION.');
+                    end
                 case {'UPW','UPW2'}
                     switch BC
                         case 'DIR0'
@@ -414,6 +451,8 @@ for tri=1:mesh.numTri
 
         % Preconditionning matrix
         switch FLUX
+            case 'UPW0'
+                matPPel = matMel;
             case 'UPW'
                 matPPel = (eta(tri) + etaNeigh)*matMel;
             case 'UPW2'
