@@ -40,7 +40,7 @@ resPhyIni = sqrt(rPhy'*rPhy);
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
 errorVec(1) = computeError(mesh, dofm, xPhy, xRef);
-fprintf('[%i] %g %g %g\n', 1, resRedVec(1), resPhyVec(1), errorVec(1));
+fprintf('[%i] %g %g %g\n', 0, resRedVec(1), resPhyVec(1), errorVec(1));
 %%%%%%%
 
 flag = 0;

@@ -17,7 +17,8 @@ rrini = r'*r;
 
 resRedVec = zeros(iMax/iOut+1,1);
 resPhyVec = zeros(iMax/iOut+1,1);
-errorVec  = zeros(iMax/iOut+1,1);
+errorVec = zeros(iMax/iOut+1,1);
+normVec = zeros(iMax);
 
 %%%%%
 xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
@@ -40,10 +41,10 @@ while(i <= iMax)
     r = b-A*x;
     rrnew = r'*r;
 
-    normVec(i) = real(x'*(P*x));
-    xNew = x - Pinv*A*x;
-    normVec(i) = normVec(i) - real(xNew'*(P*xNew));
-
+    % Test of contraction
+    % normVec(i) = real(x'*(P*x));
+    % xNew = x - Pinv*A*x;
+    % normVec(i) = normVec(i) - real(xNew'*(P*xNew));
 
     %%%%%%%
     if(mod(i,iOut)==0)
