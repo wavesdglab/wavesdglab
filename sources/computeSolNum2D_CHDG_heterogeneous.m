@@ -172,17 +172,17 @@ for tri=1:mesh.numTri
                 matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 1/(eta(tri) + etaNeigh)                      * matMel;
                 matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matMel;
                 matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matMel;
-                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/sqrt(eta(tri) + etaNeigh)                      * matMel;
+                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 1/(eta(tri) + etaNeigh)                      * matMel / sqrt(eta(tri) + etaNeigh);
 
                 matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * nx * matMel;
                 matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * nx * matMel;
                 matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
-                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/sqrt(eta(tri) + etaNeigh)               * nx * matMel;
+                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * nx * matMel / sqrt(eta(tri) + etaNeigh);
 
                 matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + etaNeigh/(eta(tri) + etaNeigh)          * ny * matMel;
                 matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * nx * ny * matMel;
                 matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + etaNeigh*eta(tri)/(eta(tri) + etaNeigh) * ny * ny * matMel;
-                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/sqrt(eta(tri) + etaNeigh)               * ny * matMel;
+                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + eta(tri)/(eta(tri) + etaNeigh)               * ny * matMel / sqrt(eta(tri) + etaNeigh);
 
             case 'UPW'
 
@@ -289,6 +289,9 @@ for tri=1:mesh.numTri
 
         % Elemental matrices/vectors
         matGGel = matMel;
+        if strcmp(FLUX,'UPW0')
+            matGGel = matMel / (eta(tri) + etaNeigh);
+        end
         matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
         rhsGel = zeros(dofm.numDofPerLIN,1);
 
@@ -301,7 +304,7 @@ for tri=1:mesh.numTri
             % Elemental matrices (interface condition)
             switch FLUX
                 case {'UPW0'}
-                    matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                    matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel] / sqrt(eta(tri) + etaNeigh);
                 case {'UPW','UPW2'}
                     matGIel = [-matMel, eta(triNeigh)*nx*matMel, eta(triNeigh)*ny*matMel];
                 case 'SYM'
@@ -338,18 +341,18 @@ for tri=1:mesh.numTri
                 case {'UPW0'}
                     switch BC
                         case 'DIR0'
-                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel] / sqrt(eta(tri) + etaNeigh);
                         case 'DIR'
-                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
-                            rhsGel = 2*rhsPel/sqrt(eta(tri) + etaNeigh);
+                            matGIel = [matMel, eta(tri)*nx*matMel, eta(tri)*ny*matMel] / sqrt(eta(tri) + etaNeigh);
+                            rhsGel = 2*rhsPel / sqrt(eta(tri) + etaNeigh);
                         case 'NEU0'
-                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel];
                         case 'NEU'
-                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel]/sqrt(eta(tri) + etaNeigh);
-                            rhsGel = -2*eta(tri)*rhsNUel/sqrt(eta(tri) + etaNeigh);
+                            matGIel = [-matMel, -eta(tri)*nx*matMel, -eta(tri)*ny*matMel];
+                            rhsGel = -2*eta(tri)*rhsNUel;
                         case 'ABC'
                         case 'ROB'
-                            rhsGel = (rhsPel - etaNeigh*rhsNUel)/sqrt(eta(tri) + etaNeigh);
+                            rhsGel = rhsPel - etaNeigh*rhsNUel;
                         otherwise
                             error('BAD BOUNDARY CONDITION.');
                     end

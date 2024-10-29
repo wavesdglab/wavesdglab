@@ -235,7 +235,7 @@ hold off
 %semilogy(iterVec,error0A,'-xm','DisplayName','CHDG (SYM2) - Richardson');
 semilogy(iterVec,error0C,'-xb','DisplayName','CHDG (UPW) - Richardson');
 hold on
-semilogy(iterVec,error0C0,'-xb','DisplayName','CHDG (UPW0) - Richardson');
+semilogy(iterVec,error0C0,'-xr','DisplayName','CHDG (UPW0) - Richardson');
 semilogy(iterVec,error0C2,'-xg','DisplayName','CHDG (UPW2) - Richardson');
 
 % semilogy(iterVec,error1B ,'-ok','MarkerFaceColor','k','DisplayName','CHDG (SYM) - CGNR');
@@ -262,6 +262,16 @@ legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Relative error');
 axis([0 iMax 0.005 1]);
+
+
+figure(5);
+hold off
+semilogy(iterVec,resRedVecC,'-xb','DisplayName','CHDG (UPW) - Richardson');
+hold on
+semilogy(iterVec,resRedVecC0,'-xr','DisplayName','CHDG (UPW0) - Richardson');
+semilogy(iterVec,resRedVecC2,'-xg','DisplayName','CHDG (UPW2) - Richardson');
+
+
 
 % figure;
 % hold off
