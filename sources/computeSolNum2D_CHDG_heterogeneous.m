@@ -241,27 +241,6 @@ for tri=1:mesh.numTri
                 matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*matEtaF * ny * ny * matMel;
                 matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5*matEtaF      * ny * matMel;
 
-            case 'SYM3'
-
-                etaF = sqrt(eta(tri)*etaNeigh);
-                kF = sqrt(k(tri)*kNeigh);
-                matEtaF = etaF * matMel / (matMel + 0.5/(kF^2) * matKel);
-
-                matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5 *         (matEtaF\matMel);
-                matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5         * nx      * matMel;
-                matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5         * ny      * matMel;
-                matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5 *         (matEtaF\matMel);
-
-                matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5              * nx * matMel;
-                matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5*matEtaF * nx * nx * matMel;
-                matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5*matEtaF * nx * ny * matMel;
-                matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5              * nx * matMel;
-
-                matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5              * ny * matMel;
-                matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5*matEtaF * nx * ny * matMel;
-                matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5*matEtaF * ny * ny * matMel;
-                matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5              * ny * matMel;
-
             otherwise
                 error('BAD FLUX.');
         end
@@ -289,8 +268,6 @@ for tri=1:mesh.numTri
                     matGIel = [-1/etaF*matMel, nx*matMel, ny*matMel];
                 case 'SYM2'
                     matGIel = [-(matEtaF\matMel), nx*matMel, ny*matMel];
-                case 'SYM3'
-                    matGIel = [-matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
                 otherwise
                     error('BAD FLUX.');
             end
@@ -376,30 +353,6 @@ for tri=1:mesh.numTri
                         otherwise
                             error('BAD BOUNDARY CONDITION.');
                     end
-                case 'SYM3'
-                    switch BC
-                        case 'DIR0'
-                            matGIel = [matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
-                        case 'DIR'
-                            matGIel = [matMel, nx*matEtaF*matMel, ny*matEtaF*matMel];
-                            rhsGel = 2*rhsPel;
-                        case 'NEU0'
-                            matGIel = [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
-                        case 'NEU'
-                            matGIel = [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
-                            rhsGel = -2*matEtaF*rhsNUel;
-                        case 'ABC'
-                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
-                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
-                            matGIel = matEtaF*(matTmpM/matTmpP) * [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
-                        case 'ROB'
-                            matTmpP = sparse(eye(size(matEtaF,1))) + matEtaF/eta(tri);
-                            matTmpM = sparse(eye(size(matEtaF,1))) - matEtaF/eta(tri);
-                            matGIel = (matTmpM/matTmpP) * [-matMel, -nx*matEtaF*matMel, -ny*matEtaF*matMel];
-                            rhsGel  = matEtaF*(2/eta(tri)) * inv(matTmpP) * (rhsPel - eta(tri)*rhsNUel);
-                        otherwise
-                            error('BAD BOUNDARY CONDITION.');
-                    end
                 otherwise
                     error('BAD FLUX.');
             end
@@ -419,7 +372,7 @@ for tri=1:mesh.numTri
                     matPPel = (eta(tri) + etaNeigh)*matMel;
                 case 'UPW2'
                     matPPel = eta(tri)\matMel;
-                case {'SYM','SYM2','SYM3'}
+                case {'SYM','SYM2'}
                     matPPel = matMel;
                 otherwise
                     error('BAD FLUX.');

@@ -1,4 +1,4 @@
-function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(x,~)
+function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(x,y)
 
 souU = zeros(size(x));
 souDx = zeros(size(x));

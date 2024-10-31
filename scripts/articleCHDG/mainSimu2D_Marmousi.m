@@ -1,19 +1,14 @@
-clear all;
-%close all;
+clear;
+close;
 
 benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-freq = 5; % 30;
+freq = 30;
 omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
-
-%LREF = 1000;
-%CREF = 1000;
-%RHOREF = 1000;
-
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -27,28 +22,40 @@ writeCoef2D(mesh, rho, 'output/density.pos', "Density");
 system('output/mesh.msh gmsh output/velocity.pos output/density.pos&');
 
 % -------------------------------------------------------------------------
-% Compute solution and error
+% Compute solution
 % -------------------------------------------------------------------------
 
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG - Benchmark "' benchmark '"']);
 disp(['---------------------------------------------------------']);
-disp(['    omega               ' num2str(omega)]);
+disp(['    omega               ' num2str(omega/pi) '*pi']);
 disp(['    nLambda             ' num2str(nLambda)]);
 disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution/error
 disp('CHDG')
-[solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM');
+tic
+[solCHDG, sysCHDG] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM', 1);
+toc
+tic
+writeField2D(dofm, mesh, solCHDG, 'output/solCHDG.pos', "CHDG");
+toc
+
 disp('HDG')
-[solB, sysB] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
+tic
+[solHDG, sysHDG] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
+toc
+tic
+writeField2D(dofm, mesh, solHDG, 'output/solHDG.pos', "HDG");
+toc
+
+disp('Difference')
+tic
+writeField2D(dofm, mesh, solCHDG-solHDG, 'output/solDiff.pos', "diff");
+toc
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
-writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "CHDG");
-writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "HDG");
-system('gmsh output/mesh.msh output/velocity.pos output/density.pos output/solNumA.pos output/solNumB.pos&');
-%writeField2D(dofm, mesh, solA-solB, 'output/diff.pos', "diff");
-%system('gmsh output/mesh.msh output/solNumA.pos output/solNumB.pos output/diff.pos&');
+
+system('gmsh output/mesh.msh output/velocity.pos output/density.pos output/solCHDG.pos output/solHDG.pos output/solDiff.pos&');

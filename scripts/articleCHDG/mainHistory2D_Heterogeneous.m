@@ -7,45 +7,45 @@ degree = 3;
 tol = 1e-100;
 iMax = 1000;
 iOut = 50;
-PREC = 1;
+PREC = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; 
-
-% Benchmark 'Homogeneous + Open'
-benchmark = 'open_heterogeneous';
-omega = 15*pi; h1 = 1/16; h2 = h1;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-omega = 30*pi; h1 = 1/34; h2 = h1;
-run(benchmark,degree,PREC,tol,iMax,iOut);
+% % Benchmark 'Homogeneous + Open'
+% benchmark = 'open_heterogeneous';
+% omega = 15*pi; c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = h1;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+% omega = 30*pi; c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 1/34; h2 = h1;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
 
 % Benchmark 'Homogeneous + Cavity'
 benchmark = 'disk_heterogeneous';
-omega = 36; h1 = 0.065; h2 = h1;
+%omega = 36;    c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 0.065; h2 = h1;
+omega = 16.5;  c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 0.04; h2 = h1;
 run(benchmark,degree,PREC,tol,iMax,iOut);
-omega = 36.14; h1 = 0.055; h2 = h1;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-
-% Benchmark 'Heterogeneous + Open'
-benchmark = 'open_heterogeneous';
-omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 2; h1 = 1/16; h2 = 1/34;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
+%omega = 36.14; c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 0.055; h2 = h1;
+omega = 17;    c1 = 1; c2 = 1; rho1 = 1; rho2 = 1; h1 = 0.025; h2 = h1;
 run(benchmark,degree,PREC,tol,iMax,iOut);
 
-% Benchmark 'Heterogeneous + Cavity'
-benchmark = 'disk_heterogeneous';
-omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 3/2; h1 = 0.07; h2 = 0.06;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1; h1 = 0.1; h2 = 0.075;
-run(benchmark,degree,PREC,tol,iMax,iOut);
+% % Benchmark 'Heterogeneous + Open'
+% benchmark = 'open_heterogeneous';
+% omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 2; h1 = 1/16; h2 = 1/34;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+% omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+
+% % Benchmark 'Heterogeneous + Cavity'
+% benchmark = 'disk_heterogeneous';
+% omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 3/2; h1 = 0.07; h2 = 0.06;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+% omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1; h1 = 0.1; h2 = 0.075;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function run(benchmark,degree,PREC,tol,iMax,iOut)
 
-global h1 h2 k1 k2 eta1 eta2
+global k1 k2 eta1 eta2
 
 % Build mesh and dofManager
 mesh = setupBenchmark2D(benchmark);
@@ -94,11 +94,11 @@ disp(['    L2-Error (projSol)  ' num2str(normErrProj,'%1.2e')]);
 
 disp('---------------------------------------------------------');
 
-%writeField2D(dofm, mesh, solSym2, 'output/solNum.pos', "solNum");
-%writeField2D(dofm, mesh, solUpw, 'output/solNum.pos', "solNum");
-%system('gmsh output/solNum.pos&');
+% writeField2D(dofm, mesh, solSym2, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solUpw, 'output/solNum.pos', "solNum");
+% system('gmsh output/solNum.pos&');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 iterVec = (0:iOut:iMax)';
 labels = ["iter" "resRed" "resPhy" "error" "errorRef"];
