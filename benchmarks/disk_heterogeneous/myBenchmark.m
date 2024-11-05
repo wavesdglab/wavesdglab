@@ -9,7 +9,8 @@ edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'output/mesh.msh';
 linkGeo = append(fileparts(mfilename('fullpath')),'/disk.geo');
-system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ...
+    ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
