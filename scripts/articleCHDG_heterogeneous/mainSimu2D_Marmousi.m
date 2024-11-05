@@ -19,7 +19,6 @@ dofm = buildDofManager2D_DG(mesh, degree);
 global c rho
 writeCoef2D(mesh, c, 'output/velocity.pos', "Velocity [m/s]");
 writeCoef2D(mesh, rho, 'output/density.pos', "Density");
-system('output/mesh.msh gmsh output/velocity.pos output/density.pos&');
 
 % -------------------------------------------------------------------------
 % Compute solution
@@ -34,25 +33,15 @@ disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
 disp('CHDG')
-tic
 [solCHDG, sysCHDG] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM', 1);
-toc
-tic
 writeField2D(dofm, mesh, solCHDG, 'output/solCHDG.pos', "CHDG");
-toc
 
 disp('HDG')
-tic
 [solHDG, sysHDG] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
-toc
-tic
 writeField2D(dofm, mesh, solHDG, 'output/solHDG.pos', "HDG");
-toc
 
 disp('Difference')
-tic
 writeField2D(dofm, mesh, solCHDG-solHDG, 'output/solDiff.pos', "diff");
-toc
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
