@@ -1,5 +1,5 @@
-close all;
-clear all;
+%close all;
+clear;
 
 method = 'HDG';
 degree = 3;

@@ -73,7 +73,7 @@ for tri=1:mesh.numTri
     % solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
     
     % Reference solution (and derivatives)
-    if (exist('vecRef','var'))
+    if (exist('vecRef','var') && ~isempty(vecRef))
         refQ = shapeOrQ * vecRef(dofm.locToGloTRI(tri,:));
         % refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
         % refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));

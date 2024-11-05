@@ -1,5 +1,5 @@
-close all;
-clear all;
+%close all;
+clear;
 
 global k h
 
@@ -69,7 +69,7 @@ disp(['---------------------------------------------------------']);
 
 disp(['--- Solver Richardson']);
 alpha = 1;
-[resRedVec, resPhyVec, error0] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG);
+[resRedVec, resPhyVec, error0] = solverRichardsonRedu_DG(mesh, dofm, sysA, tol, iMax, iOut, alpha, @computeNormError2D_DG, []);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error0));
@@ -82,7 +82,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNR']);
-[resRedVec, resPhyVec, error1] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+[resRedVec, resPhyVec, error1] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error1));
@@ -95,7 +95,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNE']);
-[resRedVec, resPhyVec, error2] = solverCGNEredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+[resRedVec, resPhyVec, error2] = solverCGNEredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error2));
@@ -108,7 +108,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-[resRedVec, resPhyVec, error3] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
+[resRedVec, resPhyVec, error3] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error3));

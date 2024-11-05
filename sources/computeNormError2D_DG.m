@@ -73,13 +73,12 @@ for tri=1:mesh.numTri
     solVyQ = shapeOrQ * vecSol(dofVy);
     
     % Reference solution (and derivatives)
-    if (exist('vecRef','var'))
+    if (exist('vecRef','var') && ~isempty(vecRef))
         refQ = shapeOrQ * vecRef(dofU);
         refVxQ = shapeOrQ * vecRef(dofVx);
         refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        refQ = mySol(xQ, yQ);
-        [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+        [refQ, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     end
     
     % Error fields
