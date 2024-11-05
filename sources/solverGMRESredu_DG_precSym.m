@@ -1,10 +1,10 @@
-% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% Copyright (C) 2023-2024, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
 % GMRES with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverGMRESredu_DG_restart(mesh, dofm, sys, tol, iRestart, iMax, iOut, computeError, xRef)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverGMRESredu_DG_precSym(mesh, dofm, sys, tol, iRestart, iMax, iOut, computeError, xRef)
 
 A = sys.matS;
 b = sys.rhsS;
