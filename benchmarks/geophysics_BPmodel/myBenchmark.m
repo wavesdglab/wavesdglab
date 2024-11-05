@@ -8,7 +8,7 @@ global omega nLambda
 
 myData();
 linkMsh = 'output/mesh.msh';
-linkGeo = 'benchmarks/geophysics_BPmodel/myGeometry.geo';
+linkGeo = append(fileparts(mfilename('fullpath')),'/myGeometry.geo');
 system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega/(2*pi)) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
 mesh = readMesh2D(linkMsh);
 

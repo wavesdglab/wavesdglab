@@ -1,4 +1,4 @@
-function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
+function [solU, solDx, solDy, solVx, solVy] = mySol(x,y)
 
 global k;
 
@@ -7,7 +7,6 @@ global k;
 
 theta = 4*pi/10;
 solU = -exp(1i*k*(cos(theta)*x+sin(theta)*y));
-solF = 0*x;
 solDx = -1i*k*cos(theta) * exp(1i*k*(cos(theta)*x+sin(theta)*y));
 solDy = -1i*k*sin(theta) * exp(1i*k*(cos(theta)*x+sin(theta)*y));
 solVx = 0*x;

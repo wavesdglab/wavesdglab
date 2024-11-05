@@ -8,8 +8,8 @@ BC = {'ROB', 'ROB', 'ROB', 'ROB'};
 edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'output/mesh.msh';
-linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
+linkGeo = append(fileparts(mfilename('fullpath')),'/open_heterogeneous.geo');
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------

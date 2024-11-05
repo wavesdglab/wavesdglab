@@ -8,8 +8,8 @@ BC = {'DIR'};
 edgTagToBC = containers.Map(edgTag,BC);
 
 linkMsh = 'output/mesh.msh';
-linkGeo = 'benchmarks/disk_heterogeneous/disk.geo';
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
+linkGeo = append(fileparts(mfilename('fullpath')),'/disk.geo');
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------

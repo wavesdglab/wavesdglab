@@ -1,4 +1,4 @@
-function [solU, solDx, solDy, solVx, solVy] = mySol(x,y)
+function val = mySourceVolume(x,~)
 
 global k1 k2 k3 eta1 eta2 eta3
 
@@ -39,10 +39,6 @@ if Y==-0.25
     eta=eta3;
 end
 
-solU = zeros(size(x));
-solDx = zeros(size(x));
-solDy = zeros(size(x));
-solVx = 1/(1i*k*eta) * solDx;
-solVy = 1/(1i*k*eta) * solDy;
+val = eta*exp(-(4*k/pi)^2*((x-x0).^2+(y-y0).^2));
 
 end

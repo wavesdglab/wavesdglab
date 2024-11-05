@@ -30,23 +30,23 @@ switch PML_TYPE
         if(isempty(LpmlX)) LpmlX = 0.2; end
         if(isempty(LpmlY)) LpmlY = 0.2; end
         if(isempty(Rdisk)) Rdisk = 1; end
-        
+
         linkMsh = 'output/mesh.msh';
-        linkGeo = 'benchmarks/scattering_disk_penetrable/scattDiskPenetrable_RectangularPML.geo';
+        linkGeo = append(fileparts(mfilename('fullpath')),'/scattDiskPenetrable_RectangularPML.geo');
         system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ...
             ' -setnumber LdomX ' num2str(LdomX) ' -setnumber LdomY ' num2str(LdomY) ...
             ' -setnumber LpmlX ' num2str(LpmlX) ' -setnumber LpmlY ' num2str(LpmlY) ...
             ' -setnumber Rdisk ' num2str(Rdisk)]);
         mesh = readMesh2D(linkMsh);
-        
+
     case 'Circular'
-        
+
         if(isempty(Rdisk)) Rdisk = 1; end
         if(isempty(Rdom)) Rdom = 1.5; end
         if(isempty(Rpml)) Rpml = 0.5; end
-        
+
         linkMsh = 'output/mesh.msh';
-        linkGeo = 'benchmarks/scattering_disk_penetrable/scattDiskPenetrable_CircularPML.geo';
+        linkGeo = append(fileparts(mfilename('fullpath')),'/scattDiskPenetrable_CircularPML.geo');
         system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -clmax ' num2str(h) ' -clmin ' num2str(h) ...
             ' -setnumber Rdisk ' num2str(Rdisk) ...
             ' -setnumber Rdom ' num2str(Rdom) ...
