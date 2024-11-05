@@ -2,6 +2,9 @@ setup.m
 *~
 */*~
 */*/*~
+*.asv
+*/*.asv
+*/*/*.asv
 *.msh
 *.pos
 */*.msh
