@@ -61,7 +61,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
     
     % RHS function
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
+    rhsQ = mySourceVolume(xQ, yQ);
     
     % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
@@ -180,7 +180,7 @@ for edgBnd=1:mesh.numEdgBnd
     Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
     
     % Solution function
-    [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
+    [solQ, solDxQ, solDyQ] = mySourceSurface(xQ, yQ);
     dirQ = solQ;
     neuQ = normal(1)*solDxQ + normal(2)*solDyQ;
     
