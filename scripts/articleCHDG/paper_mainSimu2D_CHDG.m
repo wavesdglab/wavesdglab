@@ -20,14 +20,14 @@ switch benchmark
         k1 = omega / c1;
         k2 = omega / c2;
     case 'disk_heterogeneous'
-        omega = 10*pi; %10*pi;
-        h1 = 0.1;
-        h2 = 0.075;
+        omega = 36; %10*pi;
+        h1 = 0.065;
+        h2 = 0.065;
         tol = 1e-10; maxit = 1000; itout = 100;
         rho1 = 1;
         c1 = 1; 
         rho2 = 1;
-        c2 = 2/3;
+        c2 = 1;
         eta1 = rho1 * c1;
         eta2 = rho2 * c2;
         k1 = omega / c1;

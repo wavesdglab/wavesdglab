@@ -29,7 +29,10 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Reference solution
-    [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+%     [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+    [refQ] = mySourceSurface(xQ,yQ);
+    refVxQ = 0*refQ;
+    refVyQ = 0*refQ;
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
