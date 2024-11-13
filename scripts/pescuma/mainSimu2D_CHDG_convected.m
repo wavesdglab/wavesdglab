@@ -15,7 +15,7 @@ switch benchmark
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0;
+        M = 0.05;
         v0 = [M*c, 0];
 end
 degree = 3;
