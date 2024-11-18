@@ -15,13 +15,12 @@ switch benchmark
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0.05;
+        M = 0.1;
         v0 = [M*c, 0];
 end
 degree = 3;
 BASIS = 0;
-PREC = 1;
-A = 1;              % order of numerical fluxes: A=1 for 0th order, A=2 for 2nd order            
+PREC = 1;           
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -43,6 +42,7 @@ disp(['---------------------------------------------------------']);
 
 % Compute numerical solution
 [solA, sysA] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
+[solB, sysB] = computeSolNum2D_CHDG_convected(mesh, dofm, PREC);
 
 % Compute numerical error
 % errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
@@ -65,4 +65,10 @@ writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
 writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
 system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+% system('gmsh output/solNum.pos&');
+
+writeField2D(dofm, mesh, solB, 'output/solNum2.pos', "solNum");
+writeField2D(dofm, mesh, solP, 'output/solRef2.pos', "solRef");
+writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum2.pos', "errNum");
+system('gmsh output/solRef2.pos output/solNum2.pos output/errNum2.pos&');
 % system('gmsh output/solNum.pos&');

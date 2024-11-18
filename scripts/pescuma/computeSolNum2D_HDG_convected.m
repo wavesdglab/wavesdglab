@@ -1,11 +1,11 @@
 % Copyright (C) 2023, CNRS, Inria, ENSTA Paris
 % See the LICENSE.txt file in the root directory for license information
-% Author: Axel Modave
+% Author: Axel Modave, Simone Pescuma
 
 function [solI, sysA] = computeSolNum2D_HDG_convected(mesh, dofm, BASIS, PREC)
 
 global edgTagToBC
-global eta k rho c v0 M
+global omega eta k rho c v0
 
 numDofTRI = dofm.numDofTRI;
 numDofLIN = dofm.numDofLIN;
@@ -92,7 +92,7 @@ for tri=1:mesh.numTri
         -matDYel                                                               zeros(numDofPerTRI,numDofPerTRI)                     -1i*k*eta*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))];
    
     rhsIel = [
-        -1/(1i*k*eta)*rhsPel  ;
+        -1/(1i*omega*rho)*rhsPel  ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
     
