@@ -224,7 +224,7 @@ for tri=1:mesh.numTri
                     rhsGel = 0*rhsPel;
                 case 'ROB'
                     matGIel = 0*[matMel, matMel, matMel];
-                    rhsGel = (c-v0(1)*nx-v0(2)*ny) / c * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel));  
+                    rhsGel = (c-v0(1)*nx-v0(2)*ny) / c * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel)); 
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

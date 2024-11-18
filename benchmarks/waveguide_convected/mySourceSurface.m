@@ -1,12 +1,30 @@
 function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(x,y)
 
-global k l M rho c omega;
+global M rho c omega;
 
 souU = zeros(size(x));
 souDx = zeros(size(x));
 souDy = zeros(size(x));
 souVx = zeros(size(x));
 souVy = zeros(size(x));
+
+% souU = exp(1i*k*x);
+
+% souU = k^2*exp(1i*2*k*M/(M^2-1)*x);
+
+% souU = exp(1i*k/(M+1)*x);
+
+souU = exp(1i*omega/c*x);
+% souVx = 1/(rho*c)*(1+(1-M)*(exp(1i*omega/c*x)-1));
+souVx = 1/(rho*c)*exp(1i*omega/(c*M)*x)-M/(M-1)*exp(1i*omega/c*x)+M/(M-1)*exp(1i*omega/(c*M)*x);
+
+
+A = (1+M)/2;
+B = (1-M)/2;
+souU = A*exp(1i*omega/(c*(1+M))*x)+B*exp(-1i*omega/(c*(1-M))*x);
+
+
+
 
 % J = 8;
 % N0 = floor(k*l/(pi*sqrt(1-M^2)));
@@ -46,13 +64,6 @@ souVy = zeros(size(x));
 %     end
 % end
 
-% souU = exp(1i*k*x);
 
-% souU = k^2*exp(1i*2*k*M/(M^2-1)*x);
-
-% souU = exp(1i*k/(M+1)*x);
-
-souU = exp(1i*k*x);
-souVx = 1/(rho*c)*(1+(1-M)*(exp(1i*omega/c*x)-1));
 
 end
