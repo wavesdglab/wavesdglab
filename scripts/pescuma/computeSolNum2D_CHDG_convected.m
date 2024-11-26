@@ -93,9 +93,9 @@ for tri=1:mesh.numTri
     rhsPel = shapeTriQ' * (weightsTriQ .* rhsQ) * detJdxdu;
 
     matIIel = [
-        -1i*omega/(rho*c^2)*matMel-1/(rho*c^2)*matDXel*v0(1)-1/(rho*c^2)*matDYel*v0(2)   -matDXel                                                 -matDYel                         ;
-        -matDXel                                                                         -1i*omega*rho*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))   zeros(numDofPerTRI,numDofPerTRI) ;
-        -matDYel                                                                         zeros(numDofPerTRI,numDofPerTRI)                         -1i*omega*rho*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))];
+        -1i*omega/(rho*c^2)*matMel-1/(rho*c^2)*(matDXel*v0(1)+matDYel*v0(2))   -matDXel                                                 -matDYel                         ;
+        -matDXel                                                               -1i*omega*rho*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))   zeros(numDofPerTRI,numDofPerTRI) ;
+        -matDYel                                                               zeros(numDofPerTRI,numDofPerTRI)                         -1i*omega*rho*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))];
 
     rhsIel = [
         -1/(1i*omega*rho)*rhsPel ;
@@ -218,13 +218,13 @@ for tri=1:mesh.numTri
                     rhsGel = - 2 * rho * (c-v0(1)*nx-v0(2)*ny) * (nx*rhsUel + ny*rhsVel);
                 case 'NEU0'
                     matGIel = - (c-v0(1)*nx-v0(2)*ny) / c * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = 0*rhsUel + 0*rhsVel;
+                    rhsGel = 0 * rhsUel + 0 * rhsVel;
                 case 'ABC'
-                    matGIel = 0*[matMel, matMel, matMel];
-                    rhsGel = 0*rhsPel;
+                    matGIel = 0 * [matMel, matMel, matMel];
+                    rhsGel = 0 * rhsPel;
                 case 'ROB'
-                    matGIel = 0*[matMel, matMel, matMel];
-                    rhsGel = (c-v0(1)*nx-v0(2)*ny) / c * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel)); 
+                    matGIel = 0 * [matMel, matMel, matMel];
+                    rhsGel = (c-v0(1)*nx-v0(2)*ny) / c * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end

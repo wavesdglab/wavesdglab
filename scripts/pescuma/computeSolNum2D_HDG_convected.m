@@ -202,8 +202,6 @@ for tri=1:mesh.numTri
             % Source terms
             [solQ, ~, ~, solVxQ, solVyQ] = mySourceSurface(xQ,yQ);
             rhsPel = shapeAuxQ' * (weightsLinQ .* solQ) * Jdxdu;
-%             rhsUel = shapeAuxQ' * (weightsLinQ .* solDxQ) * Jdxdu / (1i*k*eta);    % valid only for Helmholtz 
-%             rhsVel = shapeAuxQ' * (weightsLinQ .* solDyQ) * Jdxdu / (1i*k*eta);    % valid only for Helmholtz
             rhsUel = shapeAuxQ' * (weightsLinQ .* solVxQ) * Jdxdu;
             rhsVel = shapeAuxQ' * (weightsLinQ .* solVyQ) * Jdxdu;
             

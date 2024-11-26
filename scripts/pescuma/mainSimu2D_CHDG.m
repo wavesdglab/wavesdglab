@@ -9,7 +9,7 @@ global eta3 k3 c3 rho3
 % for omega=22:0.1:62
    
 % Setup benchmark and parameters
-benchmark = 'disk_heterogeneous';
+benchmark = 'waveguide_convected';
 switch benchmark
     case 'open'
         k = 15*pi; %15*pi;
