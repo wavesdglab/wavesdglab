@@ -40,22 +40,22 @@ disp(['    degree              ' num2str(degree)]);
 disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
-% Compute numerical solution
+% Compute numerical and projection solutions
 [solA, sysA] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
 [solB, sysB] = computeSolNum2D_CHDG_convected(mesh, dofm, PREC);
-
-% Compute numerical error
-% errorL2_A = computeNormError2D_DG_ALL(mesh, dofm, solA);
-
-% errorL2 = errorL2_A;
-
-% Compute projection solution
 solP = computeSolProjL2_2D_DG(mesh, dofm);
-% errorProjL2 = computeNormError2D_DG_ALL(mesh, dofm, solP);
-% 
-% disp(['    L2-Error (numSol)   ' num2str(errorL2,'%1.2e')]);
-% disp(['    L2-Error (projSol)  ' num2str(errorProjL2,'%1.2e')]);
-% disp('---------------------------------------------------------');
+
+% Compute numerical and projection errors
+errorL2_A = computeNormError2D_DG_convected(mesh, dofm, solA);
+errorL2_B = computeNormError2D_DG_convected(mesh, dofm, solB);
+errorProjL2 = computeNormError2D_DG_convected(mesh, dofm, solP);
+
+% Display numerical and projection errors
+disp('---------------------------------------------------------');
+disp(['    L2-Error (numSol)  HDG   ' num2str(errorL2_A,'%1.2e')]);
+disp(['    L2-Error (numSol)  CHDG  ' num2str(errorL2_B,'%1.2e')]);
+disp(['    L2-Error (projSol)       ' num2str(errorProjL2,'%1.2e')]);
+disp('---------------------------------------------------------');
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
