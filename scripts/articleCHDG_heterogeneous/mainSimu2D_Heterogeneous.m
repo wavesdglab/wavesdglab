@@ -6,20 +6,20 @@ degree = 3;
 PREC = 0;
 
 benchmark = 'open_heterogeneous';
-omega = 15*pi; c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1; h1 = 1/16; h2 = h1;
-run(benchmark,degree,PREC);
-omega = 30*pi; c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1; h1 = 1/34; h2 = h1;
-run(benchmark,degree,PREC);
+% omega = 15*pi; c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1; h1 = 1/16; h2 = h1;
+% run(benchmark,degree,PREC);
+% omega = 30*pi; c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1; h1 = 1/34; h2 = h1;
+% run(benchmark,degree,PREC);
 omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 2; h1 = 1/16; h2 = 1/34;
 run(benchmark,degree,PREC);
 omega = 15*pi; c1 = 1; c2 = 1/2; rho1 = 1; rho2 = 1; h1 = 1/16; h2 = 1/34;
 run(benchmark,degree,PREC);
 
 benchmark = 'disk_heterogeneous';
-omega = 16.5;  c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1;   h1 = 0.04; h2 = h1;
-run(benchmark,degree,PREC);
-omega = 17;    c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1;   h1 = 0.025; h2 = h1;
-run(benchmark,degree,PREC);
+% omega = 16.5;  c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1;   h1 = 0.04; h2 = h1;
+% run(benchmark,degree,PREC);
+% omega = 17;    c1 = 1; c2 = 1;   rho1 = 1; rho2 = 1;   h1 = 0.025; h2 = h1;
+% run(benchmark,degree,PREC);
 omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 3/2; h1 = 1/12;  h2 = 1/18;
 run(benchmark,degree,PREC);
 omega = 10*pi; c1 = 1; c2 = 2/3; rho1 = 1; rho2 = 1;   h1 = 1/12;  h2 = 1/18;
@@ -65,35 +65,35 @@ disp(['---------------------------------------------------------']);
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'UPW', PREC);
 normErrUpw = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
 disp(['    L2-Error (CHDG UPW)   ' num2str(normErrUpw,'%1.2e')]);
-specRad = computeEigenval(sysA);
-name = sprintf('output/specRad_CHDG_UPW_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
-writematrix(specRad, name, 'Delimiter', 'semi');
+%specRad = computeEigenval(sysA);
+%name = sprintf('output/specRad_CHDG_UPW_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
+%writematrix(specRad, name, 'Delimiter', 'semi');
 
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM', PREC);
 normErrSym = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
 disp(['    L2-Error (CHDG SYM)   ' num2str(normErrSym,'%1.2e')]);
-specRad = computeEigenval(sysA);
-name = sprintf('output/specRad_CHDG_SYM_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
-writematrix(specRad, name, 'Delimiter', 'semi');
+%specRad = computeEigenval(sysA);
+%name = sprintf('output/specRad_CHDG_SYM_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
+%writematrix(specRad, name, 'Delimiter', 'semi');
 
 [solA, sysA] = computeSolNum2D_CHDG_heterogeneous(mesh, dofm, 'SYM2', PREC);
 normErrSym2 = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
 disp(['    L2-Error (CHDG SYM2)  ' num2str(normErrSym2,'%1.2e')]);
-specRad = computeEigenval(sysA);
-name = sprintf('output/specRad_CHDG_SYM2_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
-writematrix(specRad, name, 'Delimiter', 'semi');
+%specRad = computeEigenval(sysA);
+%name = sprintf('output/specRad_CHDG_SYM2_%s_p%i_prec%i_k_%g_%g_eta_%g_%g.csv', benchmark, degree, PREC, k1, k2, eta1, eta2);
+%writematrix(specRad, name, 'Delimiter', 'semi');
 
-% [solA, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
-% normErrHdgSym = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
-% disp(['    L2-Error (HDG SYM)    ' num2str(normErrHdgSym,'%1.2e')]);
-% 
-% [solA, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'UPW');
-% normErrHdgUpw = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
-% disp(['    L2-Error (HDG UPW)    ' num2str(normErrHdgUpw,'%1.2e')]);
+[solA, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'SYM');
+normErrHdgSym = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (HDG SYM)    ' num2str(normErrHdgSym,'%1.2e')]);
 
-% solProj = computeSolProjL2_2D_DG(mesh, dofm);
-% normErrProj = computeNormError2D_DG_heterogeneous(mesh, dofm, solProj);
-% disp(['    L2-Error (projSol)  ' num2str(normErrProj,'%1.2e')]);
+[solA, sysA] = computeSolNum2D_HDG_heterogeneous(mesh, dofm, 'UPW');
+normErrHdgUpw = computeNormError2D_DG_heterogeneous(mesh, dofm, solA);
+disp(['    L2-Error (HDG UPW)    ' num2str(normErrHdgUpw,'%1.2e')]);
+
+solProj = computeSolProjL2_2D_DG(mesh, dofm);
+normErrProj = computeNormError2D_DG_heterogeneous(mesh, dofm, solProj);
+disp(['    L2-Error (projSol)  ' num2str(normErrProj,'%1.2e')]);
 disp('---------------------------------------------------------');
 
 % -------------------------------------------------------------------------
