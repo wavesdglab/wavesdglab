@@ -7,7 +7,7 @@ global omega k eta c rho h v0 M l;
 benchmark = 'waveguide_convected';
 switch benchmark
         case 'waveguide_convected'
-        omega = 15*pi;
+        omega = 5*pi;
         h = 1/25;
         l = 1;
         tol = 1e-10; maxit = 1000; itout = 50;
@@ -15,7 +15,7 @@ switch benchmark
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0.15;           % subsonic flow: 0<=M<1
+        M = -0.15;           % subsonic flow: 0<=M<1
         v0 = [M*c, 0];
 end
 degree = 3;
