@@ -5,7 +5,7 @@ benchmark = 'geophysics_marmousi';
 
 % Parameters
 global omega nLambda
-freq = 30; %30
+freq = 5; %30
 omega = 2*pi*freq;
 degree = 3;
 nLambda = 10/(degree+1);
@@ -35,16 +35,15 @@ disp(['    degree              ' num2str(degree)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical solution/error
-% disp('CHDG')
-% [solA, sysA] = computeSolNum2D_CHDG_Marmousi(mesh, dofm, PREC); % CHDG Sym-0
+disp('CHDG')
+[solA, sysA] = computeSolNum2D_CHDG_Marmousi(mesh, dofm, PREC); % CHDG Sym-0
 disp('HDG')
 [solB, sysB] = computeSolNum2D_HDG_Marmousi(mesh, dofm, PREC);  % HDG Sym-0
 
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
-% writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "CHDG");
+writeField2D(dofm, mesh, solA, 'output/solNumA.pos', "CHDG");
 writeField2D(dofm, mesh, solB, 'output/solNumB.pos', "HDG");
-% writeField2D(dofm, mesh, solA-solB, 'output/diff.pos', "diff");
-% system('gmsh output/solNumA.pos output/solNumB.pos output/diff.pos&');
-system('gmsh output/solNumB.pos&');
+writeField2D(dofm, mesh, solA-solB, 'output/diff.pos', "diff");
+system('gmsh output/solNumA.pos output/solNumB.pos output/diff.pos&');
