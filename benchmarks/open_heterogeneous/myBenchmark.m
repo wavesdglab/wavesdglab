@@ -7,9 +7,10 @@ edgTag = {1, 2, 3, 4};
 BC = {'ROB', 'ROB', 'ROB', 'ROB'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/open_heterogeneous/open_heterogeneous.msh';
-linkGeo = 'benchmarks/open_heterogeneous/open_heterogeneous.geo';
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
+linkMsh = 'output/mesh.msh';
+linkGeo = append(fileparts(mfilename('fullpath')),'/open_heterogeneous.geo');
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ...
+    ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
@@ -18,6 +19,11 @@ mesh = readMesh2D(linkMsh);
 
 % Physical parameters
 global omega c1 c2 rho1 rho2
+global k1 k2 eta1 eta2
+k1 = omega / c1;
+k2 = omega / c2;
+eta1 = rho1 * c1;
+eta2 = rho2 * c2;
 
 % Table for physical parameters
 global rho c eta k

@@ -15,8 +15,8 @@ shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
 
 normSolU2 = 0;
 normErrU2 = 0;
-% normSolV2 = 0;
-% normErrV2 = 0;
+normSolV2 = 0;
+normErrV2 = 0;
 for tri=1:mesh.numTri
     
     % Mapping
@@ -64,44 +64,37 @@ for tri=1:mesh.numTri
     shapeOrQ = shapeQ * orientation;
     
     dofU = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
-    % dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
-    % dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
     
     % Approximate solution (and derivatives)
     solQ = shapeOrQ * vecSol(dofU);
-    % solVxQ = shapeOrQ * vecSol(dofVx);
-    % solVyQ = shapeOrQ * vecSol(dofVy);
+    solVxQ = shapeOrQ * vecSol(dofVx);
+    solVyQ = shapeOrQ * vecSol(dofVy);
     
     % Reference solution (and derivatives)
-    if (exist('vecRef','var'))
+    if (exist('vecRef','var') && ~isempty(vecRef))
         refQ = shapeOrQ * vecRef(dofU);
-        % refVxQ = shapeOrQ * vecRef(dofVx);
-        % refVyQ = shapeOrQ * vecRef(dofVy);
+        refVxQ = shapeOrQ * vecRef(dofVx);
+        refVyQ = shapeOrQ * vecRef(dofVy);
     else
-        refQ = mySol(xQ, yQ);
-        % [refQ, ~, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
+        [refQ, ~, ~, refVxQ, refVyQ] = mySol(xQ, yQ);
     end
     
     % Error fields
     errQ = solQ(:) - refQ(:);
-    % errVxQ = solVxQ(:) - refVxQ(:);
-    % errVyQ = solVyQ(:) - refVyQ(:);
+    errVxQ = solVxQ(:) - refVxQ(:);
+    errVyQ = solVyQ(:) - refVyQ(:);
     
     % Error values
-    
     normSolU2 = normSolU2 + weights' * (refQ .* conj(refQ)) * detJdxdu;
     normErrU2 = normErrU2 + weights' * (errQ .* conj(errQ)) * detJdxdu;
-    % normSolV2 = normSolV2 + weights' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
-    % normErrV2 = normErrV2 + weights' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+    normSolV2 = normSolV2 + weights' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+    normErrV2 = normErrV2 + weights' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
     
 end
 
-normSol = sqrt(normSolU2);
-normErr = sqrt(normErrU2)/normSol;
-% normSol = sqrt(normSolU2 + normSolV2);
-% normErr = sqrt(normErrU2 + normErrV2)/normSol;
-
-normSol = normSolU;
-normErr = normErrU;
+normSol = sqrt(normSolU2 + normSolV2);
+normErr = sqrt(normErrU2 + normErrV2)/normSol;
 
 end

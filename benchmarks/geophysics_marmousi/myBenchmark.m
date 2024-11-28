@@ -2,18 +2,29 @@ function mesh = myBenchmark()
 
 global omega nLambda
 
+% Rescaling
+global LREF CREF RHOREF
+LREF = 1000;
+CREF = 1000;
+RHOREF = 1000;
+
+omega = omega / (LREF/CREF);
+
 % -------------------------------------------------------------------------
 % Mesh
 % -------------------------------------------------------------------------
 
 myData();
-linkMsh = 'benchmarks/geophysics_marmousi/myMesh.msh';
-linkGeo = 'benchmarks/geophysics_marmousi/myMesh.geo';
-system(['gmsh -2 ' linkGeo ' -o ' linkMsh ' -setnumber FREQ ' num2str(omega/(2*pi)) ' -setnumber N_LAMBDA ' num2str(nLambda)]);
+linkMsh = 'output/mesh.msh';
+linkGeo = append(fileparts(mfilename('fullpath')),'/myGeometry.geo');
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ...
+    ' -setnumber FREQ ' num2str(omega/(2*pi)) ...
+    ' -setnumber N_LAMBDA ' num2str(nLambda) ...
+    ' -setnumber LREF ' num2str(LREF)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
-% Boundary condition
+% Boundary conditions
 % -------------------------------------------------------------------------
 
 global edgTagToBC
@@ -50,6 +61,8 @@ Ix = 2301;
 Iy = 751;
 dx = 4; % meter
 dy = 4; % meter
+dx = dx/LREF;
+dy = dy/LREF;
 Lx = Ix*dx;
 Ly = Iy*dy;
 
@@ -57,13 +70,15 @@ fileVelocity = fopen('benchmarks/geophysics_marmousi/data/vp.bin');
 fileDensity = fopen('benchmarks/geophysics_marmousi/data/rho.bin');
 dataVelocity = fread(fileVelocity,[Iy Ix],'single');
 dataDensity = fread(fileDensity,[Iy Ix],'single');
+dataVelocity = dataVelocity/CREF;
+dataDensity = dataDensity/RHOREF;
 
 % Define tables of coefficients
-global rhoArray cArray etaArray kArray
-rhoArray = zeros(mesh.numTri,1);
-cArray = zeros(mesh.numTri,1);
-etaArray = zeros(mesh.numTri,1);
-kArray = zeros(mesh.numTri,1);
+global rho c eta k
+rho = zeros(mesh.numTri,1);
+c = zeros(mesh.numTri,1);
+eta = zeros(mesh.numTri,1);
+k = zeros(mesh.numTri,1);
 
 for tri = 1:mesh.numTri
     verTri = mesh.mapTriToVer(tri,:);
@@ -74,19 +89,19 @@ for tri = 1:mesh.numTri
     y = (V1(1,2)+V2(1,2)+V3(1,2))/3;
     i = floor(x/dx)+1;
     j = floor(-y/dy)+1;
-    cArray(tri) = dataVelocity(j,i);
-    rhoArray(tri) = dataDensity(j,i);
+    c(tri) = dataVelocity(j,i);
+    rho(tri) = dataDensity(j,i);
     
     i0 = ceil(x/dx)+1;
     i1 = floor(x/dx)+1;
     j0 = ceil(-y/dy)+1;
     j1 = floor(-y/dy)+1;
-    cArray(tri) = mean(dataVelocity([j0 j1], [i0 i1]),'all');
-    rhoArray(tri) = mean(dataDensity([j0 j1], [i0 i1]),'all');
-    %cArray(tri) = 5000;
-    %rhoArray(tri) = 1;
-    etaArray(tri) = rhoArray(tri) * cArray(tri);
-    kArray(tri) = omega / cArray(tri);
+    c(tri) = mean(dataVelocity([j0 j1], [i0 i1]),'all');
+    rho(tri) = mean(dataDensity([j0 j1], [i0 i1]),'all');
+    %c(tri) = 5000;
+    %rho(tri) = 1;
+    eta(tri) = rho(tri) * c(tri);
+    k(tri) = omega / c(tri);
 end
 
 xSou = mesh.coord(vertSou,1);

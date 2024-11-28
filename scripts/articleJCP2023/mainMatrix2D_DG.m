@@ -1,5 +1,5 @@
 %close all;
-clear all;
+clear;
 
 global k h
 

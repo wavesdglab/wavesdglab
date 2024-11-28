@@ -4,7 +4,7 @@
 
 % Richardson with symmetric preconditioning
 
-function [resRedVec, resPhyVec, errorVec, i, flag, xPhy] = solverRichardsonRedu_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError)
+function [resRedVec, resPhyVec, errorVec, i, flag, xPhy, normVec] = solverRichardsonRedu_DG(mesh, dofm, sys, tol, iMax, iOut, alpha, computeError, xRef)
 
 A = sys.matS;
 b = sys.rhsS;
@@ -15,9 +15,10 @@ x = zeros(size(A,2),1);
 r = b-A*x;
 rrini = r'*r;
 
-resRedVec = zeros(iMax/iOut+1,1); 
-resPhyVec = zeros(iMax/iOut+1,1); 
-errorVec  = zeros(iMax/iOut+1,1);
+resRedVec = zeros(iMax/iOut+1,1);
+resPhyVec = zeros(iMax/iOut+1,1);
+errorVec = zeros(iMax/iOut+1,1);
+normVec = zeros(iMax);
 
 %%%%%
 xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
@@ -25,21 +26,26 @@ rPhy = sys.rhsPhy - sys.matPhy*xPhy;
 resPhyIni = rPhy'*rPhy;
 resRedVec(1) = 1;
 resPhyVec(1) = 1;
-errorVec(1) = computeError(mesh, dofm, xPhy);
+errorVec(1) = computeError(mesh, dofm, xPhy, xRef);
 fprintf('[%i] %g %g\n', 0, resRedVec(1), errorVec(1));
 %%%%%
 
 flag = 0;
 i = 1;
 while(i <= iMax)
-    
+
     % xNew = Pinv * (P*x - A*x + b);
     % x = alpha*xNew + (1-alpha)*x;
-    
+
     x = alpha*Pinv*r + x;
     r = b-A*x;
     rrnew = r'*r;
-    
+
+    % Test of contraction
+    % normVec(i) = real(x'*(P*x));
+    % xNew = x - Pinv*A*x;
+    % normVec(i) = normVec(i) - real(xNew'*(P*xNew));
+
     %%%%%%%
     if(mod(i,iOut)==0)
         xPhy = sys.matIIinv*(sys.rhsI-sys.matIG*x);
@@ -47,11 +53,11 @@ while(i <= iMax)
         resPhyNew = rPhy'*rPhy;
         resRedVec(i/iOut+1) = sqrt(rrnew/rrini);
         resPhyVec(i/iOut+1) = sqrt(resPhyNew/resPhyIni);
-        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy);
+        errorVec(i/iOut+1) = computeError(mesh, dofm, xPhy, xRef);
         fprintf('[%i] %g %g\n', i, resRedVec(i/iOut+1), errorVec(i/iOut+1));
     end
     %%%%%%%
-    
+
     if(sqrt(rrnew/rrini) < tol)
         flag = 1;
         return;

@@ -7,9 +7,10 @@ edgTag = {4};
 BC = {'DIR'};
 edgTagToBC = containers.Map(edgTag,BC);
 
-linkMsh = 'benchmarks/disk_heterogeneous/disk.msh';
-linkGeo = 'benchmarks/disk_heterogeneous/disk.geo';
-system(['gmsh -2 ' linkGeo ' -v 0 -o ' linkMsh ' -clmax ' num2str(h1) ' -clmin ' num2str(h2)]);
+linkMsh = 'output/mesh.msh';
+linkGeo = append(fileparts(mfilename('fullpath')),'/disk.geo');
+system(['gmsh -2 ' linkGeo ' -o ' linkMsh ...
+    ' -setnumber h1 ' num2str(h1) ' -setnumber h2 ' num2str(h2)]);
 mesh = readMesh2D(linkMsh);
 
 % -------------------------------------------------------------------------
@@ -18,6 +19,11 @@ mesh = readMesh2D(linkMsh);
 
 % Physical parameters
 global omega c1 c2 rho1 rho2
+global k1 k2 eta1 eta2
+k1 = omega / c1;
+k2 = omega / c2;
+eta1 = rho1 * c1;
+eta2 = rho2 * c2;
 
 % Table for physical parameters
 global rho c eta k

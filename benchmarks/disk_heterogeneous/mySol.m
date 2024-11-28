@@ -1,4 +1,4 @@
-function [solU, solDx, solDy, solF, solVx, solVy] = mySol(x,y)
+function [solU, solDx, solDy, solVx, solVy] = mySol(x,y)
 
 global eta1 eta2 k1 k2
 
@@ -41,14 +41,12 @@ if (max(r)<R1)
     solU = A_1 * besselj(0,k1*r) - f/k1^2;
     solDx = - k1 * A_1 * besselj(1,k1*r) .* x ./ r;
     solDy = - k1 * A_1 * besselj(1,k1*r) .* y ./ r;
-    solF = f + 0*x + 0*y;
     solVx = 1i/eta1 * A_1 * besselj(1,k1*r) .* x ./ r;
     solVy = 1i/eta1 * A_1 * besselj(1,k1*r) .* y ./ r;
 else
     solU = A_2 * besselj(0,k2*r) + B_2 * bessely(0,k2*r) - f/k2^2;
     solDx = - k2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* x ./ r;
     solDy = - k2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* y ./ r;
-    solF = f + 0*x + 0*y;
     solVx = 1i/eta2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* x ./ r;
     solVy = 1i/eta2 * (A_2 * besselj(1,k2*r) + B_2 * bessely(1,k2*r)) .* y ./ r;
 end 

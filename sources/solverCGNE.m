@@ -8,13 +8,13 @@ function [resVec, errorVec, i, flag, x] = solverCGNE(mesh, dofm, sys, tol, iMax,
 
 A = sys.matA;
 b = sys.rhsA;
-Pinv = sys.matPinv;
+P = sys.matP;
 
 x = zeros(size(A,2),1);
 r = b - A*x;
-s = Pinv*r;
+s = P\r;
 p = A'*s;
-q = Pinv*p;
+q = P\p;
 rr = real(r'*s);
 rrini = rr;
 
@@ -35,12 +35,12 @@ while(i <= iMax)
     alpha = rr/pp;
     x = x + alpha*q;
     r = r - alpha*A*q;
-    s = Pinv*r;
+    s = P\r;
     rrnew = real(r'*s);
     beta = rrnew/rr;
     rr = rrnew;
     p = A'*s + beta*p;
-    q = Pinv*p;
+    q = P\p;
     
     %%%%%%%
     if(mod(i,iOut) == 0)
