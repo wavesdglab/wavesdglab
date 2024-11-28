@@ -27,8 +27,9 @@ switch benchmark
         eta = rho * c;
         k = omega / c;
         M = 0.1;           % subsonic flow: 0<=M<1
-        v0 = [M*c, 0];
         theta = -pi/3;
+        v0 = [M*c*cos(theta), M*c*sin(theta)];
+        
 end
 degree = 3;
 BASIS = 0;
