@@ -11,8 +11,6 @@ global omega c rho v0;
 % Build system
 % -------------------------------------------------------------------------
 
-disp('--- Build system ---');
-
 numDofTRI = dofm.numDofTRI;
 numDofFAC = dofm.numDofFAC;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -293,8 +291,6 @@ matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
-
-disp('--- Solve system ---');
 
 % Matrix partition
 sysA.matII = matII;
