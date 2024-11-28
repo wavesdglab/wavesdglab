@@ -1,12 +1,12 @@
 clear all;
 %close all;
 
-global omega k eta c rho h v0 M l;
+global omega k eta c rho h v0 M l theta;
    
 % Setup benchmark and parameters
-benchmark = 'waveguide_convected';
+benchmark = 'open_convected';
 switch benchmark
-        case 'waveguide_convected'
+    case 'waveguide_convected'
         omega = 5*pi;
         h = 1/25;
         l = 1;
@@ -15,8 +15,20 @@ switch benchmark
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0.05;           % subsonic flow: 0<=M<1
+        M = 0.1;           % subsonic flow: 0<=M<1
         v0 = [M*c, 0];
+    case 'open_convected'
+        omega = 15*pi;
+        h = 1/25;
+        l = 1;
+        tol = 1e-10; maxit = 1000; itout = 50;
+        rho = 1;
+        c = 1;  
+        eta = rho * c;
+        k = omega / c;
+        M = 0.1;           % subsonic flow: 0<=M<1
+        v0 = [M*c, 0];
+        theta = -pi/3;
 end
 degree = 3;
 BASIS = 0;
@@ -67,13 +79,17 @@ disp('---------------------------------------------------------');
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
+writeField2D(dofm, mesh, solA, 'output/solHDG.pos', "HDG");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
+writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumHDG.pos', "errNumHDG");
+system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
 
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/solRef.pos output/solNum.pos output/errNum.pos&');
+writeField2D(dofm, mesh, solB, 'output/solCHDG.pos', "CHDG");
+writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
+writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumCHDG.pos', "errNumCHDG");
+system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
 
-writeField2D(dofm, mesh, solB, 'output/solNum2.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef2.pos', "solRef");
-writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNum2.pos', "errNum");
-system('gmsh output/solRef2.pos output/solNum2.pos output/errNum2.pos&');
+diff = solA - solB;
+norm_infinity_diff = max(max(abs(solA-solB)))
+writeField2D(dofm, mesh, diff, 'output/soldiff.pos', "diff");
+system('gmsh output/mesh.msh output/soldiff.pos&');
