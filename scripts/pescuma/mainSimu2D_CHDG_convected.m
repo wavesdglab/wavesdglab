@@ -1,7 +1,7 @@
 clear all;
 %close all;
 
-global omega k eta c rho h v0 M l theta;
+global omega k eta c rho h v0 M theta phi;
    
 % Setup benchmark and parameters
 benchmark = 'open_convected';
@@ -9,7 +9,6 @@ switch benchmark
     case 'waveguide_convected'
         omega = 5*pi;
         h = 1/25;
-        l = 1;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
@@ -20,16 +19,15 @@ switch benchmark
     case 'open_convected'
         omega = 15*pi;
         h = 1/25;
-        l = 1;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
         eta = rho * c;
         k = omega / c;
         M = 0.1;           % subsonic flow: 0<=M<1
-        theta = -pi/3;
+        theta = 2*pi/3;
+        phi = pi/3;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
-        
 end
 degree = 3;
 BASIS = 0;

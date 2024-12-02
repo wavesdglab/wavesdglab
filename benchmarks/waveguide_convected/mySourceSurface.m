@@ -14,8 +14,7 @@ souVy = zeros(size(x));
 % souVx = 1/(2*rho*c)*((1+M)*exp(1i*omega*x/(c*(1+M)))-(1-M)*exp(-1i*omega*x/(c*(1-M))));
 
 % ONLY RIGHT PROPAGATING WAVE
-souU = (1+M)/2*exp(1i*omega*x/(c*(1+M)));
-souDx = 1i*omega/(2*c) * exp(1i*omega*x/(c*(1+M)));
-souVx = (1+M)/(2*rho*c) * exp(1i*omega*x/(c*(1+M)));
+souU = exp(1i*omega*x/(c*(1+M)));
+souVx = 1/(rho*c) * exp(1i*omega*x/(c*(1+M)));
 
 end
