@@ -2,13 +2,20 @@ clear all;
 %close all;
 
 global omega k eta c rho h v0 M theta phi;
-   
+
+% H=[1/10 1/15 1/20 1/25];
+% Degree=[1 2 3 4];
+
+% for i=1:size(H,2)
+%     h=H(i);
+%     degree = Degree(i);
+
 % Setup benchmark and parameters
 benchmark = 'open_convected';
 switch benchmark
     case 'waveguide_convected'
         omega = 5*pi;
-        h = 1/25;
+        h = 1/10;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
@@ -18,7 +25,7 @@ switch benchmark
         v0 = [M*c, 0];
     case 'open_convected'
         omega = sqrt(2)*10;
-        h = 1/10;
+        h = 1/15;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
@@ -42,7 +49,6 @@ Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 % -------------------------------------------------------------------------
 % Compute solution and error
 % -------------------------------------------------------------------------
-
 disp(['---------------------------------------------------------']);
 disp(['Method CHDG']);
 disp(['---------------------------------------------------------']);
@@ -52,7 +58,6 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 % Compute numerical and projection solutions
-
 disp('---------------------------------------------------------');
 disp('    DG   ');
 [solA, sysA] = computeSolNum2D_DG_convected(mesh, dofm, PREC);
@@ -87,21 +92,26 @@ disp(['    L2-Error (numSol)  HDG          ' num2str(errorL2_B,'%1.2e')]);
 disp(['    L2-Error (projSol) Projection   ' num2str(errorProjL2,'%1.2e')]);
 disp('---------------------------------------------------------');
 
+% err(i)=errorL2_A;
+
+% end
+
+% figure(1)
+% semilogy(H,err);
 % -------------------------------------------------------------------------
 % Write and vizu solution
 % -------------------------------------------------------------------------
-writeField2D(dofm, mesh, solA, 'output/solDG.pos', "DG");
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
+
+writeField2D(dofm, mesh, solA, 'output/solDG.pos', "DG");
 writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumDG.pos', "errNumDG");
 system('gmsh output/mesh.msh output/solDG.pos output/solRef.pos output/errNumDG.pos&');
 
 writeField2D(dofm, mesh, solB, 'output/solHDG.pos', "HDG");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
 writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumHDG.pos', "errNumHDG");
 system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
 
 % writeField2D(dofm, mesh, solC, 'output/solCHDG.pos', "CHDG");
-% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
 % writeField2D(dofm, mesh, solC(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumCHDG.pos', "errNumCHDG");
 % system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
 

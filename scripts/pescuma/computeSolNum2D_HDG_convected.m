@@ -159,8 +159,9 @@ for tri=1:mesh.numTri
         tx = -ny;
         ty = nx;
 
+        v0n = v0(1)*nx+v0(2)*ny;
 %         gamma = 0;
-%         if (v0(1)*nx+v0(2)*ny > 0)
+%         if (v0n > 0)
 %             gamma = 1;
 %         end
         gamma = 1;
@@ -185,26 +186,26 @@ for tri=1:mesh.numTri
         matIIel(dofLocP,dofLocP) = matIIel(dofLocP,dofLocP) + 1 / eta                           * matM_IIel;          %%
         matIIel(dofLocP,dofLocU) = matIIel(dofLocP,dofLocU) +                                nx * matM_IIel;          %%
         matIIel(dofLocP,dofLocV) = matIIel(dofLocP,dofLocV) +                                ny * matM_IIel;          %%
-        matIIel(dofLocU,dofLocP) = matIIel(dofLocU,dofLocP) + (v0(1)*nx+v0(2)*ny)/c        * nx * matM_IIel;          %%
+        matIIel(dofLocU,dofLocP) = matIIel(dofLocU,dofLocP) + v0n/c                        * nx * matM_IIel;          %%
         
-        matIIel(dofLocU,dofLocU) = matIIel(dofLocU,dofLocU) + (v0(1)*nx+v0(2)*ny)*rho * nx * nx * matM_IIel;          %%
-        matIIel(dofLocU,dofLocU) = matIIel(dofLocU,dofLocU) + (v0(1)*nx+v0(2)*ny)*rho * tx * tx * matM_IIel * gamma;  %%
+        matIIel(dofLocU,dofLocU) = matIIel(dofLocU,dofLocU) + v0n*rho                 * nx * nx * matM_IIel;          %%
+        matIIel(dofLocU,dofLocU) = matIIel(dofLocU,dofLocU) + v0n*rho                 * tx * tx * matM_IIel * gamma;  %%
 
-        matIIel(dofLocU,dofLocV) = matIIel(dofLocU,dofLocV) + (v0(1)*nx+v0(2)*ny)*rho * ny * nx * matM_IIel;          %%
-        matIIel(dofLocU,dofLocV) = matIIel(dofLocU,dofLocV) + (v0(1)*nx+v0(2)*ny)*rho * ty * tx * matM_IIel * gamma;  %%
+        matIIel(dofLocU,dofLocV) = matIIel(dofLocU,dofLocV) + v0n*rho                 * ny * nx * matM_IIel;          %%
+        matIIel(dofLocU,dofLocV) = matIIel(dofLocU,dofLocV) + v0n*rho                 * ty * tx * matM_IIel * gamma;  %%
 
-        matIIel(dofLocV,dofLocP) = matIIel(dofLocV,dofLocP) + (v0(1)*nx+v0(2)*ny)/c        * ny * matM_IIel;          %%
+        matIIel(dofLocV,dofLocP) = matIIel(dofLocV,dofLocP) + v0n/c                        * ny * matM_IIel;          %%
 
-        matIIel(dofLocV,dofLocU) = matIIel(dofLocV,dofLocU) + (v0(1)*nx+v0(2)*ny)*rho * nx * ny * matM_IIel;          %%
-        matIIel(dofLocV,dofLocU) = matIIel(dofLocV,dofLocU) + (v0(1)*nx+v0(2)*ny)*rho * tx * ty * matM_IIel * gamma;  %%
+        matIIel(dofLocV,dofLocU) = matIIel(dofLocV,dofLocU) + v0n*rho                 * nx * ny * matM_IIel;          %%
+        matIIel(dofLocV,dofLocU) = matIIel(dofLocV,dofLocU) + v0n*rho                 * tx * ty * matM_IIel * gamma;  %%
         
-        matIIel(dofLocV,dofLocV) = matIIel(dofLocV,dofLocV) + (v0(1)*nx+v0(2)*ny)*rho * ny * ny * matM_IIel;          %%     
-        matIIel(dofLocV,dofLocV) = matIIel(dofLocV,dofLocV) + (v0(1)*nx+v0(2)*ny)*rho * ty * ty * matM_IIel * gamma;  %%
+        matIIel(dofLocV,dofLocV) = matIIel(dofLocV,dofLocV) + v0n*rho                 * ny * ny * matM_IIel;          %%     
+        matIIel(dofLocV,dofLocV) = matIIel(dofLocV,dofLocV) + v0n*rho                 * ty * ty * matM_IIel * gamma;  %%
 
         matIGel = zeros(3*dofm.numDofPerTRI,dofm.numDofPerLIN);
-        matIGel(dofLocP,:) = (v0(1)*nx+v0(2)*ny-c) / (rho*c^2)      * matM_IGel;  %%
-        matIGel(dofLocU,:) = (c-(v0(1)*nx+v0(2)*ny)) / c       * nx * matM_IGel;  %%
-        matIGel(dofLocV,:) = (c-(v0(1)*nx+v0(2)*ny)) / c       * ny * matM_IGel;  %%
+        matIGel(dofLocP,:) = (v0n-c) / (rho*c^2)      * matM_IGel;  %%
+        matIGel(dofLocU,:) = (c-v0n) / c         * nx * matM_IGel;  %%
+        matIGel(dofLocV,:) = (c-v0n) / c         * ny * matM_IGel;  %%
         
         % -----------------------------------------------------------------
         % Auxiliary equations
