@@ -183,7 +183,6 @@ for tri=1:mesh.numTri
         else
             gamma = 0;
         end
-%         gamma = 1;
 
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
@@ -237,46 +236,54 @@ for tri=1:mesh.numTri
                     matA(idIntP,idIntU) = matA(idIntP,idIntU) + nx        * matMel; %%%%
                     matA(idIntP,idIntV) = matA(idIntP,idIntV) + ny        * matMel; %%%%
                     
-                    matA(idIntU,idIntP) = matA(idIntU,idIntP) + v0n/c         *nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *nx*nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ny*nx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel; %%%%
+                    matA(idIntU,idIntP) = matA(idIntU,idIntP) + v0n/c         *nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *nx*nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel * gamma; %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ny*nx * matMel;         %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel * gamma; %%%%
 
-                    matA(idIntV,idIntP) = matA(idIntV,idIntP) + v0n/c         *ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *nx*ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ny*ny * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel; %%%%
+                    matA(idIntV,idIntP) = matA(idIntV,idIntP) + v0n/c         *ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *nx*ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel * gamma; %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ny*ny * matMel;         %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel * gamma; %%%%
 
                     gp = rhsPel;
-                    rhsA(idIntP) = rhsA(idIntP) + gp * (c-v0n) / (rho*c^2); %%%%
-                    rhsA(idIntU) = rhsA(idIntU) + gp * (-c+v0n) / c   * nx; %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + gp * (-c+v0n) / c   * ny; %%%%
+                    gux = rhsUel;
+                    guy = rhsVel;
+                    sR = gp;
+                    rhsA(idIntP) = rhsA(idIntP) + sR * (c-v0n) / (rho*c^2);                %%%%
+                    rhsA(idIntU) = rhsA(idIntU) + sR * (-c+v0n) / c   * nx;                %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);  %%%% 
+                    rhsA(idIntV) = rhsA(idIntV) + sR * (-c+v0n) / c   * ny;                %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);  %%%% 
 
                 case 'NEU'
 
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + v0n/(rho*c^2)     * matMel; %%%%
-                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + v0n/c         *nx * matMel; %%%% 
-                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + v0n/c         *ny * matMel; %%%%
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + v0n/(rho*c^2)     * matMel;         %%%%
+                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + v0n/c         *nx * matMel;         %%%% 
+                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + v0n/c         *ny * matMel;         %%%%
                     
-                    matA(idIntU,idIntP) = matA(idIntU,idIntP) +                nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + rho*c      *nx*nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + rho*c      *ny*nx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel; %%%%
+                    matA(idIntU,idIntP) = matA(idIntU,idIntP) +                nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + rho*c      *nx*nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel * gamma; %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + rho*c      *ny*nx * matMel;         %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel * gamma; %%%%
 
-                    matA(idIntV,idIntP) = matA(idIntV,idIntP) +                ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + rho*c      *nx*ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + rho*c      *ny*ny * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel; %%%%
+                    matA(idIntV,idIntP) = matA(idIntV,idIntP) +                ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + rho*c      *nx*ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel * gamma; %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + rho*c      *ny*ny * matMel;         %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel * gamma; %%%%
 
                     gux = rhsUel;
                     guy = rhsVel;
-                    rhsA(idIntP) = rhsA(idIntP) + (gux*nx+guy*ny) * (v0n-c) / c;        %%%%
-                    rhsA(idIntU) = rhsA(idIntU) + rho * (gux*nx+guy*ny) * (c-v0n) * nx; %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + rho * (gux*nx+guy*ny) * (c-v0n) * ny; %%%%
+                    sN = gux*nx+guy*ny;
+                    rhsA(idIntP) = rhsA(idIntP) + sN * (v0n-c) / c;                        %%%%
+                    rhsA(idIntU) = rhsA(idIntU) + rho * sN * (c-v0n) * nx;                 %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);  %%%%
+                    rhsA(idIntV) = rhsA(idIntV) + rho * sN * (c-v0n) * ny;                 %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);  %%%%
 
                 case 'NEU0'
 
@@ -286,46 +293,52 @@ for tri=1:mesh.numTri
                     
                     matA(idIntU,idIntP) = matA(idIntU,idIntP) +                nx * matMel; %%%%
                     matA(idIntU,idIntU) = matA(idIntU,idIntU) + rho*c      *nx*nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel; %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho    *tx*tx * matMel * gamma; %%%%
                     matA(idIntU,idIntV) = matA(idIntU,idIntV) + rho*c      *ny*nx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel; %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho    *ty*tx * matMel * gamma; %%%%
 
                     matA(idIntV,idIntP) = matA(idIntV,idIntP) +                ny * matMel; %%%%
                     matA(idIntV,idIntU) = matA(idIntV,idIntU) + rho*c      *nx*ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel; %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho    *tx*ty * matMel * gamma; %%%%
                     matA(idIntV,idIntV) = matA(idIntV,idIntV) + rho*c      *ny*ny * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel; %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho    *ty*ty * matMel * gamma; %%%%
 
-                    gux = 0*rhsUel;
-                    guy = 0*rhsVel;
-                    rhsA(idIntP) = rhsA(idIntP) + (gux*nx+guy*ny) * (v0n-c) / c;        %%%%
-                    rhsA(idIntU) = rhsA(idIntU) + rho * (gux*nx+guy*ny) * (c-v0n) * nx; %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + rho * (gux*nx+guy*ny) * (c-v0n) * ny; %%%%
+                    gux = rhsUel;
+                    guy = rhsVel;
+                    sN = 0*(gux*nx+guy*ny);
+                    rhsA(idIntP) = rhsA(idIntP) + sN * (v0n-c) / c;           %%%%
+                    rhsA(idIntU) = rhsA(idIntU) + rho * sN * (c-v0n) * nx;    %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);  %%%%
+                    rhsA(idIntV) = rhsA(idIntV) + rho * sN * (c-v0n) * ny;    %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);  %%%%
 
                  case 'ABC'
 
-                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + (v0n+c)/(2*rho*c^2)     * matMel; %%%%
-                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + (v0n+c)/(2*c)       *nx * matMel; %%%%
-                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + (v0n+c)/(2*c)       *ny * matMel; %%%%
+                    matA(idIntP,idIntP) = matA(idIntP,idIntP) + (v0n+c)/(2*rho*c^2)     * matMel;         %%%%
+                    matA(idIntP,idIntU) = matA(idIntP,idIntU) + (v0n+c)/(2*c)       *nx * matMel;         %%%%
+                    matA(idIntP,idIntV) = matA(idIntP,idIntV) + (v0n+c)/(2*c)       *ny * matMel;         %%%%
                     
-                    matA(idIntU,idIntP) = matA(idIntU,idIntP) + (v0n+c)/(2*c)       *nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + rho*(v0n+c)/2    *nx*nx * matMel; %%%%
-                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho          *tx*tx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + rho*(v0n+c)/2    *ny*nx * matMel; %%%%
-                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho          *ty*tx * matMel; %%%%
+                    matA(idIntU,idIntP) = matA(idIntU,idIntP) + (v0n+c)/(2*c)       *nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + rho*(v0n+c)/2    *nx*nx * matMel;         %%%%
+                    matA(idIntU,idIntU) = matA(idIntU,idIntU) + v0n*rho          *tx*tx * matMel * gamma; %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + rho*(v0n+c)/2    *ny*nx * matMel;         %%%%
+                    matA(idIntU,idIntV) = matA(idIntU,idIntV) + v0n*rho          *ty*tx * matMel * gamma; %%%%
 
-                    matA(idIntV,idIntP) = matA(idIntV,idIntP) + (v0n+c)/(2*c)       *ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + rho*(v0n+c)/2    *nx*ny * matMel; %%%%
-                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho          *tx*ty * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + rho*(v0n+c)/2    *ny*ny * matMel; %%%%
-                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho          *ty*ty * matMel; %%%%
+                    matA(idIntV,idIntP) = matA(idIntV,idIntP) + (v0n+c)/(2*c)       *ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + rho*(v0n+c)/2    *nx*ny * matMel;         %%%%
+                    matA(idIntV,idIntU) = matA(idIntV,idIntU) + v0n*rho          *tx*ty * matMel * gamma; %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + rho*(v0n+c)/2    *ny*ny * matMel;         %%%%
+                    matA(idIntV,idIntV) = matA(idIntV,idIntV) + v0n*rho          *ty*ty * matMel * gamma; %%%%
 
                     gp = rhsPel*0;
                     gux = rhsUel*0;
                     guy = rhsVel*0;
-                    rhsA(idIntP) = rhsA(idIntP) + (gp-rho*c*(gux*nx+guy*ny)) * (c-v0n) / (2*rho*c^2); %%%%        
-                    rhsA(idIntU) = rhsA(idIntU) + (gp-rho*c*(gux*nx+guy*ny)) * (v0n-c)/(2*c) * nx;    %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + (gp-rho*c*(gux*nx+guy*ny)) * (v0n-c)/(2*c) * ny;    %%%%
+                    sR = 0*(gp-rho*c*(gux*nx+guy*ny));
+                    rhsA(idIntP) = rhsA(idIntP) + sR * (c-v0n) / (2*rho*c^2);              %%%%        
+                    rhsA(idIntU) = rhsA(idIntU) + sR * (v0n-c)/(2*c) * nx;                 %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - 0*rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);  %%%%
+                    rhsA(idIntV) = rhsA(idIntV) + sR * (v0n-c)/(2*c) * ny;                 %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - 0*rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);  %%%%
  
                 case 'ROB'
 
@@ -348,11 +361,12 @@ for tri=1:mesh.numTri
                     gp = rhsPel;
                     gux = rhsUel;
                     guy = rhsVel;
-                    rhsA(idIntP) = rhsA(idIntP) + (gp-rho*c*(gux*nx+guy*ny)) * (c-v0n) / (2*rho*c^2); %%%%        
-                    rhsA(idIntU) = rhsA(idIntU) + (gp-rho*c*(gux*nx+guy*ny)) * (v0n-c)/(2*c) * nx;    %%%%
-                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);             %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + (gp-rho*c*(gux*nx+guy*ny)) * (v0n-c)/(2*c) * ny;    %%%%
-                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);             %%%%
+                    sR = gp-rho*c*(gux*nx+guy*ny);
+                    rhsA(idIntP) = rhsA(idIntP) + sR * (c-v0n) / (2*rho*c^2);                 %%%%        
+                    rhsA(idIntU) = rhsA(idIntU) + sR * (v0n-c)/(2*c) * nx;                    %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);     %%%%
+                    rhsA(idIntV) = rhsA(idIntV) + sR * (v0n-c)/(2*c) * ny;                    %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);     %%%%
 
                 case 'GC'
 
@@ -377,9 +391,9 @@ for tri=1:mesh.numTri
                     guy = rhsVel;
                     rhsA(idIntP) = rhsA(idIntP) + (c-v0n) / (2*rho*c^2) * gp + (v0n-c) / (2*c) * (gux*nx+guy*ny); %%%% 
                     rhsA(idIntU) = rhsA(idIntU) + ((v0n-c)/(2*c)*gp + rho*(c-v0n)/2*(gux*nx+guy*ny))*nx;          %%%%
-                    rhsA(idIntU) = rhsA(idIntU) + rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);                         %%%%
+                    rhsA(idIntU) = rhsA(idIntU) - rho*v0n*(gux*tx+guy*ty)*tx * (1-gamma);                         %%%%
                     rhsA(idIntV) = rhsA(idIntV) + ((v0n-c)/(2*c)*gp + rho*(c-v0n)/2*(gux*nx+guy*ny))*ny;          %%%%
-                    rhsA(idIntV) = rhsA(idIntV) + rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);                         %%%%
+                    rhsA(idIntV) = rhsA(idIntV) - rho*v0n*(gux*tx+guy*ty)*ty * (1-gamma);                         %%%%
 
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
