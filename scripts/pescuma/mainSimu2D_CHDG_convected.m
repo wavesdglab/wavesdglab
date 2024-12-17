@@ -21,18 +21,18 @@ switch benchmark
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0.1;           % subsonic flow: 0<=M<1
+        M = 0.5;           % subsonic flow: 0<=M<1
         v0 = [M*c, 0];
     case 'open_convected'
         omega = sqrt(2)*10;
-        h = 1/15;
+        h = 1/30;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
         eta = rho * c;
         k = omega / c;
         M = 0.3;           % subsonic flow: 0<=M<1
-        theta = pi/6;
+        theta = pi/3;
         phi = pi/3;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
 end
@@ -63,10 +63,10 @@ disp('    DG   ');
 [solA, sysA] = computeSolNum2D_DG_convected(mesh, dofm, PREC);
 disp('---------------------------------------------------------');
 
-disp('---------------------------------------------------------');
-disp('    HDG   ');
-[solB, sysB] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
-disp('---------------------------------------------------------');
+% disp('---------------------------------------------------------');
+% disp('    HDG   ');
+% [solB, sysB] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
+% disp('---------------------------------------------------------');
 
 % disp('---------------------------------------------------------');
 % disp('    CHDG   ');
@@ -80,14 +80,14 @@ disp('---------------------------------------------------------');
 
 % Compute numerical and projection errors
 errorL2_A = computeNormError2D_DG_convected(mesh, dofm, solA);
-errorL2_B = computeNormError2D_DG_convected(mesh, dofm, solB);
+% errorL2_B = computeNormError2D_DG_convected(mesh, dofm, solB);
 % errorL2_C = computeNormError2D_DG_convected(mesh, dofm, solC);
 errorProjL2 = computeNormError2D_DG_convected(mesh, dofm, solP);
 
 % Display numerical and projection errors
 disp('---------------------------------------------------------');
 disp(['    L2-Error (numSol)  DG          ' num2str(errorL2_A,'%1.2e')]);
-disp(['    L2-Error (numSol)  HDG          ' num2str(errorL2_B,'%1.2e')]);
+% disp(['    L2-Error (numSol)  HDG          ' num2str(errorL2_B,'%1.2e')]);
 % disp(['    L2-Error (numSol)  CHDG         ' num2str(errorL2_C,'%1.2e')]);
 disp(['    L2-Error (projSol) Projection   ' num2str(errorProjL2,'%1.2e')]);
 disp('---------------------------------------------------------');
@@ -107,15 +107,15 @@ writeField2D(dofm, mesh, solA, 'output/solDG.pos', "DG");
 writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumDG.pos', "errNumDG");
 system('gmsh output/mesh.msh output/solDG.pos output/solRef.pos output/errNumDG.pos&');
 
-writeField2D(dofm, mesh, solB, 'output/solHDG.pos', "HDG");
-writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumHDG.pos', "errNumHDG");
-system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
+% writeField2D(dofm, mesh, solB, 'output/solHDG.pos', "HDG");
+% writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumHDG.pos', "errNumHDG");
+% system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
 
 % writeField2D(dofm, mesh, solC, 'output/solCHDG.pos', "CHDG");
 % writeField2D(dofm, mesh, solC(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumCHDG.pos', "errNumCHDG");
 % system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
 
-diff = solA - solB;
-norm_infinity_diff = max(max(abs(solA-solB)))
-writeField2D(dofm, mesh, diff, 'output/soldiff.pos', "diff");
-system('gmsh output/mesh.msh output/soldiff.pos&');
+% diff = solA - solB;
+% norm_infinity_diff = max(max(abs(solA-solB)))
+% writeField2D(dofm, mesh, diff, 'output/soldiff.pos', "diff");
+% system('gmsh output/mesh.msh output/soldiff.pos&');
