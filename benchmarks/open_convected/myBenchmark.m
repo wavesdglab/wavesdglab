@@ -4,11 +4,7 @@ global h edgTagToBC
 
 % BCWest, BCNorth, BCEast, BCSouth
 edgTag = {1, 2, 3, 4};
-% BC = {'ROB', 'ROB', 'ROB', 'ROB'};
-% BC = {'GC', 'GC', 'GC', 'GC'};
-% BC = {'ROB', 'ABC', 'ABC', 'ROB'};
-BC = {'DIR', 'DIR', 'DIR', 'DIR'};
-% BC = {'NEU', 'NEU', 'NEU', 'NEU'};
+BC = {'ROB', 'ROB', 'ROB', 'ROB'};
 edgTagToBC = containers.Map(edgTag,BC);
 
 % linkMsh = 'benchmarks/waveguide_convected/waveguide.msh';

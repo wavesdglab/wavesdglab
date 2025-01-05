@@ -53,11 +53,9 @@ matHGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
 matHHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
 matHHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
 matHHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matPPv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matHHvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matPPvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
@@ -230,11 +228,6 @@ for tri=1:mesh.numTri
             idGloV = 2*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
             idGloI = [idGloP idGloU idGloV];
 
-            % Preconditionning matrix
-            if(PREC == 1)
-                matPPel = matMel;
-            end
-
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
@@ -245,10 +238,7 @@ for tri=1:mesh.numTri
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;  %% new
-
-            matPPv(idGloG,:) = matPPel;  %% new
             matGGvInv(idGloG,:) = inv(matGGel);
-            matPPvInv(idGloG,:) = inv(matPPel);
             rhsG(idGloG) = rhsGel;
 
             if v0n>0 % Global ID for auxiliary and interior unknowns
@@ -319,11 +309,6 @@ for tri=1:mesh.numTri
             idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloI = [idGloP idGloU idGloV];
 
-            % Preconditionning matrix
-            if(PREC == 1)
-                matPPel = matMel;
-            end
-
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
@@ -334,10 +319,7 @@ for tri=1:mesh.numTri
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;  %% new
-
-            matPPv(idGloG,:) = matPPel;  %% new
             matGGvInv(idGloG,:) = inv(matGGel);
-            matPPvInv(idGloG,:) = inv(matPPel);
             rhsG(idGloG) = rhsGel;
             
             matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));  %% new
@@ -394,10 +376,9 @@ matGH = sparse(numDofFAC, numDofFAC);  %% new
 matHI = sparse(matHIx, matHIy, matHIv, numDofFAC, 3*numDofTRI);  %% new
 matHG = sparse(numDofFAC, numDofFAC);  %% new
 matHH = sparse(matHHx, matHHy, matHHv, numDofFAC, numDofFAC);  %% new
-matPP = sparse(matGGx, matGGy, matPPv, numDofFAC, numDofFAC);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
-matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
+matHHinv = sparse(matHHx, matHHy, matHHvInv, numDofFAC, numDofFAC);
 
 % -------------------------------------------------------------------------
 % Solve system
@@ -405,44 +386,42 @@ matPPinv = sparse(matGGx, matGGy, matPPvInv, numDofFAC, numDofFAC);
 
 % Matrix partition
 sysA.matII = matII;
-sysA.matIG = matIG;
-sysA.matIH = matIH;  %% new
-sysA.matGI = matGI;
-sysA.matGG = matGG;
-sysA.matGH = matGH;  %% new
-sysA.matHI = matHI;  %% new
-sysA.matHG = matHG;  %% new
-sysA.matHH = matHH;  %% new
-
-sysA.matIIinv = matIIinv;
-sysA.matGGinv = matGGinv;
+sysA.matIG = [matIG matIH];
+sysA.matGI = [matGI; matHI];
+sysA.matGG = [matGG matGH; matHG matHH];
 sysA.rhsI = rhsI;
-sysA.rhsG = rhsG;
-sysA.rhsH = rhsH;  %% new
+sysA.rhsG = [rhsG; rhsH];
+sysA.matIIinv = matIIinv;
+sysA.matGGinv = blkdiag(matGGinv, matHHinv);
 
 % Full system
 sysA.matA = [ matII matIG matIH; matGI matGG matGH; matHI matHG matHH];
 sysA.rhsA = [ rhsI ; rhsG ; rhsH ];
 
-solI = sysA.matA\sysA.rhsA;
-solI = solI(1:mesh.numTri*3*dofm.numDofPerTRI);
+% Preconditionning matrix
+if(PREC == 1)
+    sysA.matP = blkdiag(matGG, matHH);
+    sysA.matPinv = blkdiag(matGGinv, matHHinv);
+else
+    sysA.matP = eye(size(matGG,1)+size(matHH,1));
+    sysA.matPinv = eye(size(matGG,1)+size(matHH,1));
+end
 
 % Reduced system
-% sysA.matS = matGG - matGI*(matIIinv*matIG);
-% sysA.rhsS = rhsG - matGI*(matIIinv*rhsI);
+sysA.matS = [matGG-matGI*(matIIinv*matIG) -matGI*(matIIinv*matIH);
+             -matHI*(matIIinv*matIG)      matHH-matHI*(matIIinv*matIH)];
+sysA.rhsS = [rhsG-matGI*(matIIinv*rhsI); rhsH-matHI*(matIIinv*rhsI)];
 
 % Physical system
-% sysA.matPhy = matII - matIG*(matGGinv*matGI);
-% sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG);
-
-% Preconditionning
-% sysA.matP = matPP;
-% sysA.matPinv = matPPinv;
-% % %sysA.matP = matGG;
-% % %sysA.matPinv = matGGinv;
+sysA.matPhy = matII - matIG*(matGGinv*matGI) - matIH*(matHHinv*matHI);
+sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG) - matIH*(matHHinv*rhsH);
 
 % Compute solution
-% solG = sysA.matS\sysA.rhsS;
-% solI = matIIinv*(rhsI-matIG*solG);
+solX = sysA.matS\sysA.rhsS;
+L_G = size(rhsG-matGI*(matIIinv*rhsI),1);
+L_H = size(rhsH-matHI*(matIIinv*rhsI),1);
+solG = solX(1:L_G);
+solH = solX(1+L_G:L_G+L_H);
+solI = matIIinv*(rhsI-matIG*solG-matIH*solH);
 
 end

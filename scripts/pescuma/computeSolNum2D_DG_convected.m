@@ -416,9 +416,20 @@ sysA.rhsA = rhsA;
 %     sysA.matP = matP;
 %     sysA.matPinv = matPinv;
 % else
-%     sysA.matP = 1;
-%     sysA.matPinv = 1;
+%     sysA.matP = eye(size(matA,1));
+%     sysA.matPinv = eye(size(matA,1));
 % end
+
+sysA.matP = 1; %eye(size(matA,1));
+sysA.matPinv = 1; %eye(size(matA,1));
+
+% Reduced system
+sysA.matS = matA;
+sysA.rhsS = rhsA;
+
+% Physical system
+sysA.matPhy = matA;
+sysA.rhsPhy = rhsA;
 
 % Compute solution
 solA = matA\rhsA;

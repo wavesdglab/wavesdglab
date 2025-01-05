@@ -17,8 +17,8 @@ switch benchmark
         M = 0.5;           % subsonic flow: 0<=M<1
         v0 = [M*c, 0];
     case 'open_convected'
-        omega = sqrt(2)*10;
-        h = 1/15;
+        omega = 15*pi;
+        h = 1/16;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
@@ -26,12 +26,12 @@ switch benchmark
         k = omega / c;
         M = 0.5;           % subsonic flow: 0<=M<1
         theta = pi/6;
-        phi = pi/3;
+        phi = pi/4;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
 end
 degree = 3;
 BASIS = 0;
-PREC = 1;           
+PREC = 0;           
 
 % Build mesh and DOF manager
 mesh = setupBenchmark2D(benchmark);
@@ -91,15 +91,15 @@ disp('---------------------------------------------------------');
 writeField2D(dofm, mesh, solP, 'output/solRef.pos', "Ref");
 
 writeField2D(dofm, mesh, solA, 'output/solDG.pos', "DG");
-writeField2D(dofm, mesh, solA(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumDG.pos', "errNumDG");
+writeField2D(dofm, mesh, solA-solP, 'output/errNumDG.pos', "errNumDG");
 system('gmsh output/mesh.msh output/solDG.pos output/solRef.pos output/errNumDG.pos&');
 
 % writeField2D(dofm, mesh, solB, 'output/solHDG.pos', "HDG");
-% writeField2D(dofm, mesh, solB(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumHDG.pos', "errNumHDG");
+% writeField2D(dofm, mesh, solB-solP, 'output/errNumHDG.pos', "errNumHDG");
 % system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
 
 writeField2D(dofm, mesh, solC, 'output/solCHDG.pos', "CHDG");
-writeField2D(dofm, mesh, solC(1:mesh.numTri*3*dofm.numDofPerTRI)-solP, 'output/errNumCHDG.pos', "errNumCHDG");
+writeField2D(dofm, mesh, solC-solP, 'output/errNumCHDG.pos', "errNumCHDG");
 system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
 
 diff = solA - solC;
