@@ -5,7 +5,7 @@ global omega c rho h M theta phi v0
 
 degree = 3;
 tol = 1e-100;
-iMax = 1000;
+iMax = 3000;
 iOut = 50;
 PREC = 1;
 
@@ -14,12 +14,12 @@ PREC = 1;
 % Benchmark 'Convected + Cavity'
 benchmark = 'open_convected';
 omega = 15*pi; c = 1; rho = 1; h = 1/16;
-M = 0; theta = pi/6; phi = pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
-run(benchmark,degree,PREC,tol,iMax,iOut);
+M = 0.8; theta = pi/6; phi = pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
+run(M,benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run(benchmark,degree,PREC,tol,iMax,iOut)
+function run(M,benchmark,degree,PREC,tol,iMax,iOut)
 
 global c rho
 
@@ -66,19 +66,14 @@ alpha = 1;
 disp('    (CHDG)');
 [resRedVecCHDG,  resPhyVecCHDG,  errorRichCHDG ] = solverRichardsonRedu_DG(mesh, dofm, sysCHDG,  tol, iMax, iOut, alpha, @computeNormError2D_DG_convected, []);
 rezu = [iterVec, resRedVecCHDG, resPhyVecCHDG, errorRichCHDG, normErrCHDG*ones(size(iterVec))];
-name = sprintf('output/historyRichardson_CHDG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyRichardson_CHDG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
  
 disp('    (DG)');
 [resVecDG, resPhyVecDG, errorRichDG] = solverRichardson_DG(mesh, dofm, sysDG, tol, iMax, iOut, alpha, @computeNormError2D_DG_convected);
 rezu = [iterVec, resVecDG, resPhyVecDG, errorRichDG, normErrDG*ones(size(iterVec))];
-name = sprintf('output/historyRichardson_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyRichardson_DG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
-
-% [resRedVecDG,  resPhyVecDG,  errorRichDG ] = solverRichardsonRedu_DG(mesh, dofm, sysDG,  tol, iMax, iOut, alpha, @computeNormError2D_DG_convected, []);
-% rezu = [iterVec, resRedVecDG, resPhyVecDG, errorRichDG, normErrDG*ones(size(iterVec))];
-% name = sprintf('output/historyRichardson_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
-% writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -87,20 +82,15 @@ disp('--- Solver CGNR');
 disp('    (CHDG)');
 [resRedVecCHDG, resPhyVecCHDG, errorCgnrCHDG] = solverCGNRredu_DG(mesh, dofm, sysCHDG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
 rezu = [iterVec, resRedVecCHDG, resPhyVecCHDG, errorCgnrCHDG, normErrCHDG*ones(size(iterVec))];
-name = sprintf('output/historyCGNR_CHDG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyCGNR_CHDG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
  
 disp('    (DG)');
 [resVecDG, errorCgnrDG] = solverCGNR(mesh, dofm, sysDG, tol, iMax, iOut, @computeNormError2D_DG_convected);
 resPhyVecDG = resVecDG;
 rezu = [iterVec, resVecDG, resPhyVecDG, errorCgnrDG, normErrDG*ones(size(iterVec))];
-name = sprintf('output/historyCGNR_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyCGNR_DG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
-
-% [resRedVecDG, resPhyVecDG, errorCgnrDG] = solverCGNRredu_DG(mesh, dofm, sysDG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
-% rezu = [iterVec, resRedVecDG, resPhyVecDG, errorCgnrDG, normErrDG*ones(size(iterVec))];
-% name = sprintf('output/historyCGNR_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
-% writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -109,20 +99,16 @@ disp('--- Solver GMRES');
 disp('    (CHDG)');
 [resRedVecCHDG, resPhyVecCHDG, errorGmresCHDG] = solverGMRESredu_DG(mesh, dofm, sysCHDG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
 rezu = [iterVec, resRedVecCHDG, resPhyVecCHDG, errorGmresCHDG, normErrCHDG*ones(size(iterVec))];
-name = sprintf('output/historyGMRES_CHDG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyGMRES_CHDG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
 disp('    (DG)');
 [resVecDG, errorGmresDG] = solverGMRES(mesh, dofm, sysDG, tol, iMax, iOut, @computeNormError2D_DG_convected);
 resPhyVecDG = resVecDG;
 rezu = [iterVec, resVecDG, resPhyVecDG, errorGmresDG, normErrDG*ones(size(iterVec))];
-name = sprintf('output/historyGMRES_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
+name = sprintf('output/historyGMRES_DG_%s_p%i_M%g_prec%i_c_%g_rho_%g.csv', benchmark, degree, M, PREC, c, rho);
 writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
-% [resRedVecDG, resPhyVecDG, errorGmresDG] = solverGMRESredu_DG(mesh, dofm, sysDG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
-% rezu = [iterVec, resRedVecDG, resPhyVecDG, errorGmresDG, normErrDG*ones(size(iterVec))];
-% name = sprintf('output/historyGMRES_DG_%s_p%i_prec%i_c_%g_rho_%g.csv', benchmark, degree, PREC, c, rho);
-% writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

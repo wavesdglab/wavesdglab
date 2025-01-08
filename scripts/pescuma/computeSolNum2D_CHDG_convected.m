@@ -32,35 +32,35 @@ matIIv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matIGx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIGy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matIGv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
-matIHx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN); %% new
-matIHy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN); %% new
-matIHv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN); %% new
+matIHx = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
+matIHy = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
+matIHv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerLIN);
 matGIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
 matGGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matGGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matGHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matGHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matGHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN); %% new
-matHIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN); %% new
-matHIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN); %% new
-matHGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
-matHHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
+matGHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matGHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matGHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHIx = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matHIy = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matHIv = zeros(mesh.numTri*3*dofm.numDofPerLIN, 3*dofm.numDofPerLIN);
+matHGx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHGy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHGv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHHx = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHHy = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
+matHHv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 matIIvInv = zeros(mesh.numTri*3*dofm.numDofPerTRI, 3*dofm.numDofPerTRI);
 matGGvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
-matHHvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN); %% new
+matHHvInv = zeros(mesh.numTri*3*dofm.numDofPerLIN, dofm.numDofPerLIN);
 
 % Global RHS vectors
 rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofFAC,1);
-rhsH = zeros(numDofFAC,1); %% new
+rhsH = zeros(numDofFAC,1);
 
 for tri=1:mesh.numTri
 
@@ -97,7 +97,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriRefDuQ * Jdudx(1,2) + shapeTriRefDvQ * Jdudx(2,2)) * orientation;
 
     % Source terms
-    rhsQ = mySourceVolume(xQ, yQ);
+    rhsQ = mySourceVolume(xQ,yQ);
 
     % Elemental matrices/vectors
     matMel = shapeTriQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
@@ -120,7 +120,7 @@ for tri=1:mesh.numTri
     % ---------------------------------------------------------------------
 
     matIGel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
-    matIHel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);  %% new
+    matIHel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
 
     % Exterior normals
     verTri = mesh.mapTriToVer(tri,:);
@@ -172,7 +172,7 @@ for tri=1:mesh.numTri
         idLocU = 1*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocV = 2*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
-        idLocH = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN; %% new
+        idLocH = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
 
         % Element matrices (local element-wise system)
         matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + (c+v0n) / (2*rho*c^2)          * matMel;
@@ -191,9 +191,9 @@ for tri=1:mesh.numTri
         matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 1 / 2         * nx * matMel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 1 / 2         * ny * matMel;
 
-        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0*matMel;  %% new
-        matIHel(idLocU,idLocH) = matIHel(idLocU,idLocH) + rho*v0n * tx * matMel; %% new
-        matIHel(idLocV,idLocH) = matIHel(idLocV,idLocH) + rho*v0n * ty * matMel; %% new
+        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0*matMel;
+        matIHel(idLocU,idLocH) = matIHel(idLocU,idLocH) + rho*v0n * tx * matMel;
+        matIHel(idLocV,idLocH) = matIHel(idLocV,idLocH) + rho*v0n * ty * matMel;
 
         % -----------------------------------------------------------------
         % Auxiliary equations
@@ -201,13 +201,13 @@ for tri=1:mesh.numTri
 
         % Elemental matrices/vectors
         matGGel = matMel;
-        matHHel = matMel; %% new
-        matGHel = 0*matMel;  %% new
-        matHGel = 0*matMel;  %% new
+        matHHel = matMel;
+        matGHel = 0*matMel;
+        matHGel = 0*matMel;
         matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
-        matHIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN); %% new
+        matHIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
         rhsGel = zeros(dofm.numDofPerLIN,1);
-        rhsHel = zeros(dofm.numDofPerLIN,1); %% new
+        rhsHel = zeros(dofm.numDofPerLIN,1);
 
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
@@ -217,7 +217,7 @@ for tri=1:mesh.numTri
 
             % Elemental matrices (interface condition)
             matGIel = - (c-v0n) / c * [matMel, -rho*c*nx*matMel, -rho*c*ny*matMel];
-            matHIel = - [0*matMel, tx*matMel, ty*matMel]; %% new
+            matHIel = - [0*matMel, tx*matMel, ty*matMel];
 
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -231,13 +231,13 @@ for tri=1:mesh.numTri
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
-            matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2)); %% new
+            matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2));
             matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
-            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;  %% new
+            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
-            matGHv(idGloG,:) = matGHel;  %% new
+            matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
             rhsG(idGloG) = rhsGel;
 
@@ -250,17 +250,17 @@ for tri=1:mesh.numTri
                 idGloI = [idGloP idGloU idGloV];
             end
 
-            matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));  %% new
-            matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));  %% new
-            matHHx(idGloH,:) = idGloH'*ones(1,size(idGloH,2));  %% new
-            matHIy(idGloH,:) = ones(size(idGloH,2),1)*idGloI;  %% new
-            matHGy(idGloH,:) = ones(size(idGloH,2),1)*idGloG;  %% new
-            matHHy(idGloH,:) = ones(size(idGloH,2),1)*idGloH;  %% new
-            matHIv(idGloH,:) = matHIel;  %% new
-            matHGv(idGloH,:) = matHGel;  %% new
-            matHHv(idGloH,:) = matHHel;  %% new
-            matHHvInv(idGloH,:) = inv(matHHel); %% new
-            rhsH(idGloH) = rhsHel;  %% new
+            matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));
+            matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));
+            matHHx(idGloH,:) = idGloH'*ones(1,size(idGloH,2));
+            matHIy(idGloH,:) = ones(size(idGloH,2),1)*idGloI;
+            matHGy(idGloH,:) = ones(size(idGloH,2),1)*idGloG;
+            matHHy(idGloH,:) = ones(size(idGloH,2),1)*idGloH;
+            matHIv(idGloH,:) = matHIel;
+            matHGv(idGloH,:) = matHGel;
+            matHHv(idGloH,:) = matHHel;
+            matHHvInv(idGloH,:) = inv(matHHel);
+            rhsH(idGloH) = rhsHel;
 
         else
 
@@ -303,7 +303,7 @@ for tri=1:mesh.numTri
 
             % Global ID for auxiliary unknowns and interior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
-            idGloH = dofm.locToGloFAC(tri,idLocH);  %% new
+            idGloH = dofm.locToGloFAC(tri,idLocH);
             idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloU = 1*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
@@ -312,27 +312,27 @@ for tri=1:mesh.numTri
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
-            matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2)); %% new
+            matGHx(idGloG,:) = idGloG'*ones(1,size(idGloH,2));
             matGIy(idGloG,:) = ones(size(idGloG,2),1)*idGloI;
             matGGy(idGloG,:) = ones(size(idGloG,2),1)*idGloG;
-            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;  %% new
+            matGHy(idGloG,:) = ones(size(idGloG,2),1)*idGloH;
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
-            matGHv(idGloG,:) = matGHel;  %% new
+            matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
             rhsG(idGloG) = rhsGel;
             
-            matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));  %% new
-            matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));  %% new
-            matHHx(idGloH,:) = idGloH'*ones(1,size(idGloH,2));  %% new
-            matHIy(idGloH,:) = ones(size(idGloH,2),1)*idGloI;  %% new
-            matHGy(idGloH,:) = ones(size(idGloH,2),1)*idGloG;  %% new
-            matHHy(idGloH,:) = ones(size(idGloH,2),1)*idGloH;  %% new
-            matHIv(idGloH,:) = matHIel;  %% new
-            matHGv(idGloH,:) = matHGel;  %% new
-            matHHv(idGloH,:) = matHHel;  %% new
-            matHHvInv(idGloH,:) = inv(matHHel); %% new
-            rhsH(idGloH) = rhsHel;  %% new
+            matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));
+            matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));
+            matHHx(idGloH,:) = idGloH'*ones(1,size(idGloH,2));
+            matHIy(idGloH,:) = ones(size(idGloH,2),1)*idGloI;
+            matHGy(idGloH,:) = ones(size(idGloH,2),1)*idGloG;
+            matHHy(idGloH,:) = ones(size(idGloH,2),1)*idGloH;
+            matHIv(idGloH,:) = matHIel;
+            matHGv(idGloH,:) = matHGel;
+            matHHv(idGloH,:) = matHHel;
+            matHHvInv(idGloH,:) = inv(matHHel);
+            rhsH(idGloH) = rhsHel;
 
         end
 
@@ -348,19 +348,19 @@ for tri=1:mesh.numTri
     dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
     dofGloI = [dofGloP dofGloU dofGloV];
     dofGloG = dofm.locToGloFAC(tri,:);
-    dofGloH = dofm.locToGloFAC(tri,:);  %% new
+    dofGloH = dofm.locToGloFAC(tri,:);
 
     % Assembling
     idTRI = (tri-1)*3*dofm.numDofPerTRI + (1:3*dofm.numDofPerTRI);
     matIIx(idTRI,:) = dofGloI'*ones(1,size(dofGloI,2));
     matIGx(idTRI,:) = dofGloI'*ones(1,size(dofGloG,2));
-    matIHx(idTRI,:) = dofGloI'*ones(1,size(dofGloH,2));  %% new
+    matIHx(idTRI,:) = dofGloI'*ones(1,size(dofGloH,2));
     matIIy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloI;
     matIGy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloG;
-    matIHy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloH;  %% new
+    matIHy(idTRI,:) = ones(size(dofGloI,2),1)*dofGloH;
     matIIv(idTRI,:) = matIIel;
     matIGv(idTRI,:) = matIGel;
-    matIHv(idTRI,:) = matIHel;  %% new
+    matIHv(idTRI,:) = matIHel;
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
 
@@ -369,13 +369,13 @@ end
 % Sparse memory storage
 matII = sparse(matIIx, matIIy, matIIv, 3*numDofTRI, 3*numDofTRI);
 matIG = sparse(matIGx, matIGy, matIGv, 3*numDofTRI, numDofFAC);
-matIH = sparse(matIHx, matIHy, matIHv, 3*numDofTRI, numDofFAC);  %% new
+matIH = sparse(matIHx, matIHy, matIHv, 3*numDofTRI, numDofFAC);
 matGI = sparse(matGIx, matGIy, matGIv, numDofFAC, 3*numDofTRI);
 matGG = sparse(matGGx, matGGy, matGGv, numDofFAC, numDofFAC);
-matGH = sparse(numDofFAC, numDofFAC);  %% new
-matHI = sparse(matHIx, matHIy, matHIv, numDofFAC, 3*numDofTRI);  %% new
-matHG = sparse(numDofFAC, numDofFAC);  %% new
-matHH = sparse(matHHx, matHHy, matHHv, numDofFAC, numDofFAC);  %% new
+matGH = sparse(numDofFAC, numDofFAC);
+matHI = sparse(matHIx, matHIy, matHIv, numDofFAC, 3*numDofTRI);
+matHG = sparse(numDofFAC, numDofFAC);
+matHH = sparse(matHHx, matHHy, matHHv, numDofFAC, numDofFAC);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 matHHinv = sparse(matHHx, matHHy, matHHvInv, numDofFAC, numDofFAC);
