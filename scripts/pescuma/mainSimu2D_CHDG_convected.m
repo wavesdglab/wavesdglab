@@ -18,14 +18,14 @@ switch benchmark
         v0 = [M*c, 0];
     case 'open_convected'
         omega = 15*pi;
-        h = 1/16;
+        h = 1/30;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
         eta = rho * c;
         k = omega / c;
-        M = 0;           % subsonic flow: 0<=M<1
-        theta = pi/6;
+        M = 0.75;           % subsonic flow: 0<=M<1
+        theta = pi;
         phi = pi/4;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
 end
@@ -56,10 +56,11 @@ disp(['---------------------------------------------------------']);
 % [solA, sysA] = computeSolNum2D_DG_convected(mesh, dofm, PREC);
 % disp('---------------------------------------------------------');
 
-disp('---------------------------------------------------------');
-disp('    HDG   ');
-[solB, sysB] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
-disp('---------------------------------------------------------');
+% disp('---------------------------------------------------------');
+% disp('    HDG   ');
+% [solB, sysB] = computeSolNum2D_HDG_convected(mesh, dofm, PREC);
+[solB, sysB] = computeSolNum2D_CHDG_convected_v2(mesh, dofm, PREC);
+% disp('---------------------------------------------------------');
 
 disp('---------------------------------------------------------');
 disp('    CHDG   ');

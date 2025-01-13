@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave, Simone Pescuma
 
-function [solI, sysA] = computeSolNum2D_CHDG_convected(mesh, dofm, PREC)
+function [solI, sysA] = computeSolNum2D_CHDG_convected_v2(mesh, dofm, PREC)
 
 global edgTagToBC;
 global omega c rho v0;
@@ -191,9 +191,16 @@ for tri=1:mesh.numTri
         matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 1 / 2         * nx * matMel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 1 / 2         * ny * matMel;
 
-        matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0*matMel;
-        matIHel(idLocU,idLocH) = matIHel(idLocU,idLocH) + rho*v0n * tx * matMel;
-        matIHel(idLocV,idLocH) = matIHel(idLocV,idLocH) + rho*v0n * ty * matMel;
+        if v0n < 0
+            matIHel(idLocP,idLocH) = matIHel(idLocP,idLocH) + 0*matMel;
+            matIHel(idLocU,idLocH) = matIHel(idLocU,idLocH) + rho*v0n * tx * matMel;
+            matIHel(idLocV,idLocH) = matIHel(idLocV,idLocH) + rho*v0n * ty * matMel;
+        else
+            matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + rho*v0n * tx * tx * matMel;
+            matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + rho*v0n * ty * tx * matMel;
+            matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + rho*v0n * tx * ty * matMel;
+            matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + rho*v0n * ty * ty * matMel;
+        end
 
         % -----------------------------------------------------------------
         % Auxiliary equations
@@ -201,9 +208,9 @@ for tri=1:mesh.numTri
 
         % Elemental matrices/vectors
         matGGel = matMel;
-        matHHel = matMel;
         matGHel = 0*matMel;
         matHGel = 0*matMel;
+        matHHel = matMel;
         matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
         matHIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerLIN);
         rhsGel = zeros(dofm.numDofPerLIN,1);
@@ -217,7 +224,10 @@ for tri=1:mesh.numTri
 
             % Elemental matrices (interface condition)
             matGIel = - (c-v0n) / c * [matMel, -rho*c*nx*matMel, -rho*c*ny*matMel];
-            matHIel = - [0*matMel, tx*matMel, ty*matMel];
+            if v0n<0
+                matHHel = matMel;
+                matHIel = - [0*matMel, tx*matMel, ty*matMel];
+            end
 
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
@@ -240,15 +250,6 @@ for tri=1:mesh.numTri
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
             rhsG(idGloG) = rhsGel;
-
-            if v0n>0 % Global ID for auxiliary and interior unknowns
-                idGloG = dofm.locToGloFAC(tri,idLocG);
-                idGloH = dofm.locToGloFAC(tri,idLocH);
-                idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-                idGloU = 1*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-                idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
-                idGloI = [idGloP idGloU idGloV];
-            end
 
             matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));
             matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));

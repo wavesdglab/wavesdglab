@@ -420,8 +420,8 @@ sysA.rhsA = rhsA;
 %     sysA.matPinv = eye(size(matA,1));
 % end
 
-sysA.matP = 1; %eye(size(matA,1));
-sysA.matPinv = 1; %eye(size(matA,1));
+sysA.matP = 1;
+sysA.matPinv = 1;
 
 % Reduced system
 sysA.matS = matA;

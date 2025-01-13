@@ -4,7 +4,7 @@
 
 function [normErr, normSol] = computeNormError2D_DG_convected(mesh, dofm, vecSol, vecRef)
 
-global rho c
+global rho c v0
 
 eta = rho * c;
 
@@ -67,13 +67,14 @@ for tri=1:mesh.numTri
     errVxQ = solVxQ(:) - refVxQ(:);
     errVyQ = solVyQ(:) - refVyQ(:);
 
-    % Error values
     normSol2 = normSol2 ...
         + (1/(eta*c)) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu ...
-        + (eta/c) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu;
+        + (eta/c) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu ...
+        + real (1/(c^2) * weights(:)' * (v0(1) * refQ .* conj(refVxQ) + v0(2) * refQ .* conj(refVyQ)) * detJdxdu);
     normErr2 = normErr2 ...
         + (1/(eta*c)) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu ...
-        + (eta/c) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu;
+        + (eta/c) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu ...
+        + real (1/(c^2) * weights(:)' * (v0(1) * errQ .* conj(errVxQ) + v0(2) * errQ .* conj(errVyQ)) * detJdxdu);
 end
 
 normSol = sqrt(normSol2);
