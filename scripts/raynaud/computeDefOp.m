@@ -2,7 +2,7 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Timothee Raynaud, Axel Modave, Pierre Marchand
 
-function [P,Q] = computeDefOp(nbEigVec, eigenvec, A)
+function [Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigenvec, A)
 
 
     Z = zeros(size(A,1),nbEigVec);
@@ -18,6 +18,8 @@ function [P,Q] = computeDefOp(nbEigVec, eigenvec, A)
     
     Q = Z*temp;
     
-    P = eye(size(A,1)) - A*Q;
+    Pdef = eye(size(A,1)) - A*Q;
+
+    Qdef = eye(size(A,1)) - Q*A;
 
 end
