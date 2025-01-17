@@ -229,6 +229,9 @@ if(~isempty(dofDIR))
     matA(dofDIR,:) = 0;
     matA(:,dofDIR) = 0;
     matA(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
+    matShiftedLaplacian(dofDIR,:) = 0;
+    matShiftedLaplacian(:,dofDIR) = 0;
+    matShiftedLaplacian(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
 end
 
 % -------------------------------------------------------------------------
