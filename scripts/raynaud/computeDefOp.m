@@ -4,6 +4,12 @@
 
 function [Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigenvec, A)
 
+    if nbEigVec == 0
+        Pdef = eye(size(A,1));
+        Qdef = eye(size(A,1));
+        Q = zeros(size(A,1));
+        return;
+    end
 
     Z = zeros(size(A,1),nbEigVec);
     Z(:,1:nbEigVec) = eigenvec;

@@ -8,6 +8,11 @@
 
 function [eigenvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec, varargin)
 
+if nbEigVec == 0
+    eigenvec = [];
+    return;
+end
+
 if varargin{1} == "firstEigvec"
     mn = computeFirstEigVec_cavity(nbEigVec);
 elseif varargin{1} == "closestEigvec"

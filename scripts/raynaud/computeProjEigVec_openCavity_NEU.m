@@ -6,6 +6,11 @@
 
 function [eigenvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, k)
 
+if nbEigVec == 0
+    eigenvec = [];
+    return;
+end
+
 mn = computeCloseEigVec_openCavity_NEU(nbEigVec, k);
 
 nbEigVec = size(mn, 1);
