@@ -19,21 +19,30 @@ nbEigVec=1;
 %% Without preconditioner
 PREC = 0;
 itout =4;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
-
+restart = 0;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner
 PREC = 1;
 itout = 1;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
+restart = 0;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
 
 %% % SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
 global LdomX LdomY LpmlX LpmlY
 k = 23.676;
-tol = 1e-6;
 h = 1/20;
+tol = 1e-6;
 maxit = 5000;
 LdomX = 0.95;
 LdomY = 0.5;
@@ -45,13 +54,22 @@ nbEigVec = 1;
 %% Without preconditioner
 PREC = 0;
 itout = 10;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
-
+restart = 0;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner
 PREC = 1;
 itout = 1;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
+restart = 0;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
 
@@ -73,19 +91,28 @@ nbEigVec=1;
 %% Without preconditioner
 PREC = 0;
 itout = 10;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
-
+restart = 0;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner
 PREC = 1;
 itout = 1;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
+restart = 0;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  %% MAIN FUNCTION %% %%
 
 
-function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag)
+function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag)
 
     global k h
 
@@ -134,12 +161,19 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         maxit = size(A,2);
     end
 
+    if restart == 0
+        m = size(A,2);
+    else
+        m = restart;
+        maxit = ceil(maxit/m);
+    end
+
     % No deflation
 
     % Compute GMRES solution
-    disp(['|  GMRES - No deflation - PREC = ' num2str(PREC) '']);
-    [uG, ~, ~, itG, rrG] = gmres(AMinv,b,[],tol,maxit);
-    itG = itG(2);
+    disp(['|  GMRES - No deflation - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart) '']);
+    [uG, ~, ~, itG, rrG] = gmres(AMinv,b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
     rrG = rrG(:)./rrG(1);
     rrG = rrG(1:itout:end);
     iterG = 0:itout:itout*size(rrG,1)-1;
@@ -148,7 +182,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
     disp(['    converged in ' num2str(itG) ' iterations']);
 
     if saveSolFlag
-        namefile = sprintf('output/numSolG_%s_p%i_prec%i_k_%g_def_%g.pos', benchmark, degree, PREC, k, nbEigVec);
+        namefile = sprintf('output/numSolG_%s_p%i_prec%i_k_%g_def_%g_restart_%g.pos', benchmark, degree, PREC, k, nbEigVec, restart);
         writeField2D(dofm, mesh, xG, namefile, "xG");
     end
 
@@ -159,9 +193,9 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         % Deflation
 
         % Compute GMRES solution
-        disp(['|  GMRES - Deflation - PREC = ' num2str(PREC) '']);
-        [uD, ~, ~, itD, rrD] = gmres(Pdef*AMinv,Pdef*b,[],tol,maxit);
-        itD = itD(2);
+        disp(['|  GMRES - Deflation - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart) '']);
+        [uD, ~, ~, itD, rrD] = gmres(Pdef*AMinv,Pdef*b,m,tol,maxit);
+        itD = itD(2) + (itD(1)-1)*m;
         rrD = rrD(:)./rrD(1);
         rrD = rrD(1:itout:end);
         iterD = 0:itout:itout*size(rrD,1)-1;
@@ -170,7 +204,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         disp(['    converged in ' num2str(itD) ' iterations']);
 
         if saveSolFlag
-            namefile = sprintf('output/numSolD_%s_p%i_prec%i_k_%g_def_%g.pos', benchmark, degree, PREC, k, nbEigVec);
+            namefile = sprintf('output/numSolD_%s_p%i_prec%i_k_%g_def_%g_restart_%g.pos', benchmark, degree, PREC, k, nbEigVec, restart);
             writeField2D(dofm, mesh, xD, namefile, "xD");
         end
 
@@ -180,7 +214,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         results = [rrG rrD(:,2)];
     end
 
-    namefile = sprintf('output/historyGMRES_%s_p%i_prec%i_k_%g_def_%g.csv', benchmark, degree, PREC, k, nbEigVec);
+    namefile = sprintf('output/historyGMRES_%s_p%i_prec%i_k_%g_def_%g_restart_%g.csv', benchmark, degree, PREC, k, nbEigVec, restart);
     writematrix([labels; results], namefile, 'Delimiter', 'comma');
 
     if plotFlag
@@ -192,11 +226,10 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         hold on
         set(0,'DefaultFigureWindowStyle','docked')
 
-        p1 = semilogy(rrG(:,1), rrG(:,2), 'b-x','DisplayName',strcat('No deflation - PREC = ', num2str(PREC)),'linewidth', 2,'markersize', 10);
+        p1 = semilogy(rrG(:,1), rrG(:,2), 'b-x','DisplayName',strcat('No deflation - PREC = ', num2str(PREC), ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
         p1.Color = green;
-        % hold on;
         if nbEigVec > 0
-            p2 = semilogy(rrD(:,1), rrD(:,2), 'r-o','DisplayName',strcat('Deflation (', num2str(nbEigVec), ' vec) - PREC = ', num2str(PREC)),'linewidth', 2,'markersize', 10);
+            p2 = semilogy(rrD(:,1), rrD(:,2), 'r-o','DisplayName',strcat('Deflation (', num2str(nbEigVec), ' vec) - PREC = ', num2str(PREC), ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
             p2.Color = orange;
         end
         set(gca, 'YScale', 'log')
@@ -205,7 +238,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag
         ylim auto;
         xlabel('Iteration number', 'interpreter', 'latex', 'fontsize', 15);
         ylabel('Relative residual', 'interpreter', 'latex', 'fontsize', 15);
-        title(['GMRES - "' benchmark '" - k = ' num2str(k) ' - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Dlambda = ' num2str(Dlambda)], 'interpreter', 'latex', 'fontsize', 20);
+        title(['GMRES - "' benchmark '" - k = ' num2str(k) ' - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Dlambda = ' num2str(Dlambda) ' - Restart = ' num2str(restart)], 'interpreter', 'latex', 'fontsize', 20);
         legend('Location', 'southwest', 'fontsize', 15);
     end
 
