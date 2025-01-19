@@ -6,26 +6,26 @@ global k h
 plotFlag = 1;
 saveSolFlag = 0;
 
-% %% % CAVITY BENCHMARK
-% k = 3.01*sqrt(2)*pi;
-% h = 1/32;
-% tol = 1e-10;
-% maxit = 2000;
-% L = 1;
-% degree = 2;
-% nbEigVec=1;
+%% % CAVITY BENCHMARK
+k = 3.01*sqrt(2)*pi;
+h = 1/32;
+tol = 1e-10;
+maxit = 2000;
+L = 1;
+degree = 2;
+nbEigVec=1;
 
 
-% %% Without preconditioner
-% PREC = 0;
-% itout =4;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag);
+%% Without preconditioner
+PREC = 0;
+itout =4;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
 
 
-% %% With preconditioner
-% PREC = 1;
-% itout = 1;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag);
+%% With preconditioner
+PREC = 1;
+itout = 1;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,plotFlag,saveSolFlag);
 
 
 
