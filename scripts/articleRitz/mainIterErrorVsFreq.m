@@ -9,12 +9,12 @@ plotFlag = 1;
 k = 3.01*sqrt(2)*pi;
 h = 1/32;
 % rangeFreq = 12.7:0.009:13.8;
-rangeFreq = 13.2:0.05:13.4;
+rangeFreq = 12.7:0.1:13.8;
 tol = 1e-10;
 maxit = 2000;
 L = 1;
 degree = 2;
-nbEigVec=1;
+nbEigVec=11;
 
 
 %% Without preconditioner
@@ -238,7 +238,7 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         end
         xlabel('k', 'Interpreter', 'latex', 'FontSize', 15);
         ylabel('Number of iterations', 'Interpreter', 'latex', 'FontSize', 15);
-        title(['Number of iterations vs frequency - Benchmark "' benchmark '" - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart)], 'Interpreter', 'latex', 'FontSize', 20);
+        title(['Nb of it vs freq - Benchmark "' benchmark '" - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart)], 'Interpreter', 'latex', 'FontSize', 20);
         legend('Location', 'best', 'FontSize', 15);
     end
 
