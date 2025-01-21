@@ -2,26 +2,16 @@
 % See the LICENSE.txt file in the root directory for license information
 % Author: Timothee Raynaud, Axel Modave, Pierre Marchand
 
-% This function computes the nbEigVec first eigenvectors or the nbEigVec
-% closest eigenvectors to k for the Laplacian problem on a square domain
-% with homogeneous Dirichlet BC
+% This function computes the nbEigVec closest eigenvectors to k for the Laplacian problem on a rectagular domain with homogeneous Neumann boundary conditions
 
-function [eigenvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec, varargin)
+function [eigenvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, k)
 
 if nbEigVec == 0
     eigenvec = [];
     return;
 end
 
-if varargin{1} == "firstEigvec"
-    mn = computeFirstEigVec_cavity(nbEigVec);
-    global k
-elseif varargin{1} == "closestEigvec"
-    k = varargin{2};
-    mn = computeCloseEigVec_cavity(nbEigVec, k);
-else
-    error('Invalid input: varargin{1} must be "firstEigvec" or "closestEigvec". In the last case, varargin{2} must be the frequency k you want to compute the eigenvectors for.');
-end
+mn = computeCloseEigVec_openCavity_NEU(nbEigVec, k);
 
 nbEigVec = size(mn, 1);
 
@@ -48,11 +38,15 @@ for tri=1:mesh.numTri
     
     % Reference solution
     refQ = zeros(size(xQ,1), size(mn, 1));
-    for i=1:size(mn, 1)
-        m = mn(i, 1);
-        n = mn(i, 2);
-        refQ(:, i) = (sin(m*xQ*pi).*sin(n*yQ*pi)) .* (16*m*n*pi^2 /(pi^2*(m^2 + n^2)-k^2));
+    
+    if (V1(1) >= -0.75 && V2(1) >= -0.75 && V3(1) >= -0.75 && V1(1) <= 0.55 && V2(1) <= 0.55 && V3(1) <= 0.55 && V1(2) >= -0.2 && V2(2) >= -0.2 && V3(2) >= -0.2 && V1(2) <= 0.2 && V2(2) <= 0.2 && V3(2) <= 0.2)
+        for i=1:size(mn, 1)
+            m = mn(i, 1);
+            n = mn(i, 2);
+            refQ(:, i) = (sin((m+1/2)*(xQ+0.75)*pi/1.3).*cos(n*(yQ-0.2)*pi/0.4));
+        end
     end
+    
     
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -78,7 +72,7 @@ for tri=1:mesh.numTri
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
     rhsP(dof,:) = rhsP(dof,:) + rhsPel;
-
+    
 end
 
 % Solution
@@ -97,59 +91,31 @@ eigenvec = matP\rhsP;
 
 end
 
-% This function compute the number of the nbEigVec first eigenvectors for
-% the Laplacian problem on a square domain with homogeneous Dirichlet BC
 
-function indices = computeFirstEigVec_cavity(nb)
+% This function compute the number of the nbEigVec closest eigenvectors to
+% k for the Laplacian problem on a rectangular domain with homogeneous
+% Neumamnn BC
 
-limit = 100;
-[M, N] = meshgrid(1:limit, 1:limit);
-
-
-sum_squares = M.^2 + N.^2;
-
-
-[~, sorted_indices] = sort(sum_squares(:));
-
-
-nb_smallest_indices = sorted_indices(1:nb+1);
-
-
-[m, n] = ind2sub(size(sum_squares), nb_smallest_indices);
-
-
-if sum_squares(m(nb), n(nb)) == sum_squares(m(nb+1), n(nb+1))
-    indices = [m(1:nb+1), n(1:nb+1)];
-else
-    indices = [m(1:nb), n(1:nb)];
-end
-end
-
-% This function compute the number of the nbEigVec closest eigenvectors
-% to k for the Laplacian problem on a square domain with homogeneous
-% Dirichlet BC
-
-function indices = computeCloseEigVec_cavity(nb, k)
+function indices = computeCloseEigVec_openCavity_NEU(nb, k)
 
 limit = 100;
-[M, N] = meshgrid(1:limit, 1:limit);
+M = 0:limit-1;
+N = 1:limit;
+[M, N] = meshgrid(M, N);
 
+quasi_resonances = (M+1/2).^2/((1.3)^2) + (N.^2)/(0.4^2);
 
-diff = abs(M.^2 + N.^2 - k^2/pi^2);
-
+diff = abs(quasi_resonances - k^2/pi^2);
 
 [~, sorted_indices] = sort(diff(:));
 
 
-indices = sorted_indices(1:nb+1);
+indices = sorted_indices(1:nb);
 
 
-[m, n] = ind2sub(size(diff), indices);
+[n, m] = ind2sub(size(diff), indices);
 
+m = m - 1;
 
-if diff(m(nb), n(nb)) == diff(m(nb+1), n(nb+1))
-    indices = [m(1:nb+1), n(1:nb+1)];
-else
-    indices = [m(1:nb), n(1:nb)];
-end
+indices = [m(1:nb), n(1:nb)];
 end
