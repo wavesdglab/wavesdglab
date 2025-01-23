@@ -1,6 +1,13 @@
 %close all;
 clear;
 
+N=15;
+LASTN = maxNumCompThreads(N);
+disp(['---------------------------------------------------------']);
+disp(['Previous maximum number of threads ' num2str(LASTN) ]);
+disp(['Current maximum number of threads ' num2str(N) ]);
+disp(['---------------------------------------------------------']);
+
 global k h
 
 plotFlag = 1;
