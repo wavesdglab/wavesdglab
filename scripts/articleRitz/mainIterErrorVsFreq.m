@@ -15,9 +15,8 @@ plotFlag = 0;
 %% % CAVITY BENCHMARK
 k = 3.01*sqrt(2)*pi;
 h = 1/32;
-% rangeFreq = 12.7:0.009:13.8;
+rangeFreq = 12.7:0.009:13.8;
 % rangeFreq = 12.7:0.1:13.8;
-rangeFreq = k:1:k;
 tol = 1e-10;
 maxit = 2000;
 L = 1;
