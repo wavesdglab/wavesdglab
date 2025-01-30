@@ -1,7 +1,8 @@
 %close all;
 clear;
+clear global;
 
-N=15;
+N=5;
 LASTN = maxNumCompThreads(N);
 disp(['---------------------------------------------------------']);
 disp(['Previous maximum number of threads ' num2str(LASTN) ]);
@@ -23,28 +24,29 @@ degree = 2;
 nbEigVec=1;
 
 
-%% Without preconditioner
+% %% Without preconditioner
 PREC = 'none';
 itout =4;
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 10;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 25;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
-%% With preconditioner: CSL
-PREC = 'CSL';
-itout = 1;
-restart = 0;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 3;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
-run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+return;
+% restart = 10;
+% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 25;
+% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% 
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% itout = 1;
+% restart = 0;
+% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 3;
+% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 5;
+% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
-PREC = 'CSL_ILU';
+PREC = 'CSL(ILU)';
 itout = 1;
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
@@ -68,28 +70,28 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec = 1;
 
-%% Without preconditioner
-PREC = 'none';
-itout = 10;
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 10;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 25;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
-%% With preconditioner: CSL
-PREC = 'CSL';
-itout = 1;
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 3;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% %% Without preconditioner
+% PREC = 'none';
+% itout = 10;
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 10;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 25;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% 
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% itout = 1;
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 3;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 5;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
-PREC = 'CSL_ILU';
+PREC = 'CSL(ILU)';
 itout = 1;
 restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
@@ -115,28 +117,28 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec=1;
 
-%% Without preconditioner
-PREC = 'none';
-itout = 10;
-restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 10;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 25;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
-%% With preconditioner: CSL
-PREC = 'CSL';
-itout = 1;
-restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 3;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% %% Without preconditioner
+% PREC = 'none';
+% itout = 10;
+% restart = 0;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 10;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 25;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% 
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% itout = 1;
+% restart = 0;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 3;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+% restart = 5;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
-PREC = 'CSL_ILU';
+PREC = 'CSL(ILU)';
 itout = 1;
 restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
@@ -151,7 +153,10 @@ run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plo
 function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag)
 
     global k h
-
+    
+    if strcmp(benchmark, 'cavity')
+        clear global LdomX LdomY LpmlX LpmlY
+    end
 
     mesh = setupBenchmark2D(benchmark);
     mesh = buildConnectivity2D(mesh);
@@ -174,7 +179,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
             prec = 0;
         case 'CSL'
             prec = 1;
-        case 'CSL_ILU'
+        case 'CSL(ILU)'
             prec = 1;
         otherwise
             error('Unknown preconditioner');
@@ -188,7 +193,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
 
     invPrec = @(x) M\x;
 
-    if strcmp(PREC, 'CSL_ILU')
+    if strcmp(PREC, 'CSL(ILU)')
         [L,U] = ilu(M);
         invPrec = @(x) U\(L\x);
     end

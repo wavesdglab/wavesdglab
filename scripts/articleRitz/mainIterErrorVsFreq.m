@@ -10,13 +10,14 @@ disp(['---------------------------------------------------------']);
 
 global k h
 
-plotFlag = 1;
+plotFlag = 0;
 
 %% % CAVITY BENCHMARK
 k = 3.01*sqrt(2)*pi;
 h = 1/32;
 % rangeFreq = 12.7:0.009:13.8;
-rangeFreq = 12.7:0.1:13.8;
+% rangeFreq = 12.7:0.1:13.8;
+rangeFreq = k:1:k;
 tol = 1e-10;
 maxit = 2000;
 L = 1;
@@ -25,16 +26,26 @@ nbEigVec=11;
 
 
 %% Without preconditioner
-PREC = 0;
+PREC = 'none';
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+return;
 restart = 10;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 25;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
-%% With preconditioner
-PREC = 1;
+%% With preconditioner: CSL
+PREC = 'CSL';
+restart = 0;
+run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 3;
+run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 5;
+run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+
+%% With preconditioner: CSL (ILU)
+PREC = 'CSL(ILU)';
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 3;
@@ -59,7 +70,7 @@ degree = 3;
 nbEigVec = 1;
 
 %% Without preconditioner
-PREC = 0;
+PREC = 'none';
 restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 10;
@@ -67,8 +78,8 @@ run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 restart = 25;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
-%% With preconditioner
-PREC = 1;
+%% With preconditioner: CSL
+PREC = 'CSL';
 restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 3;
@@ -76,7 +87,14 @@ run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 restart = 5;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
-
+%% With preconditioner: CSL (ILU)
+PREC = 'CSL(ILU)';
+restart = 0;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 3;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 5;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
 %% % SCATTERING OPEN CAVITY NEUMANN BENCHMARK
 global LdomX LdomY LpmlX LpmlY
@@ -92,10 +110,10 @@ LdomY = 0.5;
 LpmlX = 0.2;
 LpmlY = 0.2;
 degree = 3;
-nbEigVec=11;
+nbEigVec=1;
 
 %% Without preconditioner
-PREC = 0;
+PREC = 'none';
 restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 10;
@@ -103,8 +121,18 @@ run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 restart = 25;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
-%% With preconditioner
-PREC = 1;
+%% With preconditioner: CSL
+PREC = 'CSL';
+restart = 0;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 3;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 5;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+
+
+%% With preconditioner: CSL (ILU)
+PREC = 'CSL(ILU)';
 restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 3;
@@ -120,6 +148,10 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
 
     global k h
 
+    if strcmp(benchmark, 'cavity')
+        clear global LdomX LdomY LpmlX LpmlY
+    end
+
 
     mesh = setupBenchmark2D(benchmark);
     mesh = buildConnectivity2D(mesh);
@@ -134,6 +166,17 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
     end
 
     nbit(:,1) = rangeFreq;
+
+    switch PREC
+        case 'none'
+            prec = 0;
+        case 'CSL'
+            prec = 1;
+        case 'CSL(ILU)'
+            prec = 1;
+        otherwise
+            error('Unknown preconditioner');
+    end
 
     switch benchmark
         case 'cavity'
@@ -159,7 +202,7 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         disp(['---------------------------------------------------------']);
         disp(['Method CG - Benchmark "' benchmark '"']);
         disp(['---------------------------------------------------------']);
-        disp(['    k = ' num2str(k) ' - h = ' num2str(h) ' - Dlambda = ' num2str(Dlambda) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart)]);
+        disp(['    k = ' num2str(k) ' - h = ' num2str(h) ' - Dlambda = ' num2str(Dlambda) ' - degree = ' num2str(degree) ' - PREC = ' PREC ' - Restart = ' num2str(restart)]);
         disp(['---------------------------------------------------------']);
 
         [~, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
@@ -167,7 +210,13 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         A = sysA.matA;
         M = sysA.matP;
         b = sysA.rhsA;
-        AMinv = A/M;
+        
+        invPrec = @(x) M\x;
+
+        if strcmp(PREC, 'CSL(ILU)')
+            [L,U] = ilu(M);
+            invPrec = @(x) U\(L\x);
+        end
 
         [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
@@ -187,15 +236,15 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         % No deflation
 
         % Compute GMRES solution
-        disp(['|  GMRES - No deflation - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart) '']);
-        [uG, ~, ~, itG, ~] = gmres(AMinv,b,m,tol,maxit);
+        disp(['|  GMRES - No deflation - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
+        [uG, ~, ~, itG, ~] = gmres(@(x) A*(invPrec(x)),b,m,tol,maxit);
         itG = itG(2) + (itG(1)-1)*m;
         disp(['    converged in ' num2str(itG) ' iterations']);
 
         nbit(rangeFreq==k,2) = itG;
 
         if strcmp(benchmark, 'cavity')
-            xG = M\uG;
+            xG = invPrec(uG);
             errorL2 = computeNormError2D_CG(mesh, dofm, xG);
 
             error(rangeFreq==k,2) = errorL2;
@@ -205,8 +254,8 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
             % Deflation
 
             % Compute GMRES solution
-            disp(['|  GMRES - Deflation - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart) '']);
-            [~, ~, ~, itD, ~] = gmres(Pdef*AMinv,Pdef*b,m,tol,maxit);
+            disp(['|  GMRES - Deflation - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
+            [~, ~, ~, itD, ~] = gmres(@(x) Pdef*(A*(invPrec(x))),Pdef*b,m,tol,maxit);
             itD = itD(2) + (itD(1)-1)*m;
             disp(['    converged in ' num2str(itD) ' iterations']);
 
@@ -220,11 +269,11 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
     kmin = min(rangeFreq);
     kmax = max(rangeFreq);
 
-    namefile = sprintf('output/iterVsFreq_%s_p%i_prec%i_range_%g-%g_def_%g_restart_%g.csv', benchmark, degree, PREC, kmin, kmax, nbEigVec, restart);
+    namefile = sprintf('output/iterVsFreq_%s_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', benchmark, degree, PREC, kmin, kmax, nbEigVec, restart);
     writematrix([labels; nbit], namefile, 'Delimiter', 'comma');
 
     if strcmp(benchmark, 'cavity')
-        namefile = sprintf('output/errorVsFreq_cavity_p%i_prec%i_range_%g-%g_def_%g_restart_%g.csv', degree, PREC, kmin, kmax, nbEigVec, restart);
+        namefile = sprintf('output/errorVsFreq_cavity_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', degree, PREC, kmin, kmax, nbEigVec, restart);
         writematrix([["k", "errorL2"]; error], namefile, 'Delimiter', 'comma');
     end
 
@@ -237,15 +286,15 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         hold on;
         set(0,'DefaultFigureWindowStyle','docked');
 
-        p1 = plot(nbit(:,1),nbit(:,2),'b-x','DisplayName',strcat('No deflation - PREC = ', num2str(PREC), ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
+        p1 = plot(nbit(:,1),nbit(:,2),'b-x','DisplayName',strcat('No deflation - PREC = ', PREC, ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
         p1.Color = green;
         if nbEigVec > 0
-            p2 = plot(nbit(:,1),nbit(:,3),'r-o','DisplayName',strcat('Deflation (', num2str(nbEigVec), ' vec) - PREC = ', num2str(PREC), ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
+            p2 = plot(nbit(:,1),nbit(:,3),'r-o','DisplayName',strcat('Deflation (', num2str(nbEigVec), ' vec) - PREC = ', PREC, ' - Restart = ', num2str(restart)),'linewidth', 2,'markersize', 10);
             p2.Color = orange;
         end
         xlabel('k', 'Interpreter', 'latex', 'FontSize', 15);
         ylabel('Number of iterations', 'Interpreter', 'latex', 'FontSize', 15);
-        title(['Nb of it vs freq - Benchmark "' benchmark '" - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' num2str(PREC) ' - Restart = ' num2str(restart)], 'Interpreter', 'latex', 'FontSize', 20);
+        title(['Nb of it vs freq - Benchmark "' benchmark '" - h = ' num2str(h) ' - degree = ' num2str(degree) ' - PREC = ' PREC ' - Restart = ' num2str(restart)], 'Interpreter', 'latex', 'FontSize', 20);
         legend('Location', 'best', 'FontSize', 15);
     end
 
