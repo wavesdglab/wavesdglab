@@ -29,21 +29,20 @@ PREC = 'none';
 itout =4;
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-return;
-% restart = 10;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 25;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% 
-% %% With preconditioner: CSL
-% PREC = 'CSL';
-% itout = 1;
-% restart = 0;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 3;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 5;
-% run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+%% With preconditioner: CSL
+PREC = 'CSL';
+itout = 1;
+restart = 0;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
 PREC = 'CSL(ILU)';
@@ -70,25 +69,25 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec = 1;
 
-% %% Without preconditioner
-% PREC = 'none';
-% itout = 10;
-% restart = 0;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 10;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 25;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% 
-% %% With preconditioner: CSL
-% PREC = 'CSL';
-% itout = 1;
-% restart = 0;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 3;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 5;
-% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+%% Without preconditioner
+PREC = 'none';
+itout = 10;
+restart = 0;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+%% With preconditioner: CSL
+PREC = 'CSL';
+itout = 1;
+restart = 0;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
 PREC = 'CSL(ILU)';
@@ -117,25 +116,25 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec=1;
 
-% %% Without preconditioner
-% PREC = 'none';
-% itout = 10;
-% restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 10;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 25;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% 
-% %% With preconditioner: CSL
-% PREC = 'CSL';
-% itout = 1;
-% restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 3;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% restart = 5;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+%% Without preconditioner
+PREC = 'none';
+itout = 10;
+restart = 0;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 10;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+%% With preconditioner: CSL
+PREC = 'CSL';
+itout = 1;
+restart = 0;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 3;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 5;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 %% With preconditioner: CSL (ILU)
 PREC = 'CSL(ILU)';

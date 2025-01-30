@@ -16,19 +16,17 @@ plotFlag = 0;
 k = 3.01*sqrt(2)*pi;
 h = 1/32;
 rangeFreq = 12.7:0.009:13.8;
-% rangeFreq = 12.7:0.1:13.8;
 tol = 1e-10;
 maxit = 2000;
 L = 1;
 degree = 2;
-nbEigVec=11;
+nbEigVec=1;
 
 
 %% Without preconditioner
 PREC = 'none';
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-return;
 restart = 10;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 25;
