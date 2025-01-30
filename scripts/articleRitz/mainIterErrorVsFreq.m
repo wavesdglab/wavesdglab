@@ -1,5 +1,6 @@
 %close all;
 clear;
+clear global;
 
 N=15;
 LASTN = maxNumCompThreads(N);
@@ -145,6 +146,13 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
 
     global k h
 
+    kmin = min(rangeFreq);
+    kmax = max(rangeFreq);
+
+    namediary = sprintf('output/log_iterErrorVsFreq_%s_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.txt', benchmark, degree, kmin, kmax, PREC, nbEigVec, restart);
+    delete(namediary);
+    diary(namediary);
+
     if strcmp(benchmark, 'cavity')
         clear global LdomX LdomY LpmlX LpmlY
     end
@@ -263,14 +271,11 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
 
     end
 
-    kmin = min(rangeFreq);
-    kmax = max(rangeFreq);
-
-    namefile = sprintf('output/iterVsFreq_%s_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', benchmark, degree, PREC, kmin, kmax, nbEigVec, restart);
+    namefile = sprintf('output/iterVsFreq_%s_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', benchmark, degree, kmin, kmax, PREC, nbEigVec, restart);
     writematrix([labels; nbit], namefile, 'Delimiter', 'comma');
 
     if strcmp(benchmark, 'cavity')
-        namefile = sprintf('output/errorVsFreq_cavity_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', degree, PREC, kmin, kmax, nbEigVec, restart);
+        namefile = sprintf('output/errorVsFreq_cavity_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.csv', degree, kmin, kmax, PREC, nbEigVec, restart);
         writematrix([["k", "errorL2"]; error], namefile, 'Delimiter', 'comma');
     end
 
@@ -295,4 +300,5 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         legend('Location', 'best', 'FontSize', 15);
     end
 
+    diary off;
 end

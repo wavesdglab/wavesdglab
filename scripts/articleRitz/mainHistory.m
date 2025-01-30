@@ -2,7 +2,7 @@
 clear;
 clear global;
 
-N=5;
+N=15;
 LASTN = maxNumCompThreads(N);
 disp(['---------------------------------------------------------']);
 disp(['Previous maximum number of threads ' num2str(LASTN) ]);
@@ -11,7 +11,7 @@ disp(['---------------------------------------------------------']);
 
 global k h
 
-plotFlag = 1;
+plotFlag = 0;
 saveSolFlag = 1;
 
 %% % CAVITY BENCHMARK
@@ -153,6 +153,10 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
 
     global k h
     
+    namediary = sprintf('output/log_mainHistory_%s_p%i_k=%g_prec=%s_def=%g_restart=%g.txt', benchmark, degree, k, PREC, nbEigVec, restart);
+    delete(namediary);
+    diary(namediary);
+
     if strcmp(benchmark, 'cavity')
         clear global LdomX LdomY LpmlX LpmlY
     end
@@ -301,4 +305,5 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
         legend('Location', 'southwest', 'fontsize', 15);
     end
 
+    diary off;
 end
