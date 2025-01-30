@@ -210,7 +210,7 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         disp(['    k = ' num2str(k) ' - h = ' num2str(h) ' - Dlambda = ' num2str(Dlambda) ' - degree = ' num2str(degree) ' - PREC = ' PREC ' - Restart = ' num2str(restart)]);
         disp(['---------------------------------------------------------']);
 
-        [~, sysA] = computeSolNum2D_CG(mesh, dofm, PREC);
+        [~, sysA] = computeSolNum2D_CG(mesh, dofm, prec);
 
         A = sysA.matA;
         M = sysA.matP;
