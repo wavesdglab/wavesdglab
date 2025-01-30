@@ -46,9 +46,9 @@ run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 PREC = 'CSL(ILU)';
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 5;
+run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 10;
 run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
 
@@ -89,9 +89,9 @@ run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 PREC = 'CSL(ILU)';
 restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 5;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 10;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
 %% % SCATTERING OPEN CAVITY NEUMANN BENCHMARK
@@ -133,9 +133,9 @@ run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 PREC = 'CSL(ILU)';
 restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 restart = 5;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+restart = 10;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
 
 
