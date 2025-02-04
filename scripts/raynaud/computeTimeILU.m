@@ -136,6 +136,63 @@ function run(benchmark,degree,tol,maxit,itout,nbEigVec,restart,numTests,plotFlag
         maxit = ceil(maxit/m);
     end
 
+
+%     [uGRef, ~, ~, itG, ~] = gmres(@(x) A*(M\x),b,m,1e-12,7000);
+    [uGRef, ~, ~, itG, ~] = gmres(A,b,m,1e-10,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    namefile = sprintf('output/uGRef.pos');
+%     writeField2D(dofm, mesh, M\uGRef, namefile,"uRef");
+    writeField2D(dofm, mesh, uGRef, namefile,"uRef");
+
+    tol = 1e-10;
+    [uG, ~, ~, itG, ~] = gmres(@(x) A*(M\x),b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, (M\uG)))]);
+    namefile = sprintf('output/uG.pos');
+    writeField2D(dofm, mesh, M\uG, namefile,"M\uG");
+
+    [L,U] = ilu(M);
+    [uG, ~, ~, itG, ~] = gmres(@(x) A*(U\(L\x)),b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, U\(L\uG)))]);
+    namefile = sprintf('output/uGILU0.pos');
+    writeField2D(dofm, mesh, U\(L\uG), namefile,"U\(L\uG)A");
+
+    [L,U] = ilu(A);
+    [uG, ~, ~, itG, ~] = gmres(@(x) A*(U\(L\x)),b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, U\(L\uG)))]);
+    namefile = sprintf('output/uGILU0A.pos');
+    writeField2D(dofm, mesh, U\(L\uG), namefile,"U\(L\uG)");
+
+
+    [uG, ~, ~, itG, ~] = gmres(@(x) Pdef*(A*(M\x)),Pdef*b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, Q*b + Qdef*(M\uG)))]);
+    namefile = sprintf('output/uGDef.pos');
+    writeField2D(dofm, mesh, Q*b + Qdef*(M\uG), namefile,"Qb + Qdef(M\uG)");
+
+    [L,U] = ilu(M);
+    [uG, ~, ~, itG, ~] = gmres(@(x) Pdef*(A*(U\(L\x))),Pdef*b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, Q*b + Qdef*(U\(L\uG))))]);
+    namefile = sprintf('output/uGDefILU0.pos');
+    writeField2D(dofm, mesh, Q*b + Qdef*(U\(L\uG)), namefile,"Qb + Qdef(U\(L\uG))");
+
+    [L,U] = ilu(A);
+    [uG, ~, ~, itG, ~] = gmres(@(x) Pdef*(A*(U\(L\x))),Pdef*b,m,tol,maxit);
+    itG = itG(2) + (itG(1)-1)*m;
+    disp(['|  iterations   = ' num2str(itG)]);
+    disp(['|  ||xRef - x||    = ' num2str(computeNormError2D_CG(mesh, dofm, Q*b + Qdef*(U\(L\uG))))]);
+    namefile = sprintf('output/uGDefILU0A.pos');
+    writeField2D(dofm, mesh, Q*b + Qdef*(U\(L\uG)), namefile,"Qb + Qdef(U\(L\uG))A");
+    
     labelsGMRES = ["No def - No ILU", "No def - ILU(0)", "No def - ILUC", "No def - ILUTP"];
     labelsILU = ["ILU(0)", "ILUC", "ILUTP"];
     timeGMRES = zeros(numTests+3, length(labelsGMRES));

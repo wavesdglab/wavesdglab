@@ -18,7 +18,7 @@ benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 15*pi;
-        h = 1/16;
+        h = 1/20;
         tol = 1e-10; maxit = 1000; itout = 50;
     case 'cavity'
 %         k = 3.001*sqrt(2)*pi;
@@ -48,7 +48,7 @@ switch benchmark
         h = 1/8;
         tol = 1e-10; maxit = 4000; itout = 200;
 end
-degree = 1; % P1
+degree = 2; % P1
 PREC = 1; % for preconditioner
 
 % Build mesh and DOF manager
@@ -77,7 +77,7 @@ A = sysA.matA;
 P = sysA.matP;
 b = sysA.rhsA;
 
-prec = 'sym';
+prec = 'right';
 switch prec
     case 'left'
         [x1, ~, relres, it1, resVec1] = gmres(A,b,[],tol,maxit,eye(size(A,1)),P);
@@ -89,8 +89,12 @@ switch prec
         [x1, ~, relres, it1, resVec1] = gmres(A,b,[],tol,maxit,sqrtP,sqrtP);
         [resVec2, ~, it2, ~, ~, x2] = solverGMRES_SP(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
     case 'right'
-        [x1, ~, relres, it1, resVec1] = gmres(A/P,b,[],tol,maxit);
-        x1 = P\x1;
+%         [L,U] = ilu(P,struct('type','ilutp','droptol',1e-6));
+        [L,U] = ilu(P);
+%         [x1, ~, relres, it1, resVec1] = gmres(A/P,b,[],tol,maxit);
+%         x1 = P\x1;
+        [x1, ~, relres, it1, resVec1] = gmres(@(x) A*(U\(L\x)),b,[],tol,maxit);
+        x1 = U\(L\x1);
         [resVec2, ~, it2, ~, ~, x2] = solverGMRES_RP(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
     case 'none'
         sysA.matP = speye(size(A,1));
@@ -106,7 +110,7 @@ maxIt = min(it1,it2);
 writeField2D(dofm, mesh, x1, 'output/x1.pos', "x1");
 writeField2D(dofm, mesh, x2, 'output/x2.pos', "x2");
 writeField2D(dofm, mesh, x1-x2, 'output/err.pos', "err");
-system('gmsh output/x1.pos output/x2.pos output/err.pos&');
+system('gmsh output/mesh.msh output/x1.pos output/x2.pos output/err.pos&');
 
 resVec2 = resVec2(1:maxIt+1);
 
