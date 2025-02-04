@@ -14,7 +14,10 @@ global k h
 plotFlag = 0;
 saveSolFlag = 1;
 
-%% % CAVITY BENCHMARK
+
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CAVITY BENCHMARK
 k = 3.01*sqrt(2)*pi;
 h = 1/32;
 tol = 1e-10;
@@ -34,6 +37,7 @@ run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 25;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
+
 %% With preconditioner: CSL
 PREC = 'CSL';
 itout = 1;
@@ -44,20 +48,34 @@ run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 5;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
-%% With preconditioner: CSL (ILU)
-PREC = 'CSL(ILU)';
+
+%% With preconditioner: ILU(CSL)
+PREC = 'ILU(CSL)';
 itout = 1;
 restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
+restart = 10;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+
+%% With preconditioner: ILU(A)
+PREC = 'ILU(A)';
+itout = 1;
+restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 10;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
 
-%% % SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
-global LdomX LdomY LpmlX LpmlY
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
+global LdomX LdomY LpmlX LpmlY WRITE_FIELD_ABSOLUTE
+WRITE_FIELD_ABSOLUTE = 1;
 k = 23.676;
 h = 1/20;
 tol = 1e-6;
@@ -69,6 +87,7 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec = 1;
 
+
 %% Without preconditioner
 PREC = 'none';
 itout = 10;
@@ -78,6 +97,7 @@ restart = 10;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 25;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
 
 %% With preconditioner: CSL
 PREC = 'CSL';
@@ -89,20 +109,34 @@ run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plo
 restart = 5;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
-%% With preconditioner: CSL (ILU)
-PREC = 'CSL(ILU)';
+
+%% With preconditioner: ILU(CSL)
+PREC = 'ILU(CSL)';
 itout = 1;
 restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
+restart = 10;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+
+%% With preconditioner: ILU(A)
+PREC = 'ILU(A)';
+itout = 1;
+restart = 0;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 10;
 run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_DIR',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
 
-%% % SCATTERING OPEN CAVITY NEUMANN BENCHMARK
-global LdomX LdomY LpmlX LpmlY
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY NEUMANN BENCHMARK
+global LdomX LdomY LpmlX LpmlY WRITE_FIELD_ABSOLUTE
+WRITE_FIELD_ABSOLUTE = 1;
 k = 23.591;
 % k = 23.82;
 % k = 24.275;
@@ -116,6 +150,7 @@ LpmlY = 0.2;
 degree = 3;
 nbEigVec=1;
 
+
 %% Without preconditioner
 PREC = 'none';
 itout = 10;
@@ -125,6 +160,7 @@ restart = 10;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 25;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
 
 %% With preconditioner: CSL
 PREC = 'CSL';
@@ -136,17 +172,31 @@ run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plo
 restart = 5;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
-%% With preconditioner: CSL (ILU)
-PREC = 'CSL(ILU)';
+
+%% With preconditioner: ILU(CSL)
+PREC = 'ILU(CSL)';
 itout = 1;
 restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-restart = 5;
+restart = 10;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+
+
+%% With preconditioner: ILU(A)
+PREC = 'ILU(A)';
+itout = 1;
+restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 restart = 10;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
+restart = 25;
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
-%%  %% MAIN FUNCTION %% %%
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN FUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
 
 
 function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag)
@@ -182,10 +232,12 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
             prec = 0;
         case 'CSL'
             prec = 1;
-        case 'CSL(ILU)'
+        case 'ILU(CSL)'
+            prec = 1;
+        case 'ILU(A)'
             prec = 1;
         otherwise
-            error('Unknown preconditioner');
+            error('Error. \n%s is not a valid preconditioner', PREC);
     end
 
     [~, sysA] = computeSolNum2D_CG(mesh, dofm, prec);
@@ -196,28 +248,13 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
 
     invPrec = @(x) M\x;
 
-    if strcmp(PREC, 'CSL(ILU)')
+    if strcmp(PREC, 'ILU(CSL)')
         [L,U] = ilu(M);
         invPrec = @(x) U\(L\x);
+    elseif strcmp(PREC, 'ILU(A)')
+        [L,U] = ilu(A);
+        invPrec = @(x) U\(L\x);
     end
-
-
-    switch benchmark
-        case 'cavity'
-            [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',k);
-        case 'scattering_openCavity_NEU'
-            [eigvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, k);
-            global WRITE_FIELD_ABSOLUTE
-            WRITE_FIELD_ABSOLUTE = 1;
-        case 'scattering_openCavity_DIR'
-            [eigvec,nbEigVec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, k);
-            global WRITE_FIELD_ABSOLUTE
-            WRITE_FIELD_ABSOLUTE = 1;
-        otherwise
-            error('Unknown benchmark');
-    end
-
-    [Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigvec, A);
 
     if maxit > size(A,2)
         maxit = size(A,2);
@@ -253,6 +290,25 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
     results = rrG;
 
     if nbEigVec > 0
+
+        switch benchmark
+            case 'cavity'
+                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',k);
+
+            case 'scattering_openCavity_NEU'
+                [eigvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, k);
+
+            case 'scattering_openCavity_DIR'
+                [eigvec,nbEigVec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, k);
+
+            otherwise
+                error('Error. \n%s is not a valid benchmark for deflation', benchmark);
+
+        end
+        
+        [Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigvec, A);
+
+
         % Deflation
 
         % Compute GMRES solution
