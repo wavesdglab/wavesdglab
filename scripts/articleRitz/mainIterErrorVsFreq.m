@@ -278,7 +278,6 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
             invPrec = @(x) U\(L\x);
         end
 
-        [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
         if k == rangeFreq(1)
             if maxit > size(A,2)
@@ -310,6 +309,8 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
 
         if nbEigVec > 0
             % Deflation
+
+            [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
             % Compute GMRES solution
             disp(['|  GMRES - Deflation - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
