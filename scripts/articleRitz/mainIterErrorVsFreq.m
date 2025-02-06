@@ -234,7 +234,7 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
     if nbEigVec > 0
         switch benchmark
             case 'cavity'
-                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'firstEigvec',k);
+                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',k);
 
                 errorL2 = zeros(length(rangeFreq),2);
                 errorL2(:,1) = rangeFreq;
