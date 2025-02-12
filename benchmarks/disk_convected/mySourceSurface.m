@@ -17,6 +17,8 @@ souVy = zeros(size(x));
 % souVx = cos(phi)/(rho*c)*exp(1i*omega/(c*(1+M*(Theta*Phi'))).*(x*cos(phi)+y*sin(phi)));
 % souVy = sin(phi)/(rho*c)*exp(1i*omega/(c*(1+M*(Theta*Phi'))).*(x*cos(phi)+y*sin(phi)));
 
-souU = 1i / (4*c^2*sqrt(1-M^2)) * besselh(0,omega/c*sqrt((x-xS).^2+(1-M^2)*(y-yS).^2)/(1-M^2)) .* exp(-1i*M/(1-M^2)*omega/c.*(x-xS)); 
+% souU = 1i / (4*c^2*sqrt(1-M^2)) * besselh(0,omega/c*sqrt((x-xS).^2+(1-M^2)*(y-yS).^2)/(1-M^2)) .* exp(-1i*M/(1-M^2)*omega/c.*(x-xS));
+souU = omega / (4*c^2*sqrt(1-M^2)) * besselh(0,omega/c*sqrt((x-xS).^2+(1-M^2)*(y-yS).^2)/(1-M^2)) .* exp(-1i*M/(1-M^2)*omega/c.*(x-xS));
+souVx = M / (rho*c) * souU;
 
 end

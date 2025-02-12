@@ -4,7 +4,7 @@ clear all;
 global omega k eta c rho h v0 M theta phi;
 
 % Setup benchmark and parameters
-benchmark = 'open_convected';
+benchmark = 'disk_convected';
 switch benchmark
     case 'waveguide_convected'
         omega = 5*pi;
