@@ -30,7 +30,7 @@ switch benchmark
         v0 = [M*c*cos(theta), M*c*sin(theta)];
     case 'disk_convected'
         omega = 40;
-        h = 1/15;
+        h = 1/40;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;  
@@ -38,7 +38,6 @@ switch benchmark
         k = omega / c;
         M = 0.5;           % subsonic flow: 0<=M<1
         theta = 0;
-        phi = pi/4;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
 end
 degree = 3;

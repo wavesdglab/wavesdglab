@@ -100,10 +100,6 @@ for tri=1:mesh.numTri
     rhsQ = mySourceVolume(xQ,yQ);
     rhsQ = rhsQ / detJdxdu;
 
-    if (min(rhsQ)>0)
-        rhsQ
-    end
-
     % Elemental matrices/vectors
     matMel = shapeTriQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
     matDXel = shapeDxQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
