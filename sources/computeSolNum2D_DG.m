@@ -67,7 +67,7 @@ for tri=1:mesh.numTri
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
 
     % RHS function
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
+    rhsQ = mySourceVolume(xQ, yQ);
 
     % Elemental matrices
     weightsQ = weightsTriQ .* detJdxdu;
@@ -197,7 +197,7 @@ for tri=1:mesh.numTri
         detJdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
 
         % Solution function
-        [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
+        [souQ, ~, ~, souUxQ, souUyQ] = mySourceSurface(xQ, yQ);
 
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
@@ -212,9 +212,9 @@ for tri=1:mesh.numTri
         % Elemental matrix
         weightsQ = weightsLinQ .* detJdxdu;
         matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
-        rhsPel = transpose(shapeOrQ) * (weightsQ .* solQ);
-        rhsUel = transpose(shapeOrQ) * (weightsQ .* solDxQ / (1i*k));
-        rhsVel = transpose(shapeOrQ) * (weightsQ .* solDyQ / (1i*k));
+        rhsPel = transpose(shapeOrQ) * (weightsQ .* souQ);
+        rhsUel = transpose(shapeOrQ) * (weightsQ .* souUxQ);
+        rhsVel = transpose(shapeOrQ) * (weightsQ .* souUyQ);
 
         % Exterior normal
         nx = normal(fac,1);
