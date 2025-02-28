@@ -64,27 +64,27 @@ disp('---------------------------------------------------------');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNR']);
-[resPhyVec, error1] = solverCGNR(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_CG);
+[resRedVec, resPhyVec, error1] = solverCGNRredu_CG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_CG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error1));
 
-rezu1 = ["iter" "resPhy" "error" "errorRef"];
-rezu2 = [iterVec, resPhyVec, error1, errorRef];
-name = sprintf('output/historyCGNR_CG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error1, errorRef];
+name = sprintf('output/historyCGNR_CGred_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-[resPhyVec, error2] = solverGMRES(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_CG);
+[resRedVec, resPhyVec, error2] = solverGMRESredu_CG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_CG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error2));
 
-rezu1 = ["iter" "resPhy" "error" "errorRef"];
-rezu2 = [iterVec, resPhyVec, error2, errorRef];
-name = sprintf('output/historyGMRES_CG_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
+rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+rezu2 = [iterVec resRedVec, resPhyVec, error2, errorRef];
+name = sprintf('output/historyGMRES_CGred_%s_p%i_k%g_h%g.csv', benchmark, degree, k, h);
 writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +101,7 @@ semilogy(iterVec,errorNum,'k--','DisplayName','Numerical error');
 semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
 box on;
 grid on;
-title(['CG ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
+title(['CG with condensation ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
 legend('Location','southwest');
 xlabel('Iteration');
 ylabel('Relative error');
