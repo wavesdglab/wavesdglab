@@ -315,7 +315,7 @@ function run(benchmark,degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,sav
         % Deflation
 
         % Compute GMRES solution
-        disp(['|  GMRES - Deflation - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
+        disp(['|  GMRES - Deflation = ' num2str(nbEigVec) ' - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
         [uD, ~, ~, itD, rrD] = gmres(@(x) Pdef*(A*(invPrec(x))),Pdef*b,m,tol,maxit);
         itD = itD(2) + (itD(1)-1)*m;
         rrD = rrD(:)./rrD(1);
