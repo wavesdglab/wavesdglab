@@ -14,13 +14,13 @@ if nbEigVec == 0
 end
 
 if varargin{1} == "firstEigvec"
+    k = varargin{2};
     mn = computeFirstEigVec_cavity(nbEigVec);
-    global k
 elseif varargin{1} == "closestEigvec"
     k = varargin{2};
     mn = computeCloseEigVec_cavity(nbEigVec, k);
 else
-    error('Invalid input: varargin{1} must be "firstEigvec" or "closestEigvec". In the last case, varargin{2} must be the frequency k you want to compute the eigenvectors for.');
+    error('Invalid input: varargin{1} must be "firstEigvec" or "closestEigvec", and varargin{2} must be the frequency k you want to compute the eigenvectors for.');
 end
 
 nbEigVec = size(mn, 1);
@@ -102,27 +102,27 @@ end
 
 function indices = computeFirstEigVec_cavity(nb)
 
-limit = 100;
-[M, N] = meshgrid(1:limit, 1:limit);
+    limit = 100;
+    [M, N] = meshgrid(1:limit, 1:limit);
 
 
-sum_squares = M.^2 + N.^2;
+    sum_squares = M.^2 + N.^2;
 
 
-[~, sorted_indices] = sort(sum_squares(:));
+    [~, sorted_indices] = sort(sum_squares(:));
 
 
-nb_smallest_indices = sorted_indices(1:nb+1);
+    nb_smallest_indices = sorted_indices(1:nb+1);
 
 
-[m, n] = ind2sub(size(sum_squares), nb_smallest_indices);
+    [m, n] = ind2sub(size(sum_squares), nb_smallest_indices);
 
 
-if sum_squares(m(nb), n(nb)) == sum_squares(m(nb+1), n(nb+1))
-    indices = [m(1:nb+1), n(1:nb+1)];
-else
-    indices = [m(1:nb), n(1:nb)];
-end
+    if sum_squares(m(nb), n(nb)) == sum_squares(m(nb+1), n(nb+1))
+        indices = [m(1:nb+1), n(1:nb+1)];
+    else
+        indices = [m(1:nb), n(1:nb)];
+    end
 end
 
 % This function compute the number of the nbEigVec closest eigenvectors
@@ -131,25 +131,25 @@ end
 
 function indices = computeCloseEigVec_cavity(nb, k)
 
-limit = 100;
-[M, N] = meshgrid(1:limit, 1:limit);
+    limit = 100;
+    [M, N] = meshgrid(1:limit, 1:limit);
 
 
-diff = abs(M.^2 + N.^2 - k^2/pi^2);
+    diff = abs(M.^2 + N.^2 - k^2/pi^2);
 
 
-[~, sorted_indices] = sort(diff(:));
+    [~, sorted_indices] = sort(diff(:));
 
 
-indices = sorted_indices(1:nb+1);
+    indices = sorted_indices(1:nb+1);
 
 
-[m, n] = ind2sub(size(diff), indices);
+    [m, n] = ind2sub(size(diff), indices);
 
 
-if diff(m(nb), n(nb)) == diff(m(nb+1), n(nb+1))
-    indices = [m(1:nb+1), n(1:nb+1)];
-else
-    indices = [m(1:nb), n(1:nb)];
-end
+    if diff(m(nb), n(nb)) == diff(m(nb+1), n(nb+1))
+        indices = [m(1:nb+1), n(1:nb+1)];
+    else
+        indices = [m(1:nb), n(1:nb)];
+    end
 end
