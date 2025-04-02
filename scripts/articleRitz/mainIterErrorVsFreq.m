@@ -17,10 +17,11 @@ plotFlag = 0;
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CAVITY BENCHMARK
-k = 3.01*sqrt(2)*pi;
+defFreq = 3.01*sqrt(2)*pi;
 h = 1/32;
 rangeFreq = 12.7:0.009:13.8;
-tol = 1e-10;
+% rangeFreq = 13.328798:0.0000005:13.3287995;
+tol = 1e-6;
 maxit = 2000;
 L = 1;
 degree = 2;
@@ -30,108 +31,36 @@ nbEigVec=1;
 %% Without preconditioner
 PREC = 'none';
 restart = 0;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+run('cavity',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
-%% With preconditioner: CSL
-PREC = 'CSL';
-restart = 0;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 5;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% restart = 0;
+% run('cavity',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
 %% With preconditioner: ILU(CSL)
 PREC = 'ILU(CSL)';
 restart = 0;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+run('cavity',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
-%% With preconditioner: ILU(A)
-PREC = 'ILU(A)';
-restart = 0;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('cavity',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-
-
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
-global LdomX LdomY LpmlX LpmlY
-k = 23.676;
-h = 1/20;
-rangeFreq = 23.5:0.01:24.5;
-tol = 1e-6;
-maxit = 5000;
-LdomX = 0.95;
-LdomY = 0.5;
-LpmlX = 0.2;
-LpmlY = 0.2;
-degree = 3;
-nbEigVec = 1;
-
-
-%% Without preconditioner
-PREC = 'none';
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-
-
-%% With preconditioner: CSL
-PREC = 'CSL';
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 5;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-
-
-%% With preconditioner: ILU(CSL)
-PREC = 'ILU(CSL)';
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-
-
-%% With preconditioner: ILU(A)
-PREC = 'ILU(A)';
-restart = 0;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+% %% With preconditioner: ILU(A)
+% PREC = 'ILU(A)';
+% restart = 0;
+% run('cavity',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY NEUMANN BENCHMARK
 global LdomX LdomY LpmlX LpmlY
-k = 23.591;
-% k = 23.82;
-% k = 24.275;
+defFreq = 23.591;
+% defFreq = 23.82;
+% defFreq = 24.275;
 rangeFreq = 23.5:0.01:24.5;
+% rangeFreq = 23.5905:0.0005:23.5915;
 h = 1/20;
 tol = 1e-6;
 maxit = 5000;
@@ -146,41 +75,66 @@ nbEigVec=1;
 %% Without preconditioner
 PREC = 'none';
 restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
-%% With preconditioner: CSL
-PREC = 'CSL';
-restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 3;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 5;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% restart = 0;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
 %% With preconditioner: ILU(CSL)
 PREC = 'ILU(CSL)';
 restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
-%% With preconditioner: ILU(A)
-PREC = 'ILU(A)';
-restart = 0;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 10;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
-restart = 25;
-run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag);
+% %% With preconditioner: ILU(A)
+% PREC = 'ILU(A)';
+% restart = 0;
+% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
+
+
+
+
+% %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
+% global LdomX LdomY LpmlX LpmlY
+% defFreq = 23.676;
+% h = 1/20;
+% rangeFreq = 23.5:0.01:24.5;
+% tol = 1e-6;
+% maxit = 5000;
+% LdomX = 0.95;
+% LdomY = 0.5;
+% LpmlX = 0.2;
+% LpmlY = 0.2;
+% degree = 3;
+% nbEigVec = 1;
+
+
+% %% Without preconditioner
+% PREC = 'none';
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
+
+
+% %% With preconditioner: CSL
+% PREC = 'CSL';
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
+
+
+% %% With preconditioner: ILU(CSL)
+% PREC = 'ILU(CSL)';
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
+
+
+% %% With preconditioner: ILU(A)
+% PREC = 'ILU(A)';
+% restart = 0;
+% run('scattering_openCavity_DIR',degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag);
 
 
 
@@ -188,7 +142,7 @@ run('scattering_openCavity_NEU',degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN FUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
 
 
-function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag)
+function run(benchmark,degree,PREC,tol,maxit,nbEigVec,defFreq,restart,rangeFreq,plotFlag)
 
     global k h
 
@@ -196,7 +150,9 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
     kmax = max(rangeFreq);
 
     namediary = sprintf('output/log_iterErrorVsFreq_%s_p%i_range=%g-%g_prec=%s_def=%g_restart=%g.txt', benchmark, degree, kmin, kmax, PREC, nbEigVec, restart);
-    delete(namediary);
+    if exist(namediary, 'file')
+        delete(namediary);
+    end
     diary(namediary);
 
     if strcmp(benchmark, 'cavity')
@@ -234,16 +190,16 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
     if nbEigVec > 0
         switch benchmark
             case 'cavity'
-                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',k);
+                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',defFreq);
 
                 errorL2 = zeros(length(rangeFreq),2);
                 errorL2(:,1) = rangeFreq;
 
             case 'scattering_openCavity_NEU'
-                [eigvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, k);
+                [eigvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, defFreq);
 
             case 'scattering_openCavity_DIR'
-                [eigvec,nbEigVec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, k);
+                [eigvec,nbEigVec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, defFreq);
 
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
@@ -251,13 +207,13 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
         end
     end
 
+    disp(['---------------------------------------------------------']);
+    disp(['Method CG - Benchmark "' benchmark '"']);
 
     for k = rangeFreq
 
         Dlambda = 2*pi/k * (sqrt(dofm.numDofTRI) - 1);
 
-        disp(['---------------------------------------------------------']);
-        disp(['Method CG - Benchmark "' benchmark '"']);
         disp(['---------------------------------------------------------']);
         disp(['    k = ' num2str(k) ' - h = ' num2str(h) ' - Dlambda = ' num2str(Dlambda) ' - degree = ' num2str(degree) ' - PREC = ' PREC ' - Restart = ' num2str(restart)]);
         disp(['---------------------------------------------------------']);
@@ -313,7 +269,7 @@ function run(benchmark,degree,PREC,tol,maxit,nbEigVec,restart,rangeFreq,plotFlag
             [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
             % Compute GMRES solution
-            disp(['|  GMRES - Deflation - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
+            disp(['|  GMRES - Deflation = ' num2str(nbEigVec) ' - PREC = ' PREC ' - Restart = ' num2str(restart) '']);
             [~, ~, ~, itD, ~] = gmres(@(x) Pdef*(A*(invPrec(x))),Pdef*b,m,tol,maxit);
             itD = itD(2) + (itD(1)-1)*m;
             disp(['    converged in ' num2str(itD) ' iterations']);
