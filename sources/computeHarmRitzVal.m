@@ -24,10 +24,10 @@ Ht_i = matQ'*R;
 
 H_i = Ht_i(1:i,1:i);
 
-[~,D] = eig(Ht_i'*Ht_i,H_i');
+[~,D] = eigs(Ht_i'*Ht_i,H_i',iEig,'smallestabs');
 hrv = diag(D);
 
-rv = eig(H_i);
+rv = eigs(H_i, iEig, 'smallestabs');
 
 % Distances
 dist_hrv = zeros(1,iEig);
