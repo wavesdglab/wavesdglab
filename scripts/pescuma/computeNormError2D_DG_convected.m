@@ -1,0 +1,88 @@
+% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% See the LICENSE.txt file in the root directory for license information
+% Author: Axel Modave, Simone Pescuma
+
+function [normErr, normSol] = computeNormError2D_DG_convected(mesh, dofm, vecSol, vecRef)
+
+global rho c v0 M
+
+eta = rho * c;
+
+% Quadrature
+degreeQ = 3*dofm.degree;
+[uQ, vQ, weights] = quadratureGaussTRI(degreeQ);
+
+% Shape functions (f, dfdu, dfdv)
+shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
+
+normSol2 = 0;
+normErr2 = 0;
+for tri=1:mesh.numTri
+
+    % Mapping
+    ver = mesh.mapTriToVer(tri,:);
+    V1 = mesh.coord(ver(1),:);
+    V2 = mesh.coord(ver(2),:);
+    V3 = mesh.coord(ver(3),:);
+    [xQ, yQ] = locToGloTRI(uQ, vQ, V1, V2, V3);
+    Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
+    detJdxdu = abs(det(Jdxdu));
+
+    % Orientation
+    orientation = ones(dofm.numDofPerTRI,1);
+    if(ver(1) > ver(2))
+        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(2) > ver(3))
+        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    if(ver(3) > ver(1))
+        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    end
+    orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
+
+    % Shape functions (f, dfdx, dfdy) with orientation
+    shapeOrQ = shapeQ * orientation;
+
+    dofU  = 0*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVx = 1*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+    dofVy = 2*dofm.numDofTRI + dofm.locToGloTRI(tri,:);
+
+    % Approximate solution (and derivatives)
+    solQ   = shapeOrQ * vecSol(dofU);
+    solVxQ = shapeOrQ * vecSol(dofVx);
+    solVyQ = shapeOrQ * vecSol(dofVy);
+
+    % Reference solution (and derivatives)
+    if (exist('vecRef','var') && ~isempty(vecRef))
+        refQ   = shapeOrQ * vecRef(dofU);
+        refVxQ = shapeOrQ * vecRef(dofVx);
+        refVyQ = shapeOrQ * vecRef(dofVy);
+    else
+        [refQ, ~, ~, refVxQ, refVyQ] = mySourceSurface(xQ,yQ);
+    end
+
+    % Error fields
+    errQ   = solQ(:)   - refQ(:);
+    errVxQ = solVxQ(:) - refVxQ(:);
+    errVyQ = solVyQ(:) - refVyQ(:);
+
+    xM = (V1(1,1)+V2(1,1)+V3(1,1)) / 3;
+    yM = (V1(1,2)+V2(1,2)+V3(1,2)) / 3;
+
+    if ((xM+M)^2+yM^2>0.05^2)
+        normSol2 = normSol2 ...
+            + (1/(eta*c)) * weights(:)' * (refQ .* conj(refQ)) * detJdxdu ...
+            + (eta/c) * weights(:)' * (refVxQ .* conj(refVxQ) + refVyQ .* conj(refVyQ)) * detJdxdu ...
+            + real (1/(c^2) * weights(:)' * (v0(1) * refQ .* conj(refVxQ) + v0(2) * refQ .* conj(refVyQ)) * detJdxdu);
+        normErr2 = normErr2 ...
+            + (1/(eta*c)) * weights(:)' * (errQ .* conj(errQ)) * detJdxdu ...
+            + (eta/c) * weights(:)' * (errVxQ .* conj(errVxQ) + errVyQ .* conj(errVyQ)) * detJdxdu ...
+            + real (1/(c^2) * weights(:)' * (v0(1) * errQ .* conj(errVxQ) + v0(2) * errQ .* conj(errVyQ)) * detJdxdu);
+    end
+end
+
+normSol = sqrt(normSol2);
+normErr = sqrt(normErr2)/normSol;
+
+end

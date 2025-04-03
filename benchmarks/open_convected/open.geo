@@ -1,4 +1,4 @@
-xLeft = 2;
+xLeft = 1;
 
 Point(1) = {0, 0, 0};
 Point(2) = {xLeft, 0, 0};
