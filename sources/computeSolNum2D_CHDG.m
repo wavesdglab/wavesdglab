@@ -45,11 +45,11 @@ rhsG = zeros(numDofFAC,1);
 condLoc = zeros(mesh.numTri,1);
 
 for tri=1:mesh.numTri
-    
+
     % ---------------------------------------------------------------------
     % Volume terms
     % ---------------------------------------------------------------------
-    
+
     % Mapping
     verTri = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(verTri(1),:);
@@ -59,7 +59,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(verTri(1) > verTri(2))
@@ -72,27 +72,27 @@ for tri=1:mesh.numTri
         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
+
     % Shape functions and derivatives with orientation (physical space)
     shapePhyQ = shapePhyTriQ * orientation;
     shapeDxQ = (shapeTriDuQ * Jdudx(1,1) + shapeTriDvQ * Jdudx(2,1)) * orientation;
     shapeDyQ = (shapeTriDuQ * Jdudx(1,2) + shapeTriDvQ * Jdudx(2,2)) * orientation;
-    
+
     % Source terms
-    [~, ~, ~, rhsQ] = mySol(xQ, yQ);
-    
+    rhsQ = mySourceVolume(xQ, yQ);
+
     % Elemental matrices/vectors
     weightsQ = weightsTriQ .* detJdxdu;
     matMel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
     matDXel = transpose(shapeDxQ) * (weightsQ .* shapePhyQ);
     matDYel = transpose(shapeDyQ) * (weightsQ .* shapePhyQ);
     rhsPel = transpose(shapePhyQ) * (weightsQ .* rhsQ);
-    
+
     matIIel = [
         -1i*k*matMel  -matDXel                          -matDYel                         ;
         -matDXel      -1i*k*matMel                      zeros(numDofPerTRI,numDofPerTRI) ;
         -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMel                     ];
-    
+
     % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
         if ((mean(abs(xQ)) >= LdomX) || (mean(abs(yQ)) >= LdomY))
@@ -112,7 +112,7 @@ for tri=1:mesh.numTri
                 -matDYel      zeros(numDofPerTRI,numDofPerTRI)  -1i*k*matMelV                     ];
         end
     end
-    
+
     % PML stretching (circular PML)
     if(~isempty(Rdom))
         rQ = sqrt(xQ.*xQ + yQ.*yQ);
@@ -137,18 +137,18 @@ for tri=1:mesh.numTri
                 -matDYel       -1i*k*matMelXY  -1i*k*matMelYY ];
         end
     end
-    
+
     rhsIel = [
         -1/(1i*k)*rhsPel    ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
-    
+
     % ---------------------------------------------------------------------
     % Surface terms
     % ---------------------------------------------------------------------
-    
+
     matIGel = zeros(3*dofm.numDofPerTRI,3*dofm.numDofPerLIN);
-    
+
     % Exterior normals
     verTri = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(verTri(1),:);
@@ -157,17 +157,17 @@ for tri=1:mesh.numTri
     normal = getNormalTRI(V1,V2,V3);
     n1 = mesh.mapTriToVer(tri,:);
     n2 = [n1(2) n1(3) n1(1)]';
-    
+
     % Loop over faces
     for fac = 1:3
-        
+
         % Mapping
         V1 = mesh.coord(n1(fac),:);
         V2 = mesh.coord(n2(fac),:);
         [xQ, yQ] = locToGloLIN(uLinQ,V1,V2);
         Jdxdu = norm(V2-V1) * 0.5;  % [ dx/du ]
         detJdxdu = abs(det(Jdxdu));
-        
+
         % Orientation
         orientation = ones(dofm.numDofPerLIN,1);
         orientation2 = ones(dofm.numDofPerLIN,1);
@@ -177,7 +177,7 @@ for tri=1:mesh.numTri
         end
         orientation = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation);
         orientation2 = sparse(1:dofm.numDofPerLIN, 1:dofm.numDofPerLIN, orientation2);
-        
+
         % Shape functions (physical space)
         shapePhyQ = shapePhyLinQ * orientation;
         if (BASIS == 1)
@@ -185,59 +185,59 @@ for tri=1:mesh.numTri
         else
             shapeAuxQ = shapePhyQ;
         end
-        
+
         % Exterior normal
         nx = normal(fac,1);
         ny = normal(fac,2);
-        
+
         weightsQ = weightsLinQ .* detJdxdu;
-        
+
         % Mass matrices (physical space)
         matM_IIel = transpose(shapePhyQ) * (weightsQ .* shapePhyQ);
         matM_IGel = transpose(shapePhyQ) * (weightsQ .* shapeAuxQ);
         matM_GIel = transpose(shapeAuxQ) * (weightsQ .* shapePhyQ);
         matM_GGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
-        
+
         % -----------------------------------------------------------------
         % Physical equations
         % -----------------------------------------------------------------
-        
+
         % Local ID for interior unknowns and incoming characteristics
         idLocP = 0*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocU = 1*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocV = 2*dofm.numDofPerTRI + dofm.locFac(fac,:);
         idLocG = (1:dofm.numDofPerLIN) + (fac-1)*dofm.numDofPerLIN;
-        
+
         % Element matrices (local element-wise system)
         matIIel(idLocP,idLocP) = matIIel(idLocP,idLocP) + 0.5*tau           * matM_IIel;
         matIIel(idLocP,idLocU) = matIIel(idLocP,idLocU) + 0.5     * nx      * matM_IIel;
         matIIel(idLocP,idLocV) = matIIel(idLocP,idLocV) + 0.5     * ny      * matM_IIel;
         matIGel(idLocP,idLocG) = matIGel(idLocP,idLocG) - 0.5               * matM_IGel;
-        
+
         matIIel(idLocU,idLocP) = matIIel(idLocU,idLocP) + 0.5          * nx * matM_IIel;
         matIIel(idLocU,idLocU) = matIIel(idLocU,idLocU) + 0.5/tau * nx * nx * matM_IIel;
         matIIel(idLocU,idLocV) = matIIel(idLocU,idLocV) + 0.5/tau * nx * ny * matM_IIel;
         matIGel(idLocU,idLocG) = matIGel(idLocU,idLocG) + 0.5/tau      * nx * matM_IGel;
-        
+
         matIIel(idLocV,idLocP) = matIIel(idLocV,idLocP) + 0.5          * ny * matM_IIel;
         matIIel(idLocV,idLocU) = matIIel(idLocV,idLocU) + 0.5/tau * nx * ny * matM_IIel;
         matIIel(idLocV,idLocV) = matIIel(idLocV,idLocV) + 0.5/tau * ny * ny * matM_IIel;
         matIGel(idLocV,idLocG) = matIGel(idLocV,idLocG) + 0.5/tau      * ny * matM_IGel;
-        
+
         % -----------------------------------------------------------------
         % Auxiliary equations
         % -----------------------------------------------------------------
-        
+
         % Infos on neighboring element
         triNeigh = mesh.mapTriToTri(tri,fac);
         facNeigh = mesh.mapTriToFac(tri,fac);
-        
+
         if (triNeigh > 0)
-            
+
             % Elemental matrices (interface condition)
             matGGel = matM_GGel;
             matGIel = [-tau*matM_GIel, nx*matM_GIel, ny*matM_GIel];
-            
+
             % Global ID for auxiliary and exterior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
             dofExt = dofm.locFacNeigh(facNeigh,:);
@@ -245,7 +245,7 @@ for tri=1:mesh.numTri
             idExtU = 1*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
             idExtV = 2*numDofTRI + dofm.locToGloTRI(triNeigh,dofExt);
             idExtI = [idExtP idExtU idExtV];
-            
+
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idExtI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
@@ -254,18 +254,18 @@ for tri=1:mesh.numTri
             matGIv(idGloG,:) = matGIel;
             matGGv(idGloG,:) = matGGel;
             matGGvInv(idGloG,:) = inv(matGGel);
-            
+
         else
-            
+
             % Source terms
-            [solQ, solDxQ, solDyQ, ~] = mySol(xQ, yQ);
-            rhsPel = transpose(shapeAuxQ) * (weightsQ .* solQ);
-            rhsNUel = transpose(shapeAuxQ) * (weightsQ .* (nx.*solDxQ + ny.*solDyQ)) / (1i*k);
-            
+            [souQ, ~, ~, souUxQ, souUyQ] = mySourceSurface(xQ, yQ);
+            rhsPel = transpose(shapeAuxQ) * (weightsQ .* souQ);
+            rhsNUel = transpose(shapeAuxQ) * (weightsQ .* (nx.*souUxQ + ny.*souUyQ));
+
             % Type of BC
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
-            
+
             % Elemental matrices and RHS vectors (boundary conditions)
             matGGel = transpose(shapeAuxQ) * (weightsQ .* shapeAuxQ);
             matGIel = zeros(dofm.numDofPerLIN,3*dofm.numDofPerTRI);
@@ -289,14 +289,14 @@ for tri=1:mesh.numTri
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
-            
+
             % Global ID for auxiliary unknowns and interior unknowns
             idGloG = dofm.locToGloFAC(tri,idLocG);
             idGloP = 0*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloU = 1*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloV = 2*numDofTRI + dofm.locToGloTRI(tri,idLocP);
             idGloI = [idGloP idGloU idGloV];
-            
+
             % Assembling
             matGIx(idGloG,:) = idGloG'*ones(1,size(idGloI,2));
             matGGx(idGloG,:) = idGloG'*ones(1,size(idGloG,2));
@@ -308,18 +308,18 @@ for tri=1:mesh.numTri
             rhsG(idGloG) = rhsGel;
         end
     end
-    
+
     % ---------------------------------------------------------------------
     % Matrix assembling
     % ---------------------------------------------------------------------
-    
+
     % Global ID of unknowns
     dofGloP = 0*numDofTRI + dofm.locToGloTRI(tri,:);
     dofGloU = 1*numDofTRI + dofm.locToGloTRI(tri,:);
     dofGloV = 2*numDofTRI + dofm.locToGloTRI(tri,:);
     dofGloI = [dofGloP dofGloU dofGloV];
     dofGloG = dofm.locToGloFAC(tri,:);
-    
+
     % Assembling
     idTRI = (tri-1)*3*dofm.numDofPerTRI + (1:3*dofm.numDofPerTRI);
     matIIx(idTRI,:) = dofGloI'*ones(1,size(dofGloI,2));
@@ -330,9 +330,9 @@ for tri=1:mesh.numTri
     matIGv(idTRI,:) = matIGel;
     matIIvInv(idTRI,:) = inv(matIIel);
     rhsI(dofGloI) = rhsIel;
-    
+
     %condLoc(tri) = cond(full(matIIel));
-    
+
 end
 
 % Sparse memory storage
