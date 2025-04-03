@@ -5,7 +5,8 @@
 function [solA, sysA] = computeSolNum2D_DG_convected(mesh, dofm, BASIS, PREC)
 
 global edgTagToBC
-global omega rho c v0
+global omega rho c v0 M
+global pntSouTag pntSouVal
 
 numDofTRI = dofm.numDofTRI;
 numDofPerTRI = dofm.numDofPerTRI;
@@ -32,6 +33,9 @@ matDXv = zeros(numDofTRI, numDofPerTRI);
 matDYv = zeros(numDofTRI, numDofPerTRI);
 rhsP   = zeros(numDofTRI, 1);
 
+TOT = 0;
+SouEl = 0;
+
 for tri=1:mesh.numTri
 
     % Mapping
@@ -43,6 +47,17 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
+
+    if(~isempty(pntSouTag))
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+            end
+        end
+    end
 
     % Orientation
     orientation = ones(numDofPerTRI,1);
@@ -402,6 +417,13 @@ for tri=1:mesh.numTri
     end
 end
 
+if(~isempty(pntSouTag))
+    for ind=1:TOT
+        dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+        rhsA(dofSou) = rhsA(dofSou) +  pntSouVal / TOT;
+    end
+end
+
 % -------------------------------------------------------------------------
 % Solve system
 % -------------------------------------------------------------------------
@@ -433,6 +455,7 @@ sysA.rhsPhy = rhsA;
 
 % Compute solution
 solA = matA\rhsA;
+% solA = rhsA * 0;
 
 end
 

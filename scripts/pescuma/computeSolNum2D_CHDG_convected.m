@@ -6,6 +6,7 @@ function [solI, sysA] = computeSolNum2D_CHDG_convected(mesh, dofm, PREC)
 
 global edgTagToBC;
 global omega c rho v0;
+global pntSouTag pntSouVal
 
 % -------------------------------------------------------------------------
 % Build system
@@ -62,6 +63,9 @@ rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofFAC,1);
 rhsH = zeros(numDofFAC,1);
 
+TOT = 0;
+SouEl = 0;
+
 for tri=1:mesh.numTri
 
     % ---------------------------------------------------------------------
@@ -77,6 +81,17 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
+
+    if(~isempty(pntSouTag))
+        vertSou = mesh.mapPntToVer(mesh.tagPntFile == pntSouTag);
+        for pos = 1:3
+            if(mesh.mapTriToVer(tri,pos) == vertSou)
+                TOT = TOT+1;
+                SouEl(1,TOT) = tri;
+                SouEl(2,TOT) = pos;
+            end
+        end
+    end
 
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
@@ -98,7 +113,6 @@ for tri=1:mesh.numTri
 
     % Source terms
     rhsQ = mySourceVolume(xQ,yQ);
-    rhsQ = rhsQ / detJdxdu;
 
     % Elemental matrices/vectors
     matMel = shapeTriQ' * (weightsTriQ .* shapeTriQ) * detJdxdu;
@@ -112,7 +126,7 @@ for tri=1:mesh.numTri
         -matDYel                                                               zeros(numDofPerTRI,numDofPerTRI)                         -1i*omega*rho*matMel-rho*(matDXel*v0(1)+matDYel*v0(2))];
 
     rhsIel = [
-        -1/(1i*omega*rho)*rhsPel ;
+        1/(rho*c^2)*rhsPel    ;
         zeros(numDofPerTRI,1) ;
         zeros(numDofPerTRI,1) ];
 
@@ -284,20 +298,20 @@ for tri=1:mesh.numTri
             % Elemental matrices/vectors (boundary condition)
             switch BC
                 case 'DIR'
-                    matGIel = (c-v0n) / c * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = 2 * (c-v0n) / c * rhsPel; 
+                    matGIel = sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                    rhsGel = sqrt(2 * (c-v0n)) * rhsPel; 
                 case 'NEU'
-                    matGIel = - (c-v0n) / c * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = - 2 * rho * (c-v0n) * (nx*rhsUel + ny*rhsVel);
+                    matGIel = - sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                    rhsGel = - rho * c * sqrt(2*(c-v0n)) * (nx*rhsUel + ny*rhsVel);
                 case 'NEU0'
-                    matGIel = - (c-v0n) / c * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                    matGIel = - sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
                     rhsGel = 0 * rhsUel + 0 * rhsVel;
                 case 'ABC'
                     matGIel = 0 * [matMel, matMel, matMel];
                     rhsGel = 0 * rhsPel;
                 case 'ROB'
                     matGIel = 0 * [matMel, matMel, matMel];
-                    rhsGel = sqrt(c-v0n) / sqrt(2) * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel));
+                    rhsGel = sqrt((c-v0n) / 2) * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
@@ -380,6 +394,13 @@ matHH = sparse(matHHx, matHHy, matHHv, numDofFAC, numDofFAC);
 matIIinv = sparse(matIIx, matIIy, matIIvInv, 3*numDofTRI, 3*numDofTRI);
 matGGinv = sparse(matGGx, matGGy, matGGvInv, numDofFAC, numDofFAC);
 matHHinv = sparse(matHHx, matHHy, matHHvInv, numDofFAC, numDofFAC);
+
+if(~isempty(pntSouTag))
+    for ind=1:TOT
+        dofSou = dofm.numDofPerTRI * (SouEl(1,ind)-1) + SouEl(2,ind);
+        rhsI(dofSou) = rhsI(dofSou) +  pntSouVal / TOT;
+    end
+end
 
 % -------------------------------------------------------------------------
 % Solve system

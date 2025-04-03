@@ -1,6 +1,6 @@
 function [souU, souDx, souDy, souVx, souVy] = mySourceSurface(x,y)
 
-global M rho c omega;
+global M c omega;
 
 souU = zeros(size(x));
 souDx = zeros(size(x));
@@ -8,13 +8,10 @@ souDy = zeros(size(x));
 souVx = zeros(size(x));
 souVy = zeros(size(x));
 
-% % LEFT + RIGHT PROPAGATING WAVES
-% souU = (1+M)/2*exp(1i*omega*x/(c*(1+M)))+(1-M)/2*exp(-1i*omega*x/(c*(1-M)));
-% souDx = 1i*omega/(2*c) * (exp(1i*omega*x/(c*(1+M)))-exp(-1*omega*x/(c*(1-M))));
-% souVx = 1/(2*rho*c)*((1+M)*exp(1i*omega*x/(c*(1+M)))-(1-M)*exp(-1i*omega*x/(c*(1-M))));
+A = 1; % amplitude of the vorticity wave
+H = 1; % width of the waveguide
+n = 1; % mode
 
-% ONLY RIGHT PROPAGATING WAVE
-souU = exp(1i*omega*x/(c*(1+M)));
-souVx = 1/(rho*c) * exp(1i*omega*x/(c*(1+M)));
-
-end
+souU = 0.*x +0.*y;
+souVx = souVx + A * (1i*n*pi*M*c)/(omega*H) * cos(n*pi*y/H) .* exp(1i*omega*x/(M*c));
+souVy = souVy + A * sin(n*pi*y/H) .* exp(1i*omega*x/(M*c));
