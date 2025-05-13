@@ -19,88 +19,22 @@
 % -------------------------------------------------------------------------
 
 function mesh = readMesh2D(namefile)
+
+% Open file
 file = fopen(namefile,'r');
 if (file <= 0)
     error(['Mesh ' namefile ' not found!']);
 end
 
+% Read mesh format
 while (~strcmp(fgetl(file),'$MeshFormat'))
 end
 meshFormat = str2num(fgetl(file));
-
-switch meshFormat(1)
-    case 2.2
-        mesh = readMeshGmsh2v2(file);
-    case 4.1
-        mesh = readMeshGmsh4v1(file);
-    otherwise
-        error(['Mesh format ' meshFormat(1) ' not known!']);
+if(meshFormat(1) ~= 4.1)
+    error(['Mesh format ' meshFormat(1) ' not known!']);
 end
-
-fclose(file);
-
-mesh.hmin = 1e10;
-mesh.hmax = 0;
-for i = 1:mesh.numTri
-    V = mesh.mapTriToVer(i,:);
-    X = mesh.coord(V,:);
-    l1 = norm(X(1,:)-X(2,:));
-    l2 = norm(X(2,:)-X(3,:));
-    l3 = norm(X(3,:)-X(1,:));
-    mesh.hmax = max(max(max(mesh.hmax,l1),l2),l3);
-    mesh.hmin = min(min(min(mesh.hmin,l1),l2),l3);
-end
-
-end
-
-% -------------------------------------------------------------------------
-% Mesh reader - Gmsh format 2.2
-% -------------------------------------------------------------------------
-
-function mesh = readMeshGmsh2v2(file)
-
-% Read nodes
-
-while (~strcmp(fgetl(file),'$Nodes')) end
-mesh.numVer = str2num(fgetl(file));
-mesh.coord  = zeros(mesh.numVer,2);
-for i=1:mesh.numVer
-    line = str2num(fgetl(file));
-    mesh.coord(i,:) = line(2:3);
-end
-
-% Read elements
-
-while (~strcmp(fgetl(file),'$Elements')) end
-numElements = str2num(fgetl(file));
-mesh.mapTriToVer    = [];
-mesh.tagEdgBndFile  = [];
-mesh.mapEdgBndToVer = [];
-for i = 1:numElements
-    line = str2num(fgetl(file));
-    % LIN
-    if (line(2) == 1)
-        mesh.tagEdgBndFile  = [mesh.tagEdgBndFile;  line(4)];
-        mesh.mapEdgBndToVer = [mesh.mapEdgBndToVer; line(6:7)];
-    end
-    % TRI
-    if (line(2) == 2)
-        mesh.mapTriToVer = [mesh.mapTriToVer; line(end-2:end)];
-    end
-end
-mesh.numTri = size(mesh.mapTriToVer,1);
-mesh.numEdgBnd = size(mesh.mapEdgBndToVer,1);
-
-end
-
-% -------------------------------------------------------------------------
-% Mesh reader - Gmsh format 4.1
-% -------------------------------------------------------------------------
-
-function mesh = readMeshGmsh4v1(file)
 
 % Read entities
-
 while (~strcmp(fgetl(file),'$Entities'))
 end
 data = str2num(fgetl(file));
@@ -134,7 +68,6 @@ for i=1:geo.numVolumes
 end
 
 % Read nodes
-
 while (~strcmp(fgetl(file),'$Nodes'))
 end
 data = str2num(fgetl(file));
@@ -163,7 +96,6 @@ for ent=1:numEntities
 end
 
 % Read elements
-
 while (~strcmp(fgetl(file),'$Elements'))
 end
 data = str2num(fgetl(file));
@@ -213,5 +145,21 @@ end
 
 mesh.numTri = size(mesh.mapTriToVer,1);
 mesh.numEdgBnd = size(mesh.mapEdgBndToVer,1);
+
+% Close file
+fclose(file);
+
+% Mesh sizes
+mesh.hmin = 1e10;
+mesh.hmax = 0;
+for i = 1:mesh.numTri
+    V = mesh.mapTriToVer(i,:);
+    X = mesh.coord(V,:);
+    l1 = norm(X(1,:)-X(2,:));
+    l2 = norm(X(2,:)-X(3,:));
+    l3 = norm(X(3,:)-X(1,:));
+    mesh.hmax = max(max(max(mesh.hmax,l1),l2),l3);
+    mesh.hmin = min(min(min(mesh.hmin,l1),l2),l3);
+end
 
 end
