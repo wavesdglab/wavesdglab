@@ -68,7 +68,7 @@ disp(['---------------------------------------------------------']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNR']);
-[resVec, error1] = solverCGNR(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+[resVec, error1] = solverCGNR(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error1));
@@ -81,7 +81,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver CGNE']);
-[resVec, error2] = solverCGNE(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+[resVec, error2] = solverCGNE(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error2));
@@ -94,7 +94,7 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['--- Solver GMRES']);
-[resVec, error3] = solverGMRES(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+[resVec, error3] = solverGMRES(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG);
 
 iterVec = (0:iOut:iMax)';
 errorRef = normErr*ones(size(error3));

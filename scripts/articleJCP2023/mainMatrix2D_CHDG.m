@@ -57,7 +57,7 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA, condLoc] = computeSolNum2D_CHDG(mesh, dofm, tau, BASIS, PREC);
-[normErr, ~, ~, normSol] = computeNormError2D_DG(mesh, dofm, solA);
+[normErr, normSol] = computeNormError2D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 normProjErr = computeNormError2D_DG(mesh, dofm, solP);

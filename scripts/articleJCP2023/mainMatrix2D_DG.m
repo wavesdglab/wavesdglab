@@ -12,27 +12,27 @@ PREC = 0;
 
 % BENCH FREE SPACE
 benchmark = 'open'; k = 15*pi; h = 1/16;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'open'; degree = 3; k = 15*pi; h = 1/34;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'open'; degree = 3; k = 30*pi; h = 1/34;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 
 % BENCH CAVITY
 benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/10;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'cavity'; degree = 3; k = (7+1/10)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'cavity'; degree = 3; k = (7+1/100)*sqrt(2)*pi; h = 1/15;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 
 % BENCH WAVEGUIDE
 benchmark = 'waveguide'; k = 6*pi; h = 1/8;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'waveguide'; degree = 3; k = 6*pi; h = 1/17;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 benchmark = 'waveguide'; degree = 3; k = 12*pi; h = 1/17;
-run(benchmark,degree,tau,theta);
+run(benchmark,degree,tau,theta,PREC);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -57,7 +57,7 @@ disp(['    Dlambda             ' num2str(Dlambda)]);
 disp(['---------------------------------------------------------']);
 
 [solA, sysA] = computeSolNum2D_DG(mesh, dofm, tau, theta, PREC);
-[normErr, ~, ~, normSol] = computeNormError2D_DG(mesh, dofm, solA);
+[normErr, normSol] = computeNormError2D_DG(mesh, dofm, solA);
 
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 normProjErr = computeNormError2D_DG(mesh, dofm, solP);
