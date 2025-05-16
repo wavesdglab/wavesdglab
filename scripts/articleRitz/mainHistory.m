@@ -21,14 +21,14 @@ figure;
 maxit = 300; itout = 5;
 PREC = 'none'; nbEigVecList = [0, 1, 11]; restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
-PREC = 'none'; nbEignbEigVecListVec = [0, 1, 11]; restart = 25;
+PREC = 'none'; nbEigVecList = [0, 1, 11]; restart = 25;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
 
 figure;
 maxit = 100; itout = 1;
 PREC = 'ILU(CSL)'; nbEigVecList = [0, 1, 11]; restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
-PREC = 'ILU(CSL)'; nbEignbEigVecListVec = [0, 1, 11]; restart = 25;
+PREC = 'ILU(CSL)'; nbEigVecList = [0, 1, 11]; restart = 25;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
