@@ -26,7 +26,7 @@ degree = 2;
 itout = 4;
 
 
-% PREC : 'none', 'CSL', 'ILU(CSL)', 'ILU(A)' 
+% PREC = 'none' || 'CSL' || 'ILU(CSL)' || 'ILU(A)' 
 
 PREC = 'none'; nbEigVec=1; restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
@@ -48,6 +48,7 @@ run('cavity',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY NEUMANN BENCHMARK
+% For Dirichlet : scattering_openCavity_DIR, with 23.676;
 global LdomX LdomY LpmlX LpmlY WRITE_FIELD_ABSOLUTE
 WRITE_FIELD_ABSOLUTE = 1;
 k = 23.591;
@@ -76,37 +77,6 @@ PREC = 'ILU(CSL)'; nbEigVec=10; restart = 0;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
 PREC = 'ILU(CSL)'; nbEigVec=10; restart = 25;
 run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
-% %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SCATTERING OPEN CAVITY DIRICHLET BENCHMARK
-% global LdomX LdomY LpmlX LpmlY WRITE_FIELD_ABSOLUTE
-% WRITE_FIELD_ABSOLUTE = 1;
-% k = 23.676;
-% h = 1/20;
-% tol = 1e-6;
-% maxit = 1500;
-% LdomX = 0.95; LdomY = 0.5; LpmlX = 0.2; LpmlY = 0.2;
-% degree = 3;
-% itout = 20;
-
-
-% PREC = 'none'; nbEigVec=1; restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'none'; nbEigVec=1; restart = 25;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'none'; nbEigVec=10; restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'none'; nbEigVec=10; restart = 25;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
-% PREC = 'ILU(CSL)'; nbEigVec=1; restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'ILU(CSL)'; nbEigVec=1; restart = 25;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'ILU(CSL)'; nbEigVec=10; restart = 0;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-% PREC = 'ILU(CSL)'; nbEigVec=10; restart = 25;
-% run('scattering_openCavity_NEU',degree,PREC,tol,maxit,itout,nbEigVec,restart,plotFlag,saveSolFlag);
-
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN FUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
