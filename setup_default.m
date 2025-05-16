@@ -24,4 +24,7 @@ setenv('PATH', path1);
 
 set(0, 'DefaultLineLineWidth', 2);
 
+%Set maximum number of threads:
+% maxNumCompThreads(N);
+
 end
