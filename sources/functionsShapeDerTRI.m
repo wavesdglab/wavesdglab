@@ -73,4 +73,6 @@ for n1 = 1:degree-1
     end
 end
 
+% [valDX, valDY] = functionsLagrangeDerTRI(x,y,degree);
+
 end

@@ -51,4 +51,6 @@ for n1 = 1:degree-1
     end
 end
 
+% val = functionsLagrangeTRI(x,y,degree);
+
 end

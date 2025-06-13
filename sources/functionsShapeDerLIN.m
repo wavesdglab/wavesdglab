@@ -25,4 +25,6 @@ for n=1:N-2
         - 0.5 * x .* functionsKernel(:,n);
 end
 
+% [val] = functionsLagrangeDerLIN(x,degree);
+
 end

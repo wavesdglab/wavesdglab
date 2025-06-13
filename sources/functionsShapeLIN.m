@@ -23,4 +23,6 @@ for n=1:N-2
     val(:,n+2) = val(:,1) .* val(:,2) .* functionsKernel(:,n);
 end
 
+% val = functionsLagrangeLIN(x,degree);
+
 end
