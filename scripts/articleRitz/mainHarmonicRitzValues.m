@@ -107,7 +107,7 @@ function run(benchmark, degree, tol, maxit, itout, nbEigVec)
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
 
-        [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
+        [~,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
         sysA.matA = Pdef*sysA.matA;
         sysA.rhsA = Pdef*sysA.rhsA;
