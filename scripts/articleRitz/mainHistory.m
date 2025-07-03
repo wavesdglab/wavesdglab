@@ -21,6 +21,7 @@ figure;
 maxit = 300; itout = 5;
 PREC = 'none'; nbEigVecList = [0, 1, 11]; restart = 0;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
+
 PREC = 'none'; nbEigVecList = [0, 1, 11]; restart = 25;
 run('cavity',degree,PREC,tol,maxit,itout,nbEigVecList,restart,plotFlag,saveSolFlag);
 
@@ -133,15 +134,16 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
-        [Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigvec, A);
+        [PdefA,Pdef,Qdef,Q] = computeDefOp(nbEigVec, eigvec, A);
     else
+        PdefA = @(x) A*x;
         Pdef = 1;
         Qdef = 1;
         Q = 0;
     end
 
     % Compute GMRES solution
-    [uD, ~, ~, ~, vecRes] = gmres(@(x) Pdef*(A*(invPrec(x))),Pdef*b,m,tol,maxit);
+    [uD, ~, ~, it, vecRes] = gmres(@(x) PdefA(invPrec(x)), Pdef*b, m, tol, maxit);
     disp(['    converged in ' num2str(size(vecRes,1)-1) ' iterations']);
 
     vecRes = vecRes(:)./vecRes(1);

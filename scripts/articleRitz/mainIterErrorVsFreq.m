@@ -12,7 +12,7 @@ plotFlag = 1;
 % Alternatives for PREC: 'none', 'CSL', 'ILU(CSL)', 'ILU(A)'
 
 h = 1/32;
-rangeFreq = 12.7:0.3:13.8;
+rangeFreq = 12.7:0.01:13.8;
 tol = 1e-6;
 maxit = 2000;
 degree = 2;
@@ -38,7 +38,7 @@ global LdomX LdomY LpmlX LpmlY
 LdomX = 0.95; LdomY = 0.5; LpmlX = 0.2; LpmlY = 0.2;
 
 h = 1/20;
-rangeFreq = 23.5:0.5:24.5;
+rangeFreq = 23.5:0.1:24.5;
 tol = 1e-6;
 maxit = 2000;
 degree = 3;
@@ -141,13 +141,14 @@ for k = rangeFreq
     end
     
     if nbEigVec > 0
-        [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
+        [PdefA,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
     else
+        PdefA = @(x) A*x;
         Pdef = speye(size(A,1));
     end
     
     % Compute GMRES solution
-    [u, ~, ~, it, ~] = gmres(@(x) Pdef*(A*(invPrec(x))),Pdef*b,m,tol,maxit);
+    [u, ~, ~, it, ~] = gmres(@(x) PdefA(invPrec(x)),Pdef*b,m,tol,maxit);
     it = it(2) + (it(1)-1)*m;
     disp(['|  GMRES converged in ' num2str(it) ' iterations']);
     

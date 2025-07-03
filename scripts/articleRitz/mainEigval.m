@@ -200,7 +200,7 @@ function run(benchmark,degree,PREC,nbEigVec,plotFlag)
 
         end
 
-        [Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
+        [~,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
 
         % Deflation
