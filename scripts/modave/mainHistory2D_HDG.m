@@ -10,24 +10,29 @@ tol = 1e-100;
 
 % BENCH FREE SPACE
 iMax = 300; iOut = 10;
-benchmark = 'open'; k = 15*pi; h = 1/8; degree = 5;
+benchmark = 'open'; k = 15*pi; h = 1/7; degree = 5;
 run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
-benchmark = 'open'; k = 30*pi; h = 1/16; degree = 5;
-run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
-
 % BENCH CAVITY
 iMax = 600; iOut = 20;
-benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/6; degree = 5;
+benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/5; degree = 5;
 run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
-benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/7; degree = 5;
-run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
-
 % BENCH WAVEGUIDE
 iMax = 900; iOut = 30;
-benchmark = 'waveguide'; k = 6*pi; h = 1/4; degree = 5;
+benchmark = 'waveguide'; k = 6*pi; h = 1/3; degree = 5;
 run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
-benchmark = 'waveguide'; k = 12*pi; h = 1/7; degree = 5;
-run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
+
+% % BENCH FREE SPACE
+% iMax = 1000; iOut = 50;
+% benchmark = 'open'; k = 15*pi; h = 1/16; degree = 3;
+% run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
+% % BENCH CAVITY
+% iMax = 2000; iOut = 100;
+% benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/10; degree = 3;
+% run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
+% % BENCH WAVEGUIDE
+% iMax = 4000; iOut = 200;
+% benchmark = 'waveguide'; k = 6*pi; h = 1/8; degree = 3;
+% run(benchmark,degree,tau,BASIS,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -55,6 +60,9 @@ disp(['---------------------------------------------------------']);
 [solA, sysA] = computeSolNum2D_HDG(mesh, dofm, tau, BASIS, PREC);
 normErr = computeNormError2D_DG(mesh, dofm, solA);
 
+condest(sysA.matPhy)
+condest(sysA.matS)
+
 solP = computeSolProjL2_2D_DG(mesh, dofm);
 normProjErr = computeNormError2D_DG(mesh, dofm, solP);
 
@@ -64,63 +72,63 @@ disp(['---------------------------------------------------------']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- Solver CGNR']);
-[resRedVec, resPhyVec, error1] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
-
-iterVec = (0:iOut:iMax)';
-errorRef = normErr*ones(size(error1));
-
-rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-rezu2 = [iterVec resRedVec, resPhyVec, error1, errorRef];
-name = sprintf('output/historyCGNR_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% disp(['--- Solver CGNE']);
-% [resRedVec, resPhyVec, error2] = solverCGNEredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+% disp(['--- Solver CGNR']);
+% [resRedVec, resPhyVec, error1] = solverCGNRredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
 % 
 % iterVec = (0:iOut:iMax)';
-% errorRef = normErr*ones(size(error2));
+% errorRef = normErr*ones(size(error1));
 % 
 % rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-% rezu2 = [iterVec resRedVec, resPhyVec, error2, errorRef];
-% name = sprintf('output/historyCGNE_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+% rezu2 = [iterVec resRedVec, resPhyVec, error1, errorRef];
+% name = sprintf('output/historyCGNR_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+% writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% % disp(['--- Solver CGNE']);
+% % [resRedVec, resPhyVec, error2] = solverCGNEredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+% % 
+% % iterVec = (0:iOut:iMax)';
+% % errorRef = normErr*ones(size(error2));
+% % 
+% % rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+% % rezu2 = [iterVec resRedVec, resPhyVec, error2, errorRef];
+% % name = sprintf('output/historyCGNE_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
+% % writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% disp(['--- Solver GMRES']);
+% [resRedVec, resPhyVec, error3] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
+% 
+% iterVec = (0:iOut:iMax)';
+% errorRef = normErr*ones(size(error3));
+% 
+% rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
+% rezu2 = [iterVec resRedVec, resPhyVec, error3, errorRef];
+% name = sprintf('output/historyGMRES_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
 % writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['--- Solver GMRES']);
-[resRedVec, resPhyVec, error3] = solverGMRESredu_DG(mesh, dofm, sysA, tol, iMax, iOut, @computeNormError2D_DG, []);
-
-iterVec = (0:iOut:iMax)';
-errorRef = normErr*ones(size(error3));
-
-rezu1 = ["iter" "resRed" "resPhy" "error" "errorRef"];
-rezu2 = [iterVec resRedVec, resPhyVec, error3, errorRef];
-name = sprintf('output/historyGMRES_HDG_%s_p%i_k%g_h%g_tau%g+%gi.csv', benchmark, degree, k, h, real(tau), imag(tau));
-writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-errorNum = normErr*ones(size(error3));
-errorProj = normProjErr*ones(size(error3));
-
-figure;
-hold off
-semilogy(iterVec,error1,'DisplayName','CGNR');
-hold on
-% semilogy(iterVec,error2,'DisplayName','CGNE');
-semilogy(iterVec,error3,'DisplayName','GMRES');
-semilogy(iterVec,errorNum,'k--','DisplayName','Numerical error');
-semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
-box on;
-grid on;
-title(['HDG ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
-legend('Location','southwest');
-xlabel('Iteration');
-ylabel('Relative error');
-axis([0 iMax 0.0025 1]);
+% errorNum = normErr*ones(size(error3));
+% errorProj = normProjErr*ones(size(error3));
+% 
+% figure;
+% hold off
+% semilogy(iterVec,error1,'DisplayName','CGNR');
+% hold on
+% % semilogy(iterVec,error2,'DisplayName','CGNE');
+% semilogy(iterVec,error3,'DisplayName','GMRES');
+% semilogy(iterVec,errorNum,'k--','DisplayName','Numerical error');
+% semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
+% box on;
+% grid on;
+% title(['HDG ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
+% legend('Location','southwest');
+% xlabel('Iteration');
+% ylabel('Relative error');
+% axis([0 iMax 0.0025 1]);
 
 % figure;
 % hold off

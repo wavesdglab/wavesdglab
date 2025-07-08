@@ -2,9 +2,9 @@
 % See the LICENSE.txt file in the root directory for license information
 % Authors: Axel Modave, Timothée Raynaud
 
-function [errorL2, normL2] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
+function [error, norm] = computeNormError2D_CG(mesh, dofm, vecSol, vecRef)
 
-global LdomX LdomY Rdom
+global LdomX LdomY Rdom Options
 
 % Quadrature
 degreeQ = 3*dofm.degree;
@@ -12,14 +12,16 @@ degreeQ = 3*dofm.degree;
 
 % Shape functions (f, dfdu, dfdv)
 shapeQ = functionsShapeTRI(uQ, vQ, dofm.degree);
-% [shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
+[shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uQ, vQ, dofm.degree);
 
 normL2sol2 = 0;
 errorL2sol2 = 0;
-% normL2der2 = 0;
-% errorL2der2 = 0;
+if strcmp(Options.Error,'H1')
+    normL2der2 = 0;
+    errorL2der2 = 0;
+end
 for tri=1:mesh.numTri
-    
+
     % Mapping
     ver = mesh.mapTriToVer(tri,:);
     V1 = mesh.coord(ver(1),:);
@@ -29,7 +31,7 @@ for tri=1:mesh.numTri
     Jdxdu = [(V2-V1)' (V3-V1)'] * 0.5;  % [ dx/du dx/dv ; dy/du dy/dv ]
     Jdudx = inv(Jdxdu);                 % [ du/dx du/dy ; dv/dx dv/dy ]
     detJdxdu = abs(det(Jdxdu));
-    
+
     if(~isempty(LdomX) && ~isempty(LdomY))
         ver = mesh.mapTriToVer(tri,:);
         VX = mesh.coord(ver,1);
@@ -48,7 +50,7 @@ for tri=1:mesh.numTri
             continue;
         end
     end
-    
+
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
     if(ver(1) > ver(2))
@@ -61,42 +63,57 @@ for tri=1:mesh.numTri
         orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
-    
+
     % Shape functions (f, dfdx, dfdy) with orientation
     shapeOrQ = shapeQ * orientation;
-    % shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
-    % shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
-    
+    if strcmp(Options.Error,'H1')
+        shapeDxQ = (shapeDuQ * Jdudx(1,1) + shapeDvQ * Jdudx(2,1)) * orientation;
+        shapeDyQ = (shapeDuQ * Jdudx(1,2) + shapeDvQ * Jdudx(2,2)) * orientation;
+    end
+
     % Approximate solution (and derivatives)
     solQ   = shapeOrQ * vecSol(dofm.locToGloTRI(tri,:));
-    % solDxQ = shapeDxQ * vecSol(dofm.locToGloTRI(tri,:));
-    % solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
-    
+    if strcmp(Options.Error,'H1')
+        solDxQ = shapeDxQ * vecSol(dofm.locToGloTRI(tri,:));
+        solDyQ = shapeDyQ * vecSol(dofm.locToGloTRI(tri,:));
+    end
+
     % Reference solution (and derivatives)
     if (exist('vecRef','var') && ~isempty(vecRef))
         refQ = shapeOrQ * vecRef(dofm.locToGloTRI(tri,:));
-        % refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
-        % refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));
+        if strcmp(Options.Error,'H1')
+            refDxQ = shapeDxQ * vecRef(dofm.locToGloTRI(tri,:));
+            refDyQ = shapeDyQ * vecRef(dofm.locToGloTRI(tri,:));
+        end
     else
         refQ = mySol(xQ, yQ);
-        % [refQ, refDxQ, refDyQ] = mySol(xQ, yQ);
+        if strcmp(Options.Error,'H1')
+            [refQ, refDxQ, refDyQ] = mySol(xQ, yQ);
+        end
     end
-    
+
     % Error fields
-    errQ   = solQ(:)   - refQ(:);
-    % errDxQ = solDxQ(:) - refDxQ(:);
-    % errDyQ = solDyQ(:) - refDyQ(:);
-    
+    errQ = solQ(:) - refQ(:);
+    if strcmp(Options.Error,'H1')
+        errDxQ = solDxQ(:) - refDxQ(:);
+        errDyQ = solDyQ(:) - refDyQ(:);
+    end
+
     % Error values
     normL2sol2 = normL2sol2 + weights' * (refQ .* conj(refQ)) * detJdxdu;
     errorL2sol2 = errorL2sol2 + weights' * (errQ .* conj(errQ)) * detJdxdu;
-    % normL2der2 = normL2der2 + weights' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
-    % errorL2der2 = errorL2der2 + weights' * (errDxQ .* conj(errDxQ) + errDyQ .* conj(errDyQ)) * detJdxdu;
+    if strcmp(Options.Error,'H1')
+        normL2der2 = normL2der2 + weights' * (refDxQ .* conj(refDxQ) + refDyQ .* conj(refDyQ)) * detJdxdu;
+        errorL2der2 = errorL2der2 + weights' * (errDxQ .* conj(errDxQ) + errDyQ .* conj(errDyQ)) * detJdxdu;
+    end
 end
 
-normL2 = sqrt(normL2sol2);
-errorL2 = sqrt(errorL2sol2)/normL2;
-% normH1 = sqrt(normL2sol2 + normL2der2);
-% errorH1 = sqrt(errorL2sol2 + errorL2der2)/normH1;
-
+switch Options.Error
+    case 'H1'
+        norm = sqrt(normL2sol2 + normL2der2);
+        error = sqrt(errorL2sol2 + errorL2der2)/norm;
+    otherwise % L2
+        norm = sqrt(normL2sol2);
+        error = sqrt(errorL2sol2)/norm;
+end
 end

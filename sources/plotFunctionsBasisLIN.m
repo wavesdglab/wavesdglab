@@ -8,7 +8,7 @@ function plotFunctionsBasisLIN()
 
 x = -1:0.01:1;
 nodes = [-1 -0.5 0 0.5 1];
-degree = 4;
+degree = 5;
 N = degree+1;
 
 % Monomials
@@ -40,12 +40,13 @@ box on
 % Legendre functions
 
 figure(3);
+hold off
 val = functionsLegendre(x,degree);
 plot(x,val,'Linewidth',2);
 %ylim([-1 1]);
-legend('$L_0$','$L_1$','$L_2$','$L_3$','$L_4$','Interpreter','latex','FontSize',16);
-xlabel('$u$','Interpreter','latex','FontSize',16);
-title('Legendre functions');
+%legend('$L_0$','$L_1$','$L_2$','$L_3$','$L_4$','Interpreter','latex','FontSize',16);
+%xlabel('$u$','Interpreter','latex','FontSize',16);
+%title('Legendre functions');
 box on
 
 % Lobbato functions

@@ -50,4 +50,8 @@ if(degree == 3)
     val(:,n) = 27*l1.*l2.*l3; n=n+1;
 end
 
+if(degree > 3)
+    error('Error: functionsLagrangeTRI() not available for degree P=%i', degree);
+end
+
 end

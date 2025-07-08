@@ -24,16 +24,15 @@ l3DY = 0.5 * ones(L,1);
 
 valDX = zeros(L,N);
 valDY = zeros(L,N);
-n = 1;
 
 % P1
 if(degree == 1)
     valDX(:,1) = l1DX;
     valDX(:,2) = l2DX;
     valDX(:,3) = l3DX;
-    valDY(:,4) = l1DY;
-    valDY(:,5) = l2DY;
-    valDY(:,6) = l3DY;
+    valDY(:,1) = l1DY;
+    valDY(:,2) = l2DY;
+    valDY(:,3) = l3DY;
 end
 
 % P2

@@ -6,11 +6,12 @@
 
 function val = functionsLagrangeDerLIN(x,degree)
 
+x = x(:);
+t = (1+x)/2;
+tDX = 1/2;
+
 N = degree+1;
 val = zeros(size(x,1),N);
-
-t = 1+x/2;
-tDX = 1/2;
 
 % P1
 if(degree == 1)

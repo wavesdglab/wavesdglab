@@ -5,7 +5,10 @@
 function plotFunctionsShapeLIN()
 
 x = -1:0.01:1;
-degree = 5;
+degree = 4;
+
+global Options
+Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
 
 % Shape functions
 

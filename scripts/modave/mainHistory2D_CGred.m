@@ -3,7 +3,6 @@ clear;
 
 global k h
 
-BASIS = 1;
 PREC = 0;
 tol = 1e-100;
 
@@ -11,22 +10,27 @@ tol = 1e-100;
 iMax = 300; iOut = 10;
 benchmark = 'open'; k = 15*pi; h = 1/8; degree = 5;
 run(benchmark,degree,PREC,tol,iMax,iOut);
-benchmark = 'open'; k = 30*pi; h = 1/16; degree = 5;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-
 % BENCH CAVITY
 iMax = 600; iOut = 20;
 benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/6; degree = 5;
 run(benchmark,degree,PREC,tol,iMax,iOut);
-benchmark = 'cavity'; k = (7+1/100)*sqrt(2)*pi; h = 1/7; degree = 5;
-run(benchmark,degree,PREC,tol,iMax,iOut);
-
 % BENCH WAVEGUIDE
 iMax = 900; iOut = 30;
-benchmark = 'waveguide'; k = 6*pi; h = 1/4; degree = 5;
+benchmark = 'waveguide'; k = 6*pi; h = 1/3.5; degree = 5;
 run(benchmark,degree,PREC,tol,iMax,iOut);
-benchmark = 'waveguide'; k = 12*pi; h = 1/7; degree = 5;
-run(benchmark,degree,PREC,tol,iMax,iOut);
+
+% % BENCH FREE SPACE
+% iMax = 1000; iOut = 50;
+% benchmark = 'open'; k = 15*pi; h = 1/20; degree = 3;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+% % BENCH CAVITY
+% iMax = 2000; iOut = 100;
+% benchmark = 'cavity'; k = (7+1/10)*sqrt(2)*pi; h = 1/12; degree = 3;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
+% % BENCH WAVEGUIDE
+% iMax = 4000; iOut = 200;
+% benchmark = 'waveguide'; k = 6*pi; h = 1/10; degree = 3;
+% run(benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -89,22 +93,22 @@ writematrix([rezu1 ; rezu2], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-errorNum = normErr*ones(size(error2));
-errorProj = normProjErr*ones(size(error2));
-
-figure;
-hold off
-semilogy(iterVec,error1,'DisplayName','CGNR');
-hold on
-semilogy(iterVec,error2,'DisplayName','GMRES');
-semilogy(iterVec,errorNum,'k--','DisplayName','Numerical error');
-semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
-box on;
-grid on;
-title(['CG with condensation ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
-legend('Location','southwest');
-xlabel('Iteration');
-ylabel('Relative error');
-axis([0 iMax 0.0025 1]);
+% errorNum = normErr*ones(size(error2));
+% errorProj = normProjErr*ones(size(error2));
+% 
+% figure;
+% hold off
+% semilogy(iterVec,error1,'DisplayName','CGNR');
+% hold on
+% semilogy(iterVec,error2,'DisplayName','GMRES');
+% semilogy(iterVec,errorNum,'k--','DisplayName','Numerical error');
+% semilogy(iterVec,errorProj,'k:','DisplayName','Projection error');
+% box on;
+% grid on;
+% title(['CG with condensation ' benchmark ' — k=' num2str(k/pi) 'pi — degree=' num2str(degree) ' — h=' num2str(h)]);
+% legend('Location','southwest');
+% xlabel('Iteration');
+% ylabel('Relative error');
+% axis([0 iMax 0.0025 1]);
 
 end

@@ -1,19 +1,26 @@
 clear all;
 %close all;
 
-global k h
+global k h Options
+
+Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
+%Options.Basis = 'Lagrange'; % Jacobi, Lobbato, Bernstein, Lagrange
+Options.Error = 'L2'; % L2, H1
 
 % Setup benchmark and parameters
-benchmark = 'scattering_disk';
+benchmark = 'open';
 switch benchmark
     case 'open'
-        k = 15*pi; h = 1/16;
+        k = 4*pi; h = 1/16;
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
     case 'cavity'
-        k = 7.1*sqrt(2)*pi; h = 1/10;
+        k = 7.1*sqrt(2)*pi; h = 1/25;
         %k = 7.01*sqrt(2)*pi; h = 1/15;
         tol = 1e-6; maxit = 2000; itout = 100;
+
+        k = 7.1*sqrt(2)*pi; h = 1/25;
+        tol = 1e-6; maxit = 2000; itout = 20;
     case 'waveguide'
         k = 6*pi; h = 1/8;
         %k = 12*pi; h = 1/17;
@@ -23,7 +30,7 @@ switch benchmark
         %k = 30*pi; h = 1/34;
         tol = 1e-6; maxit = 1000; itout = 50;
 end
-degree = 5;
+degree = 2;
 PREC = 0;
 
 % Build mesh and DOF manager
@@ -61,13 +68,13 @@ disp(['---------------------------------------------------------']);
 % Write and vizu solution
 % -------------------------------------------------------------------------
 
-global WRITE_FIELD_ABSOLUTE
-WRITE_FIELD_ABSOLUTE = 1;
-writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
-writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
-global PML_HIDE; PML_HIDE = 1;
-writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
-system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.pos output/mesh.msh&');
+% %global WRITE_FIELD_ABSOLUTE
+% %WRITE_FIELD_ABSOLUTE = 1;
+% writeField2D(dofm, mesh, solA, 'output/solNum.pos', "solNum");
+% writeField2D(dofm, mesh, solP, 'output/solRef.pos', "solRef");
+% %global PML_HIDE; PML_HIDE = 1;
+% writeField2D(dofm, mesh, solA-solP, 'output/errNum.pos', "errNum");
+% system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.pos output/mesh.msh&');
 
 % -------------------------------------------------------------------------
 % Compute eigenvalues/eigenvectors
@@ -99,27 +106,27 @@ system('gmsh output/mesh.msh output/solRef.pos output/solNum.pos output/errNum.p
 % Compute iterative solution
 % -------------------------------------------------------------------------
 
-% solver = 'CGNR';
-% switch solver
-%     case 'CGNR'
-%         [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-%     case 'GMRES'
-%         [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
-% end
-% 
-% figure;
-% hold off
-% semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
-% hold on
-% semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
-% semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
-% plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
-% plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
-% box on;
-% grid on;
-% legend('Location','southwest');
-% title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
-% xlim([0 maxit]);
-% ylim([0.005 1]);
-% xlabel('Iteration');
-% ylabel('Value');
+solver = 'GMRES';
+switch solver
+    case 'CGNR'
+        [resRedVec, resPhyVec, errorVec] = solverCGNRredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+    case 'GMRES'
+        [resRedVec, resPhyVec, errorVec] = solverGMRESredu_CG(mesh, dofm, sysA, tol, maxit, itout, @computeNormError2D_CG);
+end
+
+figure;
+hold off
+semilogy(0:itout:maxit,resPhyVec,'r-o','DisplayName','Relative residual (Phy)');
+hold on
+semilogy(0:itout:maxit,resRedVec,'b-','DisplayName','Relative residual (Red)');
+semilogy(0:itout:maxit,errorVec,'k','DisplayName','Relative L2-error (iterative)');
+plot([0 maxit],[errorL2 errorL2],'k--','DisplayName','Relative L2-error (direct)');
+plot([0 maxit],[errorProjL2 errorProjL2],'k:','DisplayName','Relative L2-error (projection)');
+box on;
+grid on;
+legend('Location','southwest');
+title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
+xlim([0 maxit]);
+ylim([0.005 1]);
+xlabel('Iteration');
+ylabel('Value');

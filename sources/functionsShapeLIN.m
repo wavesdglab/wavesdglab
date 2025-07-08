@@ -1,4 +1,4 @@
-% Copyright (C) 2023, CNRS, Inria, ENSTA Paris
+% Copyright (C) 2023, CNRS, Inria, ENSTA
 % See the LICENSE.txt file in the root directory for license information
 % Author: Axel Modave
 
@@ -6,23 +6,30 @@
 
 function val = functionsShapeLIN(x,degree)
 
-%val = functionsLobbato(x,degree);
-%val = functionsBernstein(x,degree);
+global Options
+switch Options.Basis
 
-N = degree+1;
-x = x(:);
-val = zeros(size(x,1),N);
-functionsKernel = functionsJacobi(x,1,1,N-2);
+    case 'Bernstein'
+        val = functionsBernstein(x,degree);
+    case 'Lagrange'
+        val = functionsLagrangeLIN(x,degree);
+    case 'Lobbato'
+        val = functionsLobbato(x,degree);
 
-% nodal modes
-val(:,1) = (1-x)/2;
-val(:,2) = (1+x)/2;
+    otherwise % Jacobi
+        N = degree+1;
+        x = x(:);
+        val = zeros(size(x,1),N);
+        functionsKernel = functionsJacobi(x,1,1,N-2);
 
-% edge modes
-for n=1:N-2
-    val(:,n+2) = val(:,1) .* val(:,2) .* functionsKernel(:,n);
+        % nodal modes
+        val(:,1) = (1-x)/2;
+        val(:,2) = (1+x)/2;
+
+        % edge modes
+        for n=1:N-2
+            val(:,n+2) = val(:,1) .* val(:,2) .* functionsKernel(:,n);
+        end
 end
-
-% val = functionsLagrangeLIN(x,degree);
 
 end

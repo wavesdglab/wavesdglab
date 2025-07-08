@@ -23,8 +23,12 @@ degreeQ = 2*dofm.degree;
 
 % Shape functions
 shapeLinQ = functionsShapeLIN(uLinQ, dofm.degree);
+size(shapeLinQ)
 shapeTriQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
+size(shapeTriQ)
 [shapeDuQ, shapeDvQ] = functionsShapeDerTRI(uTriQ, vTriQ, dofm.degree);
+size(shapeDuQ)
+size(shapeDvQ)
 
 % -------------------------------------------------------------------------
 % Volume terms

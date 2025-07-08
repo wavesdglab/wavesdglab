@@ -4,7 +4,10 @@
 
 function plotFunctionsShapeTRI()
 
-degree = 4;
+global Options
+Options.Basis = 'Lagrange'; % Jacobi, Lagrange
+
+degree = 2;
 
 r = -1:0.01:1;
 s = -1:0.01:1;
@@ -24,7 +27,7 @@ N = 3 + 3*(degree-1) + (degree-1)*(degree-2)/2;
 subplotX = ceil(N/3);
 subplotY = 3;
 
-figure(3);
+figure(1);
 title('Shape Functions');
 for n=1:size(val,2)
     C = reshape(val(:,n),size(r,2),size(s,2));
