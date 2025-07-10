@@ -3,12 +3,11 @@ clear all;
 
 global k h Options
 
-Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
-%Options.Basis = 'Lagrange'; % Jacobi, Lobbato, Bernstein, Lagrange
+Options.Basis = 'Lagrange'; % Jacobi, Lagrange
 Options.Error = 'L2'; % L2, H1
 
 % Setup benchmark and parameters
-benchmark = 'open';
+benchmark = 'cavity';
 switch benchmark
     case 'open'
         k = 4*pi; h = 1/16;
@@ -19,8 +18,8 @@ switch benchmark
         %k = 7.01*sqrt(2)*pi; h = 1/15;
         tol = 1e-6; maxit = 2000; itout = 100;
 
-        k = 7.1*sqrt(2)*pi; h = 1/25;
-        tol = 1e-6; maxit = 2000; itout = 20;
+        k = 3.01*sqrt(2)*pi; h = 1/20;
+        tol = 1e-16; maxit = 350; itout = 1;
     case 'waveguide'
         k = 6*pi; h = 1/8;
         %k = 12*pi; h = 1/17;
@@ -127,6 +126,6 @@ grid on;
 legend('Location','southwest');
 title(['CG - ' benchmark ' - ' solver ' - k=' num2str(k) ' - h=' num2str(h) ' - degree=' num2str(degree)])
 xlim([0 maxit]);
-ylim([0.005 1]);
+%ylim([0.005 1]);
 xlabel('Iteration');
 ylabel('Value');

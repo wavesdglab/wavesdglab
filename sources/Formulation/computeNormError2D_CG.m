@@ -51,14 +51,16 @@ for tri=1:mesh.numTri
 
     % Orientation
     orientation = ones(dofm.numDofPerTRI,1);
-    if(ver(1) > ver(2))
-        orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(2) > ver(3))
-        orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
-    end
-    if(ver(3) > ver(1))
-        orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+    if ~strcmp(Options.Basis,'Lagrange')
+        if(ver(1) > ver(2))
+            orientation(dofm.locEdg(1,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+        end
+        if(ver(2) > ver(3))
+            orientation(dofm.locEdg(2,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+        end
+        if(ver(3) > ver(1))
+            orientation(dofm.locEdg(3,:)) = (-1).^(0:dofm.numDofPerEdg-1);
+        end
     end
     orientation = sparse(1:dofm.numDofPerTRI, 1:dofm.numDofPerTRI, orientation);
 
