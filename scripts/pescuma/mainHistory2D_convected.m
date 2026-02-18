@@ -13,8 +13,8 @@ PREC = 1;
 
 % % Benchmark 'Convected + Plane wave'
 benchmark = 'open_convected';
-omega = 15*pi; c = 1; rho = 1; h = 1/13;
-M = 0.25; theta = pi/4; phi = pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
+omega = 25*pi; c = 1.5; rho = 1; h = 1/22;
+M = 1/6; theta = pi/4; phi = 5*pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
 run(M,benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -179,7 +179,7 @@ writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure();
+figure(6);
 hold off
 semilogy(iterVec,errorRichDG, '-xb','DisplayName','DG - Richardson'); hold on; pause(0.1);
 semilogy(iterVec,errorRichCHDG, '-xr','DisplayName','CHDG - Richardson'); hold on; pause(0.1);

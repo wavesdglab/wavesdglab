@@ -7,16 +7,16 @@ global omega k eta c rho h v0 M theta phi;
 benchmark = 'open_convected';
 switch benchmark
     case 'open_convected'
-        omega = 15*pi;
-        h = 1/13;
+        omega = 25*pi;
+        h = 1/22;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
-        c = 0.5;  
+        c = 1.5;  
         eta = rho * c;
         k = omega / c;
-        M = 0.75;           % subsonic flow: 0<=M<1
+        M = 1/6;           % subsonic flow: 0<=M<1
         theta = pi/4;
-        phi = pi/4;
+        phi = 5*pi/4;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
     case 'disk_convected'
         omega = 40;
