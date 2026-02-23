@@ -16,7 +16,6 @@ switch benchmark
     case 'open_convected'
         omega = 25*pi;
         h = 1/22;
-        tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1.5;
         k = omega / c;
@@ -28,12 +27,10 @@ switch benchmark
         omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.25; h = 1/20; % error 9.62e-03
         %omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.75; h = 1/40; % error 1.23e-02
         v0 = v0d * [cos(theta), sin(theta)];
-        tol = 1e-10; maxit = 1000; itout = 50;
         Dlambda = 2*pi*c/omega / h * (degree+1);
     case 'waveguide_convected'
         omega = 5*pi;
         h = 1/11;
-        tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
         c = 1;
         eta = rho * c;

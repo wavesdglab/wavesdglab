@@ -59,6 +59,8 @@ rhsI = zeros(3*numDofTRI,1);
 rhsG = zeros(numDofFAC,1);
 rhsH = zeros(numDofFAC,1);
 
+dofH = zeros(numDofFAC,1);
+
 TOT = 0;
 SouEl = 0;
 
@@ -273,6 +275,10 @@ for tri=1:mesh.numTri
             matHHvInv(idGloH,:) = inv(matHHel);
             rhsH(idGloH) = rhsHel;
 
+            if v0n<0
+                dofH(idGloH) = 1;
+            end
+
         else
 
             % Source terms
@@ -345,6 +351,10 @@ for tri=1:mesh.numTri
             matHHvInv(idGloH,:) = inv(matHHel);
             rhsH(idGloH) = rhsHel;
 
+            if v0n<0
+                dofH(idGloH) = 1;
+            end
+
         end
 
     end
@@ -402,6 +412,14 @@ end
 % Solve system
 % -------------------------------------------------------------------------
 
+matGH = matGH(:,dofH==1);
+matIH = matIH(:,dofH==1);
+matHI = matHI(dofH==1,:);
+matHG = matHG(dofH==1,:);
+matHH = matHH(dofH==1,dofH==1);
+matHHinv = matHHinv(dofH==1,dofH==1);
+rhsH = rhsH(dofH==1);
+
 % Matrix partition
 sysA.matII = matII;
 sysA.matIG = [matIG matIH];
@@ -433,6 +451,7 @@ sysA.rhsS = [rhsG-matGI*(matIIinv*rhsI); rhsH-matHI*(matIIinv*rhsI)];
 % Physical system
 sysA.matPhy = matII - matIG*(matGGinv*matGI) - matIH*(matHHinv*matHI);
 sysA.rhsPhy = rhsI - matIG*(matGGinv*rhsG) - matIH*(matHHinv*rhsH);
+
 
 % Compute solution
 solX = sysA.matS\sysA.rhsS;
