@@ -3,6 +3,10 @@ clear;
 
 global omega c rho h M theta phi v0
 
+global Options
+Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
+Options.Error = 'Energy';
+
 degree = 3;
 tol = 1e-100;
 iMax = 1000;
@@ -100,7 +104,7 @@ writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 % rezu = [iterVec, resRedVecHDG, resPhyVecHDG, errorRichHDG, normErrHDG*ones(size(iterVec))];
 % name = sprintf('output/historyRichardson_HDG_%s_p%i_M%g_prec%i_c_%g_rho_%g_phi_%g_theta_%g_h_%g.csv', benchmark, degree, M, PREC, c, rho, phi, theta, h);
 % writematrix([labels ; rezu], name, 'Delimiter', 'semi');
- 
+
 % % % disp('    (DG)');
 % % % [resVecDG, resPhyVecDG, errorRichDG] = solverRichardsonRedu_DG(mesh, dofm, sysDG, tol, iMax, iOut, alpha, @computeNormError2D_DG_convected, []);
 % % % rezu = [iterVec, resVecDG, resPhyVecDG, errorRichDG, normErrDG*ones(size(iterVec))];
@@ -116,7 +120,7 @@ writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp('--- Solver CGNR');
- 
+
 disp('    (CHDG)');
 [resRedVecCHDG, resPhyVecCHDG, errorCgnrCHDG] = solverCGNRredu_DG(mesh, dofm, sysCHDG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
 rezu = [iterVec, resRedVecCHDG, resPhyVecCHDG, errorCgnrCHDG, normErrCHDG*ones(size(iterVec))];
@@ -134,7 +138,7 @@ writematrix([labels ; rezu], name, 'Delimiter', 'semi');
 % rezu = [iterVec, resRedVecDG, resPhyVecDG, errorCgnrDG, normErrDG*ones(size(iterVec))];
 % name = sprintf('output/historyCGNR_DG_%s_p%i_M%g_prec%i_c_%g_rho_%g_phi_%g_theta_%g_h_%g.csv', benchmark, degree, M, PREC, c, rho, phi, theta, h);
 % writematrix([labels ; rezu], name, 'Delimiter', 'semi');
-% 
+%
 % disp('    (CG)');
 % [resRedVecCG, resPhyVecCG, errorCgnrCG] = solverCGNRredu_DG(mesh, dofm, sysCG, tol, iMax, iOut, @computeNormError2D_DG_convected, []);
 % rezu = [iterVec, resRedVecCG, resPhyVecCG, errorCgnrCG, normErrDG*ones(size(iterVec))];
