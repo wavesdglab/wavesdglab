@@ -1,7 +1,7 @@
 %close all;
 clear;
 
-global omega c rho h M theta phi v0
+global omega c rho h M theta phi v0 v0d
 
 global Options
 Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
@@ -16,18 +16,19 @@ PREC = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % Benchmark 'Convected + Plane wave'
-benchmark = 'open_convected';
-omega = 15*pi; c = 1; rho = 1; h = 1/13;
-M = 0.25; theta = pi/4; phi = pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
-run(M,benchmark,degree,PREC,tol,iMax,iOut);
+% benchmark = 'open_convected';
+% omega = 15*pi; c = 1; rho = 1; h = 1/13;
+% M = 0.25; theta = pi/4; phi = pi/4; v0 = [M*c*cos(theta), M*c*sin(theta)];
+% run(M,benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % Benchmark 'Convected + Point source'
-% benchmark = 'disk_convected';
-% omega = 40; c = 1; rho = 1; h = 1/50;
-% M = 0.75; theta = 0; v0 = [M*c*cos(theta), M*c*sin(theta)];
-% run(M,benchmark,degree,PREC,tol,iMax,iOut);
+benchmark = 'disk_convected';
+omega = 40; c = 1; rho = 1; h = 1/40;
+M = 0.75; theta = 0; v0 = [M*c*cos(theta), M*c*sin(theta)];
+v0d = M;
+run(M,benchmark,degree,PREC,tol,iMax,iOut);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
