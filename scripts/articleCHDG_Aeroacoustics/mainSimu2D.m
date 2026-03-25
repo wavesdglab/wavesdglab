@@ -24,9 +24,9 @@ switch benchmark
         phi = 5*pi/4;
         v0 = [M*c*cos(theta), M*c*sin(theta)];
     case 'disk_convected'
-        %omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.25; h = 1/20; % error 9.62e-03
+        omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.25; h = 1/20; % error 9.62e-03
         %omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.5; h = 1/20; % error   
-        omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.75; h = 1/40; % error 1.23e-02
+        %omega = 40; rho = 1; c = 1; theta = 0; v0d = 0.75; h = 1/40; % error 1.23e-02
         v0 = v0d * [cos(theta), sin(theta)];
         Dlambda = 2*pi*c/omega / h * (degree+1);
     case 'waveguide_convected'

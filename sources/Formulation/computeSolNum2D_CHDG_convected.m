@@ -261,7 +261,6 @@ for tri=1:mesh.numTri
             matGGv(idGloG,:) = matGGel;
             matGHv(idGloG,:) = matGHel;
             matGGvInv(idGloG,:) = inv(matGGel);
-            rhsG(idGloG) = rhsGel;
 
             matHIx(idGloH,:) = idGloH'*ones(1,size(idGloI,2));
             matHGx(idGloH,:) = idGloH'*ones(1,size(idGloG,2));
@@ -273,7 +272,6 @@ for tri=1:mesh.numTri
             matHGv(idGloH,:) = matHGel;
             matHHv(idGloH,:) = matHHel;
             matHHvInv(idGloH,:) = inv(matHHel);
-            rhsH(idGloH) = rhsHel;
 
             if v0n<0
                 dofH(idGloH) = 1;
@@ -291,29 +289,30 @@ for tri=1:mesh.numTri
             edgGlo = abs(mesh.mapTriToEdg(tri,fac));
             BC = edgTagToBC(mesh.tagEdg(edgGlo));
 
-            if v0n>0
+            if v0n>=0
                 matHIel = -rho*c*sqrt(v0n) * [0*matMel, tx*matMel, ty*matMel];
             else
-                rhsHel = rho*c*sqrt(-v0n) * (tx * rhsUel + ty * rhsVel);
+                rhsHel = rho*c*sqrt(-v0n) * (tx*rhsUel + ty*rhsVel);
             end
 
             % Elemental matrices/vectors (boundary condition)
             switch BC
+                case 'DIR0'
+                    matGIel = sqrt((c-v0n)/2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
                 case 'DIR'
-                    matGIel = sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = sqrt(2 * (c-v0n)) * rhsPel;
-                case 'NEU'
-                    matGIel = - sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = - rho * c * sqrt(2*(c-v0n)) * (nx*rhsUel + ny*rhsVel);
+                    matGIel = sqrt((c-v0n)/2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                    rhsGel  = sqrt(2*(c-v0n)) * rhsPel;
                 case 'NEU0'
-                    matGIel = - sqrt((c-v0n) / 2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
-                    rhsGel = 0 * rhsUel + 0 * rhsVel;
+                    matGIel = -sqrt((c-v0n)/2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                case 'NEU'
+                    matGIel = -sqrt((c-v0n)/2) * [matMel, rho*c*nx*matMel, rho*c*ny*matMel];
+                    rhsGel  = -sqrt(2*(c-v0n)) * rho*c*(nx*rhsUel + ny*rhsVel);
                 case 'ABC'
-                    matGIel = 0 * [matMel, matMel, matMel];
-                    rhsGel = 0 * rhsPel;
+                    matGIel = 0 * matGIel;
+                    rhsGel = 0 * rhsGel;
                 case 'ROB'
-                    matGIel = 0 * [matMel, matMel, matMel];
-                    rhsGel = sqrt((c-v0n) / 2) * (rhsPel - rho * c * (nx*rhsUel + ny*rhsVel));
+                    matGIel = 0 * matGIel;
+                    rhsGel = sqrt((c-v0n)/2) * (rhsPel - rho*c*(nx*rhsUel + ny*rhsVel));
                 otherwise
                     error('BAD BOUNDARY CONDITION.');
             end
