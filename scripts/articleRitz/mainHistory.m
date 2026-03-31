@@ -2,10 +2,13 @@
 clear;
 clear global;
 
-global k h
+global k h Options
+
+Options.Basis = 'Jacobi'; % Jacobi, Lagrange
+Options.Error = 'L2'; % L2, H1
 
 plotFlag = 1;
-saveSolFlag = 0;
+saveSolFlag = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
