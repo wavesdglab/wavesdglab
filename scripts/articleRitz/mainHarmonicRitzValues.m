@@ -9,7 +9,10 @@ disp(['Previous maximum number of threads ' num2str(LASTN) ]);
 disp(['Current maximum number of threads ' num2str(N) ]);
 disp(['---------------------------------------------------------']);
 
-global k h
+global k h Options
+
+Options.Basis = 'Lagrange'; % Jacobi, Lagrange
+Options.Error = 'L2'; % L2, H1
 
 
 

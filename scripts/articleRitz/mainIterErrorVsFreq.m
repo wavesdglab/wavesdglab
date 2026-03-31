@@ -2,7 +2,10 @@
 clear;
 clear global;
 
-global k h
+global k h Options
+
+Options.Basis = 'Lagrange'; % Jacobi, Lagrange
+Options.Error = 'L2'; % L2, H1
 
 plotFlag = 1;
 

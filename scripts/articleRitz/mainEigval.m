@@ -2,12 +2,17 @@
 clear;
 clear global;
 
-N=32;
+N=10;
 LASTN = maxNumCompThreads(N);
 disp(['---------------------------------------------------------']);
 disp(['Previous maximum number of threads ' num2str(LASTN) ]);
 disp(['Current maximum number of threads ' num2str(N) ]);
 disp(['---------------------------------------------------------']);
+
+global k h Options
+
+Options.Basis = 'Lagrange'; % Jacobi, Lagrange
+Options.Error = 'L2'; % L2, H1
 
 global k h
 
@@ -165,8 +170,8 @@ function run(benchmark,degree,PREC,nbEigVec,plotFlag)
 
     A = sysA.matA;
     M = sysA.matP;
-
-    [~,eigvalA] = eigs(A/M,size(A,2),'sm');
+    nbEigVal = 30;
+    [~,eigvalA] = eigs(A/M,nbEigVal,'sm');
     eigvalA = diag(eigvalA);
     eigvalA = sort(eigvalA,'descend');
     eigvalA = eigvalA(1:end);
@@ -205,7 +210,7 @@ function run(benchmark,degree,PREC,nbEigVec,plotFlag)
 
         % Deflation
 
-        [~,eigvalPA] = eigs(Pdef*A/M,size(A,2),'sm');
+        [~,eigvalPA] = eigs(Pdef*A/M,nbEigVal,'sm');
         eigvalPA = diag(eigvalPA);
         eigvalPA = sort(eigvalPA,'descend');
         eigvalPA = eigvalPA(1:end);
