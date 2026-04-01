@@ -1,6 +1,6 @@
 //Mesh.MshFileVersion = 2.2;
 
-Printf("Parameters : LdomX = %f, LdomY = %f\n", LpmlX = %f, LpmlY = %f, LdomX, LdomY, LpmlX, LpmlY);
+Printf("Parameters : LdomX = %f, LdomY = %f, LpmlX = %f, LpmlY = %f\n", LdomX, LdomY, LpmlX, LpmlY);
 
 // Points de la frontiere exterieure
 Point(1) = {-(LdomX+LpmlX), -(LdomY+LpmlY), 0, 1.0};
