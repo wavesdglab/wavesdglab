@@ -1,4 +1,4 @@
-Printf("Parameters: Rdisk = %f, Rdom = %f, Rpml = %f\n", Rdisk, Rdom, Rpml);
+Printf("Parameters: Rdisk = %f, Rdom = %f, Rpml = %f, hDisk = %f\n", Rdisk, Rdom, Rpml, hDisk);
 
 Point(0) = {0, 0, 0};
 
@@ -49,3 +49,16 @@ Physical Curve(201) = {21, 22, 23, 24}; // Exterior boundary of the layer
 Physical Surface(301) = {1};            // Domain (inside disk)
 Physical Surface(302) = {2};            // Domain (outside disk)
 Physical Surface(303) = {3};            // Layer
+
+// Mesh size field: keep a fine size over the whole disk, then coarsen outside
+Field[1] = Distance;
+Field[1].PointsList = {0};
+
+Field[2] = Threshold;
+Field[2].InField = 1;
+Field[2].SizeMin = hDisk;
+Field[2].SizeMax = 3*hDisk;
+Field[2].DistMin = Rdisk;
+Field[2].DistMax = Rdisk + 0.1*Rdisk;
+
+Background Field = 2;
