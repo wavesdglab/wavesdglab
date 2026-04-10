@@ -112,15 +112,15 @@ end
 eigenvec = matP\rhsP;
 
 
-for i=1:size(mn, 1)
-    m = mn(i, 1);
-    n = mn(i, 2);
-    filename = 'output/eigenvec' + string(m)+'*'+string(n) + '.pos';
-    fieldname = 'eigenvec' + string(m)+'*'+string(n);
-    writeField2D(dofm, mesh, eigenvec(:,i), filename, fieldname);
-    fprintf('field [%i] saved \n', i);
-    disp(['m = ' num2str(m) ', n = ' num2str(n) ', k_jm = ' num2str(kjm(m, n))]);
-end
+% for i=1:size(mn, 1)
+%     m = mn(i, 1);
+%     n = mn(i, 2);
+%     filename = 'output/eigenvec' + string(m)+'*'+string(n) + '.pos';
+%     fieldname = 'eigenvec' + string(m)+'*'+string(n);
+%     writeField2D(dofm, mesh, eigenvec(:,i), filename, fieldname);
+%     fprintf('field [%i] saved \n', i);
+%     disp(['m = ' num2str(m) ', n = ' num2str(n) ', k_jm = ' num2str(kjm(m, n))]);
+% end
 
 end
 

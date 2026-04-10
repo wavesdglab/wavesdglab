@@ -14,9 +14,7 @@ global Options
 Options.Basis = 'Jacobi'; % Jacobi, Lagrange
 Options.Error = 'L2'; % L2, H1
 
-plotFlag = 1;
-saveSolFlag = 1;
-errorFlag = 1;
+plotFlag = 0;
 
 global omega cAir cObj rhoAir rhoObj h k Rdisk Rdom Rpml PML_TYPE
 
@@ -25,7 +23,7 @@ cAir = 1.;
 cObj = 2/3.;
 rhoAir = 1.;
 rhoObj = 1.;
-h = 1/20;
+h = 1/25;
 tol = 1e-6;
 degree = 2;
 
@@ -34,7 +32,7 @@ Rdisk = 1.; Rdom = 1.2; Rpml = 4*h;
 
 figure;
 maxit = 5000; itout = 1;
-PREC = 'none'; nbEigVec=[1]; restart = 0;
+PREC = 'none'; nbEigVec=[0 1]; restart = 0;
 figure;
 run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag);
 
