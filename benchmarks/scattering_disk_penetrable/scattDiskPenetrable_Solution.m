@@ -5,7 +5,7 @@ rTab = abs(zTab);
 tTab = angle(zTab);
 
 %nEnd = floor(max(kAir,kObj)*R) + 10;
-nEnd = 30;
+nEnd = 50;
 
 % Compute functions
 
