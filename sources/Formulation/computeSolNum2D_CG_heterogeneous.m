@@ -28,7 +28,7 @@ disp('... matrix computing/assembling (volume terms) ...');
 matIv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matJv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matAv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
-% matMv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+matMv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 % matPv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
@@ -139,12 +139,12 @@ for tri=1:mesh.numTri
     matIv(iStart:iEnd,:) = dof' * ones(1,dofm.numDofPerTRI);
     matJv(iStart:iEnd,:) = ones(dofm.numDofPerTRI,1) * dof;
     matAv(iStart:iEnd,:) = matAel;
-    % matMv(iStart:iEnd,:) = matMel;
+    matMv(iStart:iEnd,:) = matMel;
     % matPv(iStart:iEnd,:) = matKel + k(tri)^2*matMel;
 
 end
 matA = sparse(matIv,matJv,matAv);
-% matM = sparse(matIv,matJv,matMv);
+matM = sparse(matIv,matJv,matMv);
 % matP = sparse(matIv,matJv,matPv);
 toc
 
@@ -254,6 +254,7 @@ sysA.rhsG = rhsA(dofG);
 % Full system
 sysA.matA = matA;
 sysA.rhsA = rhsA;
+sysA.matM = matM;
 
 % Reduced system
 % sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);
@@ -261,8 +262,8 @@ sysA.rhsA = rhsA;
 
 % Preconditionning
 if (PREC == 1)
-    sysA.matP = 1;
-    % sysA.matP = matM;
+    % sysA.matP = 1;
+    sysA.matP = matM;
     % sysA.matP = matP;
 else
     sysA.matP = 1;
