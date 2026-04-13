@@ -17,7 +17,7 @@ end
 
 mn = computeCloseEigVec_het(nbEigVec);
 
-nbEigVec = size(mn, 1);
+nbEigVec = 2*size(mn, 1);
 
 % Quadrature and shape functions
 degreeQ = 2*dofm.degree;
@@ -26,7 +26,7 @@ shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 
 % Build matrix and RHS vector
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
-rhsP = zeros(dofm.numDofTRI, size(mn, 1));
+rhsP = zeros(dofm.numDofTRI, 2*size(mn, 1));
 for tri=1:mesh.numTri
     
     % Mapping
@@ -39,7 +39,7 @@ for tri=1:mesh.numTri
     detJdxdu = abs(det(Jdxdu));
     
     % Reference solution
-    refQ = zeros(size(xQ,1), size(mn, 1));
+    refQ = zeros(size(xQ,1), 2*size(mn, 1));
 
     for i=1:size(mn, 1)
         m = mn(i, 1);
@@ -50,9 +50,11 @@ for tri=1:mesh.numTri
         meanX = mean([V1(1), V2(1), V3(1)]);
         meanY = mean([V1(2), V2(2), V3(2)]);
         if sqrt(meanX^2 + meanY^2) <= 1
-            refQ(:,i) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
+            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
+            refQ(:,2*i) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
         else
-            refQ(:,i) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
         end
         
     end

@@ -15,6 +15,7 @@ Options.Basis = 'Jacobi'; % Jacobi, Lagrange
 Options.Error = 'L2'; % L2, H1
 
 plotFlag = 0;
+generalizedFlag = 0;
 
 global omega cAir cObj rhoAir rhoObj h k Rdisk Rdom Rpml PML_TYPE
 
@@ -32,14 +33,14 @@ Rdisk = 1.; Rdom = 1.2; Rpml = 4*h;
 
 figure;
 maxit = 5000; itout = 1;
-PREC = 'none'; nbEigVec=[0 1]; restart = 0;
+PREC = 'none'; nbEigVec=[0 1 2]; restart = 0;
 figure;
-run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag);
+run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag,generalizedFlag);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run(benchmark,degree,PREC,nbEigVecList,plotFlag)
+function run(benchmark,degree,PREC,nbEigVecList,plotFlag,generalizedFlag)
 
 global omega cAir cObj rhoAir rhoObj h k
 mesh = setupBenchmark2D(benchmark);
@@ -72,7 +73,7 @@ end
 
 
 A = sysA.matA;
-M = sysA.matP;
+M = sysA.matM;
 P = speye(size(A,2));
 b = sysA.rhsA;
 
@@ -110,15 +111,26 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         Pdef = 1;
     end
 
-    [~,eigval] = eigs(Pdef*A,5,'sm');
+    [~,eigval] = eigs(Pdef*A,10,'sm');
     eigval = diag(eigval);
+    
+    if generalizedFlag
+        [~,geigval] = eigs(Pdef*A\M,10,'sm');
+        geigval = diag(geigval);
+        namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
+        writematrix(geigval, namefile, 'Delimiter', 'comma');
+    end
 
     namefile = sprintf('output/eigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
     writematrix(eigval, namefile, 'Delimiter', 'comma');
 
+
     if plotFlag
         hold on;
         plot(real(eigval),imag(eigval),'o');
+        if generalizedFlag
+            plot(real(geigval),imag(geigval),'x');
+        end
         xlabel('Re');
         ylabel('Im');
         title(sprintf('$\\sigma(\\mathbf{P}_{def}\\mathbf{A}), n_{def} = %g$', nbEigVec));
