@@ -51,10 +51,10 @@ for tri=1:mesh.numTri
         meanY = mean([V1(2), V2(2), V3(2)]);
         if sqrt(meanX^2 + meanY^2) <= 1
             refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
-            refQ(:,2*i) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
+            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
         else
             refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
-            refQ(:,2*i) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
         end
         
     end
