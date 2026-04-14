@@ -15,7 +15,7 @@ Options.Basis = 'Jacobi'; % Jacobi, Lagrange
 Options.Error = 'L2'; % L2, H1
 
 plotFlag = 0;
-generalizedFlag = 0;
+generalizedFlag = 1;
 
 global omega cAir cObj rhoAir rhoObj h k Rdisk Rdom Rpml PML_TYPE
 
@@ -96,26 +96,33 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
     if nbEigVec > 0
         switch benchmark
             case 'cavity'
-                [eigvec,nbEigVec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',omega);
+                [eigvec,nbEigVec,Meigvec] = computeProjEigVec_cavity(mesh, dofm, nbEigVec,'closestEigvec',omega);
             case 'scattering_openCavity_NEU'
-                [eigvec,nbEigVec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, omega);
+                [eigvec,nbEigVec,Meigvec] = computeProjEigVec_openCavity_NEU(mesh, dofm, nbEigVec, omega);
             case 'scattering_openCavity_DIR'
-                [eigvec,nbEigVec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, omega);
+                [eigvec,nbEigVec,Meigvec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, omega);
             case 'scattering_disk_penetrable'
-                [eigvec,nbEigVec] = computeProjEigVec_het(mesh, dofm, nbEigVec);
+                [eigvec,nbEigVec,Meigvec] = computeProjEigVec_het(mesh, dofm, nbEigVec);
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
     [~,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
+
+    if generalizedFlag
+        [~,gPdef,~,~] = computeDefOp(nbEigVec, Meigvec, A/M);
+    end
     else
         Pdef = 1;
+        if generalizedFlag
+            gPdef = 1;
+        end
     end
 
     [~,eigval] = eigs(Pdef*A,10,'sm');
     eigval = diag(eigval);
     
     if generalizedFlag
-        [~,geigval] = eigs(Pdef*A\M,10,'sm');
+        [~,geigval] = eigs(gPdef*A/M,10,'sm');
         geigval = diag(geigval);
         namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigval, namefile, 'Delimiter', 'comma');
