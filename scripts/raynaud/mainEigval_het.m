@@ -126,20 +126,35 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         end
     end
 
-    [~,eigval] = eigs(Pdef*A,10,'sm');
+    [eigvec,eigval] = eigs(Pdef*A,10,'sm');
     eigval = diag(eigval);
+    for i=1:length(eigval)
+        filename = 'output/eigvec'+string(i)+'.pos';
+        fieldname = 'eigvec'+string(i);
+        writeField2D(dofm, mesh, eigvec(:,i), filename, fieldname);
+    end
     
     if generalizedFlag
-        [~,geigval] = eigs(gPdef/M*A,10,'sm');
+        [geigvec,geigval] = eigs(gPdef/M*A,10,'sm');
         geigval = diag(geigval);
         namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigval, namefile, 'Delimiter', 'comma');
+        for i=1:length(geigval)
+            filename = 'output/geigvec'+string(i)+'.pos';
+            fieldname = 'geigvec'+string(i);
+            writeField2D(dofm, mesh, geigvec(:,i), filename, fieldname);
+        end
     end
     if generalizedPMLFlag
-        [~,geigvalPML] = eigs(gPdefPML/sysA.matMPML*A,10,'sm');
+        [geigvecPML,geigvalPML] = eigs(gPdefPML/sysA.matMPML*A,10,'sm');
         geigvalPML = diag(geigvalPML);
         namefile = sprintf('output/geigvalPML_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigvalPML, namefile, 'Delimiter', 'comma');
+        for i=1:length(geigvalPML)
+            filename = 'output/geigvecPML'+string(i)+'.pos';
+            fieldname = 'geigvecPML'+string(i);
+            writeField2D(dofm, mesh, geigvecPML(:,i), filename, fieldname);
+        end
     end
 
     namefile = sprintf('output/eigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
