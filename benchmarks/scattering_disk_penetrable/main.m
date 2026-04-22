@@ -19,7 +19,7 @@ for i=1:Npt
 end
 r = sqrt(x.^2+y.^2);
 
-p = scattDiskPenetrable_Solution(kAir,kObj,rhoAir,rhoObj,R,x,y);
+p = scattDiskPenetrable_Solution(kAir,kObj,rhoAir,rhoObj,R,x,y,'scattered');
 
 figure(1);
 pcolor(x,y,real(p));

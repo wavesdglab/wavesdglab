@@ -1,4 +1,9 @@
-function [ Val ] = scattDiskPenetrable_Solution(kAir,kObj,rhoAir,rhoObj,R,xTab,yTab)
+function [ Val ] = scattDiskPenetrable_Solution(kAir,kObj,rhoAir,rhoObj,R,xTab,yTab,varargin)
+
+solutionType = 'total';
+if ~isempty(varargin)
+    solutionType = varargin{1};
+end
 
 zTab = xTab + 1i*yTab;
 rTab = abs(zTab);
@@ -52,4 +57,8 @@ for i=1:size(xTab,1)
             Val(i,j) = ValAir(i,j) + ValInc;
         end
     end
+end
+
+if strcmpi(solutionType,'scattered')
+    Val = -Val + exp(1i*kAir*xTab);
 end
