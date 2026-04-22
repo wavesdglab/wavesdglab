@@ -29,6 +29,7 @@ matIv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matJv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matAv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 matMv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
+matMPML = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 % matPv  = zeros(mesh.numTri * dofm.numDofPerTRI, dofm.numDofPerTRI);
 rhsA = zeros(dofm.numDofTRI, 1);
 
@@ -73,6 +74,7 @@ for tri=1:mesh.numTri
     matMel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
     matKel = transpose(shapeDxQ) * (weightsQ .* shapeDxQ) + transpose(shapeDyQ) * (weightsQ .* shapeDyQ);
     matAel = (1/rho(tri)) * matKel - (k(tri)^2/rho(tri)) * matMel;
+    matMPMLel = matMel;
 
     % PML stretching (rectangular PML)
     if(~isempty(LdomX) && ~isempty(LdomY))
@@ -92,9 +94,10 @@ for tri=1:mesh.numTri
             matApml = (1/rho(tri)) * matKpml - (k(tri)^2/rho(tri)) * matMpml;
 
             % Elemental RHS vector in PML
-            rhsProj = matMel\rhsPel;
-            rhsPel = matApml * rhsProj - matAel * rhsProj;
+            % rhsProj = matMel\rhsPel;
+            % rhsPel = matApml * rhsProj - matAel * rhsProj;
             matAel = matApml;
+            matMPMLel = matMpml;
         end
     end
 
@@ -124,9 +127,10 @@ for tri=1:mesh.numTri
             matApml = (1/rho(tri)) * matKpml - (k(tri)^2/rho(tri)) * matMpml;
 
             % Elemental RHS vector in PML
-            rhsProj = matMel\rhsPel;
-            rhsPel = matApml * rhsProj - matAel * rhsProj;
+            % rhsProj = matMel\rhsPel;
+            % rhsPel = matApml * rhsProj - matAel * rhsProj;
             matAel = matApml;
+            matMPMLel = matMpml;
         end
     end
 
@@ -141,10 +145,12 @@ for tri=1:mesh.numTri
     matAv(iStart:iEnd,:) = matAel;
     matMv(iStart:iEnd,:) = matMel;
     % matPv(iStart:iEnd,:) = matKel + k(tri)^2*matMel;
+    matMPML(iStart:iEnd,:) = matMPMLel;
 
 end
 matA = sparse(matIv,matJv,matAv);
 matM = sparse(matIv,matJv,matMv);
+matMPML = sparse(matIv,matJv,matMPML);
 % matP = sparse(matIv,matJv,matPv);
 toc
 
@@ -255,6 +261,7 @@ sysA.rhsG = rhsA(dofG);
 sysA.matA = matA;
 sysA.rhsA = rhsA;
 sysA.matM = matM;
+sysA.matMPML = matMPML;
 
 % Reduced system
 % sysA.matS = sysA.matGG - sysA.matGI*(sysA.matII\sysA.matIG);

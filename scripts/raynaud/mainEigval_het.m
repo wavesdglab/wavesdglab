@@ -16,10 +16,12 @@ Options.Error = 'L2'; % L2, H1
 
 plotFlag = 0;
 generalizedFlag = 1;
+generalizedPMLFlag = 1;
 
 global omega cAir cObj rhoAir rhoObj h k Rdisk Rdom Rpml PML_TYPE
 
 omega = 16.5962645;
+% omega = 6.2;
 cAir = 1.;
 cObj = 2/3.;
 rhoAir = 1.;
@@ -35,12 +37,12 @@ figure;
 maxit = 5000; itout = 1;
 PREC = 'none'; nbEigVec=[0 1 2]; restart = 0;
 figure;
-run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag,generalizedFlag);
+run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag,generalizedFlag,generalizedPMLFlag);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run(benchmark,degree,PREC,nbEigVecList,plotFlag,generalizedFlag)
+function run(benchmark,degree,PREC,nbEigVecList,plotFlag,generalizedFlag,generalizedPMLFlag)
 
 global omega cAir cObj rhoAir rhoObj h k
 mesh = setupBenchmark2D(benchmark);
@@ -102,19 +104,25 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
             case 'scattering_openCavity_DIR'
                 [eigvec,nbEigVec,Meigvec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, omega);
             case 'scattering_disk_penetrable'
-                [eigvec,nbEigVec,Meigvec] = computeProjEigVec_het(mesh, dofm, nbEigVec);
+                [eigvec,nbEigVec,Meigvec,eigvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec);
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
     [~,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
 
     if generalizedFlag
-        [~,gPdef,~,~] = computeDefOp(nbEigVec, Meigvec, A/M);
+        [~,gPdef,~,~] = computeDefOp(nbEigVec, eigvec, M\A);
+    end
+    if generalizedPMLFlag
+        [~,gPdefPML,~,~] = computeDefOp(nbEigVec, eigvec_PML, sysA.matMPML\A);
     end
     else
         Pdef = 1;
         if generalizedFlag
             gPdef = 1;
+        end
+        if generalizedPMLFlag
+            gPdefPML = 1;
         end
     end
 
@@ -122,10 +130,16 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
     eigval = diag(eigval);
     
     if generalizedFlag
-        [~,geigval] = eigs(gPdef*A/M,10,'sm');
+        [~,geigval] = eigs(gPdef/M*A,10,'sm');
         geigval = diag(geigval);
         namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigval, namefile, 'Delimiter', 'comma');
+    end
+    if generalizedPMLFlag
+        [~,geigvalPML] = eigs(gPdefPML/sysA.matMPML*A,10,'sm');
+        geigvalPML = diag(geigvalPML);
+        namefile = sprintf('output/geigvalPML_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
+        writematrix(geigvalPML, namefile, 'Delimiter', 'comma');
     end
 
     namefile = sprintf('output/eigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);

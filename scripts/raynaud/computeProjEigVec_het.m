@@ -4,7 +4,7 @@
 
 % This function computes the nbEigVec closest eigenvectors to k for the Laplacian problem on a rectagular domain with homogeneous Neumann boundary conditions
 
-function [eigenvec,nbEigVec,rhsP,matP] = computeProjEigVec_het(mesh, dofm, nbEigVec)
+function [eigenvec,nbEigVec,rhsP,matP,eigenvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec)
 
 global edgTagToBC Options cObj
 
@@ -26,6 +26,7 @@ shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 
 % Build matrix and RHS vector
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
+matP_PML = sparse(dofm.numDofTRI, dofm.numDofTRI);
 rhsP = zeros(dofm.numDofTRI, 2*size(mn, 1));
 for tri=1:mesh.numTri
     
@@ -53,8 +54,8 @@ for tri=1:mesh.numTri
             refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
             refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
         else
-            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
-            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
         end
         
     end
@@ -80,11 +81,38 @@ for tri=1:mesh.numTri
     % Local matrix and RHS vector
     weightsQ = weightsTriQ .* detJdxdu;
     matPel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+    matP_PMLel = matPel;
     rhsPel = transpose(shapeOrQ) * (weightsQ .* refQ);
+
+    if(~isempty(Rdom))
+        rQ = sqrt(xQ.*xQ + yQ.*yQ);
+        if (mean(rQ) >= Rdom)
+            cosT = xQ./rQ;
+            sinT = yQ./rQ;
+            sigmaPml = 1./(Rpml-(rQ-Rdom));
+            sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
+            gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k(tri));
+            gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k(tri))./rQ;
+            invJacXX = (1./gammaPmlR) .* cosT.*cosT + (1./gammaPmlT) .* (sinT.*sinT);
+            invJacXY = (1./gammaPmlR) .* cosT.*sinT - (1./gammaPmlT) .* (cosT.*sinT);
+            invJacYY = (1./gammaPmlR) .* sinT.*sinT + (1./gammaPmlT) .* (cosT.*cosT);
+            detJdxdu = detJdxdu .* gammaPmlR .* gammaPmlT;
+            shapeDxQnew = invJacXX .* shapeDxQ + invJacXY .* shapeDyQ;
+            shapeDyQnew = invJacXY .* shapeDxQ + invJacYY .* shapeDyQ;
+            shapeDxQ = shapeDxQnew;
+            shapeDyQ = shapeDyQnew;
+
+            % Elemental matrices in PML
+            weightsQ = weightsTriQ .* detJdxdu;
+            matMpml = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
+            matP_PMLel = matMpml;
+        end
+    end
     
     % Assembling
     dof = dofm.locToGloTRI(tri,:);
     matP(dof,dof) = matP(dof,dof) + matPel;
+    matP_PML(dof,dof) = matP_PML(dof,dof) + matP_PMLel;
     rhsP(dof,:) = rhsP(dof,:) + rhsPel;
 
 end
@@ -107,11 +135,15 @@ if(~isempty(dofDIR))
     matP(dofDIR,:) = 0;
     matP(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
     rhsP(dofDIR,:) = 0;
+    matP_PML(:,dofDIR) = 0;
+    matP_PML(dofDIR,:) = 0;
+    matP_PML(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
 end
 
 
 % Solution
 eigenvec = matP\rhsP;
+eigenvec_PML = matP_PML\rhsP;
 
 
 % for i=1:size(mn, 1)
@@ -134,6 +166,18 @@ end
 function val = rho(x,y,m)
     h = (1./m).^(1/3);
     val = h.^(-3).*(sqrt(x.^2 + y.^2) - 1);
+end
+
+function val = rhoPML(x,y,m)
+    global omega, Rdom, Rpml
+    h = (1./m).^(1/3);
+    r = sqrt(x.^2 + y.^2);
+    if mean(r) >= Rdom
+        rprime = r - 1/(1i*omega) * log((Rpml - Rdom) ./(max(1e-10, Rpml - r)));
+    else
+        rprime = r;
+    end
+    val = h.^(-3).*(rprime - 1);
 end
 
 function z = airy_zero(k)
