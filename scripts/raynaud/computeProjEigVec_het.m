@@ -6,7 +6,7 @@
 
 function [eigenvec,nbEigVec,rhsP,matP,eigenvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec)
 
-global edgTagToBC Options cObj
+global edgTagToBC Options cObj Rdom Rpml k
 
 noptique = 1/cObj;
 
@@ -87,20 +87,20 @@ for tri=1:mesh.numTri
     if(~isempty(Rdom))
         rQ = sqrt(xQ.*xQ + yQ.*yQ);
         if (mean(rQ) >= Rdom)
-            cosT = xQ./rQ;
-            sinT = yQ./rQ;
+            % cosT = xQ./rQ;
+            % sinT = yQ./rQ;
             sigmaPml = 1./(Rpml-(rQ-Rdom));
             sigmaPmlInt = -log(1-(rQ-Rdom)/Rpml);
             gammaPmlR = ones(size(rQ)) - sigmaPml/(1i*k(tri));
             gammaPmlT = ones(size(rQ)) - sigmaPmlInt/(1i*k(tri))./rQ;
-            invJacXX = (1./gammaPmlR) .* cosT.*cosT + (1./gammaPmlT) .* (sinT.*sinT);
-            invJacXY = (1./gammaPmlR) .* cosT.*sinT - (1./gammaPmlT) .* (cosT.*sinT);
-            invJacYY = (1./gammaPmlR) .* sinT.*sinT + (1./gammaPmlT) .* (cosT.*cosT);
+            % invJacXX = (1./gammaPmlR) .* cosT.*cosT + (1./gammaPmlT) .* (sinT.*sinT);
+            % invJacXY = (1./gammaPmlR) .* cosT.*sinT - (1./gammaPmlT) .* (cosT.*sinT);
+            % invJacYY = (1./gammaPmlR) .* sinT.*sinT + (1./gammaPmlT) .* (cosT.*cosT);
             detJdxdu = detJdxdu .* gammaPmlR .* gammaPmlT;
-            shapeDxQnew = invJacXX .* shapeDxQ + invJacXY .* shapeDyQ;
-            shapeDyQnew = invJacXY .* shapeDxQ + invJacYY .* shapeDyQ;
-            shapeDxQ = shapeDxQnew;
-            shapeDyQ = shapeDyQnew;
+            % shapeDxQnew = invJacXX .* shapeDxQ + invJacXY .* shapeDyQ;
+            % shapeDyQnew = invJacXY .* shapeDxQ + invJacYY .* shapeDyQ;
+            % shapeDxQ = shapeDxQnew;
+            % shapeDyQ = shapeDyQnew;
 
             % Elemental matrices in PML
             weightsQ = weightsTriQ .* detJdxdu;
@@ -169,7 +169,7 @@ function val = rho(x,y,m)
 end
 
 function val = rhoPML(x,y,m)
-    global omega, Rdom, Rpml
+    global omega Rdom Rpml
     h = (1./m).^(1/3);
     r = sqrt(x.^2 + y.^2);
     if mean(r) >= Rdom

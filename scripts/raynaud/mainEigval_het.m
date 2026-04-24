@@ -26,7 +26,8 @@ cAir = 1.;
 cObj = 2/3.;
 rhoAir = 1.;
 rhoObj = 1.;
-h = 1/25;
+% h = 1/25;
+h = 1/10;
 tol = 1e-6;
 degree = 2;
 
@@ -34,8 +35,8 @@ PML_TYPE = 'Circular';
 Rdisk = 1.; Rdom = 1.2; Rpml = 4*h;
 
 figure;
-maxit = 5000; itout = 1;
-PREC = 'none'; nbEigVec=[0 1 2]; restart = 0;
+maxit = 5000;
+PREC = 'none'; nbEigVec=[0 1 2 4]; restart = 0;
 figure;
 run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag,generalizedFlag,generalizedPMLFlag);
 
@@ -71,13 +72,13 @@ switch PREC
 end
 
 
-[solA, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, prec);
+[~, sysA] = computeSolNum2D_CG_heterogeneous(mesh, dofm, prec);
 
 
 A = sysA.matA;
 M = sysA.matM;
 P = speye(size(A,2));
-b = sysA.rhsA;
+% b = sysA.rhsA;
 
 % invPrec = @(x) P\x;
 % switch PREC
@@ -135,7 +136,7 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
     end
     
     if generalizedFlag
-        [geigvec,geigval] = eigs(gPdef/M*A,10,'sm');
+        [geigvec,geigval] = eigs(gPdef*M\A,10,'sm');
         geigval = diag(geigval);
         namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigval, namefile, 'Delimiter', 'comma');
@@ -146,7 +147,7 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         end
     end
     if generalizedPMLFlag
-        [geigvecPML,geigvalPML] = eigs(gPdefPML/sysA.matMPML*A,10,'sm');
+        [geigvecPML,geigvalPML] = eigs(gPdefPML*sysA.matMPML\A,10,'sm');
         geigvalPML = diag(geigvalPML);
         namefile = sprintf('output/geigvalPML_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
         writematrix(geigvalPML, namefile, 'Delimiter', 'comma');
