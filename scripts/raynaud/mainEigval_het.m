@@ -105,7 +105,7 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
             case 'scattering_openCavity_DIR'
                 [eigvec,nbEigVec,Meigvec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, omega);
             case 'scattering_disk_penetrable'
-                [eigvec,nbEigVec,Meigvec,eigvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec);
+                [eigvec,nbEigVec,Meigvec,~,eigvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec);
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
