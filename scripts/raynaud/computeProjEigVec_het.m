@@ -4,7 +4,13 @@
 
 % This function computes the nbEigVec closest eigenvectors to k for the Laplacian problem on a rectagular domain with homogeneous Neumann boundary conditions
 
-function [eigenvec,nbEigVec,rhsP,matP,eigenvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec)
+% Let u (resp. u_PML) be the analytical expression of a quasimode without (resp. with) a complex stretching in the PML region, M the mass matrix without PML and M_PML the mass matrix with PML.
+% eigenvec : the projection of u on the finite element space (without M_PML)
+% eigenvec_PML : the projection of u_PML on the finite element space with M_PML
+% y = M*eigenvec
+% y_PML = M_PML*eigenvec_PML
+
+function [nbEigVec,eigenvec,eigenvec_PML,y,y_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec)
 
 global edgTagToBC Options cObj Rdom Rpml k
 
@@ -12,6 +18,9 @@ noptique = 1/cObj;
 
 if nbEigVec == 0
     eigenvec = [];
+    eigenvec_PML = [];
+    y = [];
+    y_PML = [];
     return;
 end
 
@@ -28,6 +37,7 @@ shapeQ = functionsShapeTRI(uTriQ, vTriQ, dofm.degree);
 matP = sparse(dofm.numDofTRI, dofm.numDofTRI);
 matP_PML = sparse(dofm.numDofTRI, dofm.numDofTRI);
 rhsP = zeros(dofm.numDofTRI, 2*size(mn, 1));
+rhsP_PML = zeros(dofm.numDofTRI, 2*size(mn, 1));
 for tri=1:mesh.numTri
     
     % Mapping
@@ -41,6 +51,7 @@ for tri=1:mesh.numTri
     
     % Reference solution
     refQ = zeros(size(xQ,1), 2*size(mn, 1));
+    refQ_PML = zeros(size(xQ,1), 2*size(mn, 1));
 
     for i=1:size(mn, 1)
         m = mn(i, 1);
@@ -53,9 +64,13 @@ for tri=1:mesh.numTri
         if sqrt(meanX^2 + meanY^2) <= 1
             refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
             refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
+            refQ_PML(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
+            refQ_PML(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* (airy(-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) + (1./m).^(1/3)*2.^(1./3.)*noptique*airy(1,-aj - 2.^(1./3.)*sigma(xQ,yQ,m)) ./ sqrt(noptique^2-1.) );
         else
-            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
-            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ(:,2*i) = exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rho(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ_PML(:,2*i-1) = exp(1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
+            refQ_PML(:,2*i) =  exp(-1i * m * atan2(yQ, xQ)) .* 2.^(1./3.) * (1./m).^(1/3) * airy(1,-aj) * noptique / (sqrt(noptique^2-1.)) .* exp(- rhoPML(xQ,yQ,m)/noptique * sqrt(noptique^2-1.));
         end
         
     end
@@ -83,7 +98,7 @@ for tri=1:mesh.numTri
     matPel = transpose(shapeOrQ) * (weightsQ .* shapeOrQ);
     matP_PMLel = matPel;
     rhsPel = transpose(shapeOrQ) * (weightsQ .* refQ);
-
+    rhsP_PML = transpose(shapeOrQ) * (weightsQ .* refQ_PML);
     if(~isempty(Rdom))
         rQ = sqrt(xQ.*xQ + yQ.*yQ);
         if (mean(rQ) >= Rdom)
@@ -114,7 +129,7 @@ for tri=1:mesh.numTri
     matP(dof,dof) = matP(dof,dof) + matPel;
     matP_PML(dof,dof) = matP_PML(dof,dof) + matP_PMLel;
     rhsP(dof,:) = rhsP(dof,:) + rhsPel;
-
+    rhsP_PML(dof,:) = rhsP_PML(dof,:) + rhsP_PML;
 end
 
 
@@ -135,6 +150,7 @@ if(~isempty(dofDIR))
     matP(dofDIR,:) = 0;
     matP(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
     rhsP(dofDIR,:) = 0;
+    rhsP_PML(dofDIR,:) = 0;
     matP_PML(:,dofDIR) = 0;
     matP_PML(dofDIR,:) = 0;
     matP_PML(dofDIR,dofDIR) = eye(size(dofDIR,1),size(dofDIR,1));
@@ -143,7 +159,9 @@ end
 
 % Solution
 eigenvec = matP\rhsP;
-eigenvec_PML = matP_PML\rhsP;
+eigenvec_PML = matP_PML\rhsP_PML;
+y = rhsP;
+y_PML = rhsP_PML;
 
 
 % for i=1:size(mn, 1)

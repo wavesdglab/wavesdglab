@@ -36,7 +36,7 @@ Rdisk = 1.; Rdom = 1.2; Rpml = 4*h;
 
 figure;
 maxit = 5000;
-PREC = 'none'; nbEigVec=[0 1 2 4]; restart = 0;
+PREC = 'none'; nbEigVec=[0 1 2]; restart = 0;
 figure;
 run('scattering_disk_penetrable',degree,PREC,nbEigVec,plotFlag,generalizedFlag,generalizedPMLFlag);
 
@@ -105,25 +105,29 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
             case 'scattering_openCavity_DIR'
                 [eigvec,nbEigVec,Meigvec] = computeProjEigVec_openCavity_DIR(mesh, dofm, nbEigVec, omega);
             case 'scattering_disk_penetrable'
-                [eigvec,nbEigVec,Meigvec,~,eigvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec);
+                [nbEigVec,eigvec,eigvec_PML,Meigvec,Meigvec_PML] = computeProjEigVec_het(mesh, dofm, nbEigVec);
             otherwise
                 error('Error. \n%s is not a valid benchmark for deflation', benchmark);
         end
     [~,Pdef,~,~] = computeDefOp(nbEigVec, eigvec, A);
+    [~,Pdef_PML,~,~] = computeDefOp(nbEigVec, eigvec_PML, A);
 
     if generalizedFlag
-        [~,gPdef,~,~] = computeDefOp(nbEigVec, eigvec, M\A);
+        % [~,gPdef,~,~] = computeDefOp(nbEigVec, eigvec, M\A);
+        [~,gPdef,~,~] = computeDefOp(nbEigVec, Meigvec, A/M);
     end
     if generalizedPMLFlag
-        [~,gPdefPML,~,~] = computeDefOp(nbEigVec, eigvec_PML, sysA.matMPML\A);
+        % [~,gPdefPML,~,~] = computeDefOp(nbEigVec, eigvec_PML, sysA.matMPML\A);
+        [~,gPdef_PML,~,~] = computeDefOp(nbEigVec, Meigvec_PML, A/sysA.matMPML);
     end
     else
         Pdef = 1;
+        Pdef_PML = 1;
         if generalizedFlag
             gPdef = 1;
         end
         if generalizedPMLFlag
-            gPdefPML = 1;
+            gPdef_PML = 1;
         end
     end
 
@@ -134,12 +138,25 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         fieldname = 'eigvec'+string(i);
         writeField2D(dofm, mesh, eigvec(:,i), filename, fieldname);
     end
-    
+    namefile = sprintf('output/eigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
+    writematrix([real(eigval) imag(eigval)], namefile, 'Delimiter', 'comma');
+
+    [eigvecPML,eigvalPML] = eigs(Pdef_PML*A,10,'sm');
+    eigvalPML = diag(eigvalPML);
+    for i=1:length(eigvalPML)
+        filename = 'output/eigvecPML'+string(i)+'.pos';
+        fieldname = 'eigvecPML'+string(i);
+        writeField2D(dofm, mesh, eigvecPML(:,i), filename, fieldname);
+    end
+    namefile = sprintf('output/eigvalPML_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
+    writematrix([real(eigvalPML) imag(eigvalPML)], namefile, 'Delimiter', 'comma');
+
     if generalizedFlag
-        [geigvec,geigval] = eigs(gPdef*M\A,10,'sm');
+        % [geigvec,geigval] = eigs(gPdef*M\A,10,'sm');
+        [geigvec,geigval] = eigs(gPdef*A/M,10,'sm');
         geigval = diag(geigval);
         namefile = sprintf('output/geigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
-        writematrix(geigval, namefile, 'Delimiter', 'comma');
+        writematrix([real(geigval) imag(geigval)], namefile, 'Delimiter', 'comma');
         for i=1:length(geigval)
             filename = 'output/geigvec'+string(i)+'.pos';
             fieldname = 'geigvec'+string(i);
@@ -147,10 +164,11 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         end
     end
     if generalizedPMLFlag
-        [geigvecPML,geigvalPML] = eigs(gPdefPML*sysA.matMPML\A,10,'sm');
+        % [geigvecPML,geigvalPML] = eigs(gPdef_PML*sysA.matMPML\A,10,'sm');
+        [geigvecPML,geigvalPML] = eigs(gPdef_PML*A/sysA.matMPML,10,'sm');
         geigvalPML = diag(geigvalPML);
         namefile = sprintf('output/geigvalPML_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
-        writematrix(geigvalPML, namefile, 'Delimiter', 'comma');
+        writematrix([real(geigvalPML) imag(geigvalPML)], namefile, 'Delimiter', 'comma');
         for i=1:length(geigvalPML)
             filename = 'output/geigvecPML'+string(i)+'.pos';
             fieldname = 'geigvecPML'+string(i);
@@ -158,8 +176,6 @@ for iterDeflation = 1:size(nbEigVecList(:),1)
         end
     end
 
-    namefile = sprintf('output/eigval_%s_p%i_k=%g_prec=%s_def=%g.csv', benchmark, degree, omega, PREC, nbEigVec);
-    writematrix(eigval, namefile, 'Delimiter', 'comma');
 
 
     if plotFlag
