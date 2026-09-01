@@ -4,8 +4,10 @@ high-order continuous and discontinuous Galerkin finite elements methods.
 License
 -------
 
-  WavesDGlab is copyright (C) 2023-2025, CNRS, Inria, ENSTA
+  WavesDGlab is copyright (C) 2023-2026, CNRS, Inria, ENSTA
+
   It distributed under the terms of the GNU General Public License, Version 3.
+
   Exception: Files in directory 'tools' are external contributions
   See LICENSE.txt for more information.
 
