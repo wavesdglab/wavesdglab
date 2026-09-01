@@ -12,6 +12,8 @@ rhoAir = 1.33;
 rhoObj = 0.6;
 h = 1/10;
 
+global Options
+Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
 degree = 3;
 PREC = 0;
 

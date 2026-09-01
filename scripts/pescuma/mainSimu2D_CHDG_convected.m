@@ -4,14 +4,14 @@ clear all;
 global omega k eta c rho h v0 M theta phi;
 
 % Setup benchmark and parameters
-benchmark = 'waveguide_convected';
+benchmark = 'open_convected';
 switch benchmark
     case 'open_convected'
         omega = 15*pi;
-        h = 1/9;
+        h = 1/13;
         tol = 1e-10; maxit = 1000; itout = 50;
         rho = 1;
-        c = 1;  
+        c = 0.5;  
         eta = rho * c;
         k = omega / c;
         M = 0.75;           % subsonic flow: 0<=M<1
@@ -80,10 +80,10 @@ disp('---------------------------------------------------------');
 % sysA.rhsA = sysC.rhsPhy;
 % solA = sysA.matA \ sysA.rhsA;
 
-disp('---------------------------------------------------------');
-disp('    Projection   ');
+%disp('---------------------------------------------------------');
+%disp('    Projection   ');
 solP = computeSolProjL2_2D_DG(mesh, dofm);
-disp('---------------------------------------------------------');
+%disp('---------------------------------------------------------');
 
 % Compute numerical and projection errors
 % errorL2_A = computeNormError2D_DG_convected(mesh, dofm, solA);
@@ -96,7 +96,7 @@ disp('---------------------------------------------------------');
 % disp(['    L2-Error (numSol)  DG           ' num2str(errorL2_A,'%1.2e')]);
 % disp(['    L2-Error (numSol)  HDG          ' num2str(errorL2_B,'%1.2e')]);
 disp(['    L2-Error (numSol)  CHDG         ' num2str(errorL2_C,'%1.2e')]);
-disp(['    L2-Error (projSol) Projection   ' num2str(errorProjL2,'%1.2e')]);
+%disp(['    L2-Error (projSol) Projection   ' num2str(errorProjL2,'%1.2e')]);
 disp('---------------------------------------------------------');
 
 % -------------------------------------------------------------------------
@@ -112,9 +112,10 @@ disp('---------------------------------------------------------');
 % writeField2D(dofm, mesh, solB-solP, 'output/errNumHDG.pos', "errNumHDG");
 % system('gmsh output/mesh.msh output/solHDG.pos output/solRef.pos output/errNumHDG.pos&');
 
-% writeField2D(dofm, mesh, solC, 'output/solCHDG.pos', "CHDG");
-% writeField2D(dofm, mesh, solC-solP, 'output/errNumCHDG.pos', "errNumCHDG");
-% system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
+writeField2D(dofm, mesh, solC, 'output/solCHDG.pos', "CHDG");
+%writeField2D(dofm, mesh, solC-solP, 'output/errNumCHDG.pos', "errNumCHDG");
+%system('gmsh output/mesh.msh output/solCHDG.pos output/solRef.pos output/errNumCHDG.pos&');
+system('gmsh output/mesh.msh output/solCHDG.pos&');
 
 % diff = solA - solC;
 % norm_infinity_diff = max(max(abs(solA-solC)))
