@@ -32,12 +32,12 @@ Before running the scripts, configure the path to the Gmsh installation:
 
 ## References
 
-**Hybridizable discontinuous Galerkin (HDG) solvers**
+**Hybridizable discontinuous Galerkin (HDG) methods**
 
-- A. Modave, T. Chaumont-Frelet, *A hybridizable discontinuous Galerkin method with characteristic variables for Helmholtz problems*, **Journal of Computational Physics**, 493, 112459, 2023. [DOI: 10.1016/j.jcp.2023.112459](https://doi.org/10.1016/j.jcp.2023.112459) [HAL: hal-03909368](https://hal.science/hal-03909368)
-- S. Pescuma, G. Gabard, T. Chaumont-Frelet, A. Modave, *A hybridizable discontinuous Galerkin method with transmission variables for time-harmonic acoustic problems in heterogeneous media*, **Journal of Computational Physics**, 534, 114009, 2025. [DOI: 10.1016/j.jcp.2025.114009](https://doi.org/10.1016/j.jcp.2025.114009) [HAL: hal-04821539](https://hal.science/hal-04821539)
-- S. Pescuma, G. Gabard, T. Chaumont-Frelet, A. Modave, *A HDG method with transmission variables for time-harmonic wave propagation problems with constant coefficients*, 2026. [HAL: hal-05654780](https://hal.science/hal-05654780)
+- A. Modave, T. Chaumont-Frelet, *A hybridizable discontinuous Galerkin method with characteristic variables for Helmholtz problems*, **Journal of Computational Physics**, 493, 112459, 2023. [article](https://doi.org/10.1016/j.jcp.2023.112459) [preprint](https://hal.science/hal-03909368)
+- S. Pescuma, G. Gabard, T. Chaumont-Frelet, A. Modave, *A hybridizable discontinuous Galerkin method with transmission variables for time-harmonic acoustic problems in heterogeneous media*, **Journal of Computational Physics**, 534, 114009, 2025. [article](https://doi.org/10.1016/j.jcp.2025.114009) [preprint](https://hal.science/hal-04821539)
+- S. Pescuma, G. Gabard, T. Chaumont-Frelet, A. Modave, *A HDG method with transmission variables for time-harmonic wave propagation problems with constant coefficients*, 2026. [preprint](https://hal.science/hal-05654780)
 
-**Continuous Galerkin (CG) solvers**
+**Continuous Galerkin (CG) methods**
 
-- V. Dolean, P. Marchand, A. Modave, T. Raynaud, *Convergence analysis of GMRES applied to Helmholtz problems near resonances*, 2025. [HAL: hal-05078654](https://hal.science/hal-05078654)
+- V. Dolean, P. Marchand, A. Modave, T. Raynaud, *Convergence analysis of GMRES applied to Helmholtz problems near resonances*, 2025. [preprint](https://hal.science/hal-05078654)
