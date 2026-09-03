@@ -1,5 +1,9 @@
-%close all;
+close all;
 clear;
+
+global Options
+Options.Basis = 'Jacobi';
+Options.Error = 'Energy';
 
 global k h
 
