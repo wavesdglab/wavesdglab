@@ -1,12 +1,12 @@
-%close all;
+close all;
 clear;
+
+global Options
+Options.Basis = 'Jacobi';
+Options.Error = 'Energy';
 
 global omega c rho h M theta phi v0 v0d
 global omega c rho h v0 v0d phi theta;
-
-global Options
-Options.Basis = 'Jacobi'; % Jacobi, Lobbato, Bernstein, Lagrange
-Options.Error = 'Energy';
 
 degree = 3;
 tol = 1e-100;

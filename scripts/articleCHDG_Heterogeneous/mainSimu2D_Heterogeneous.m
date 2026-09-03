@@ -1,5 +1,9 @@
+close all;
 clear;
-close;
+
+global Options
+Options.Basis = 'Jacobi';
+Options.Error = 'Energy';
 
 global omega c1 c2 rho1 rho2 h1 h2
 degree = 3;

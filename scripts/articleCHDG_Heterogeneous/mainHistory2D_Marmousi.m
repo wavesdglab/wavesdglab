@@ -1,7 +1,9 @@
-% close;
+close all;
 clear;
 
-format long e
+global Options
+Options.Basis = 'Jacobi';
+Options.Error = 'Energy';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

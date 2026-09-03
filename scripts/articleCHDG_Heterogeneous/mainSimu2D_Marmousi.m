@@ -1,5 +1,9 @@
+close all;
 clear;
-close;
+
+global Options
+Options.Basis = 'Jacobi';
+Options.Error = 'Energy';
 
 benchmark = 'geophysics_marmousi';
 
