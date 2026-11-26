@@ -55,4 +55,4 @@ It is distributed under the terms of the **GNU General Public License, Version 3
 
 **Continuous Galerkin (CG) methods**
 
-- V. Dolean, P. Marchand, A. Modave, T. Raynaud, *Convergence analysis of GMRES applied to Helmholtz problems near resonances*, 2025. [preprint](https://hal.science/hal-05078654)
+- V. Dolean, P. Marchand, A. Modave, T. Raynaud, *Convergence analysis of GMRES applied to Helmholtz problems near resonances*, **Journal of Computational and Applied Mathematics**, 495, 118292. [article](https://dx.doi.org/10.1016/j.cam.2026.118292) [preprint](https://hal.science/hal-05078654)
